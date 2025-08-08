@@ -45,7 +45,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md glass-effect border-0 shadow-2xl">
         <CardHeader className="text-center pb-8">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            ✨ 로그인
+            egtronics 게시판 로그인~
           </CardTitle>
           <CardDescription className="text-gray-600 mt-2">
             계정에 로그인하여 커뮤니티에 참여하세요
@@ -82,7 +82,7 @@ export default function LoginPage() {
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all py-3" 
               disabled={loading}
             >
-              {loading ? '로그인 중...' : '🚀 로그인'}
+              {loading ? '로그인 중...' : '로그인'}
             </Button>
           </form>
           <div className="mt-6 text-center text-sm">
