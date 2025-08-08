@@ -20,7 +20,7 @@ export function CreatePostButton() {
     <Button asChild className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all">
       <Link href="/posts/create">
         <PlusCircle className="mr-2 h-4 w-4" />
-        ✨ 글쓰기
+        게시글 작성하기
       </Link>
     </Button>
   )

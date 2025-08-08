@@ -9,21 +9,17 @@ import { Filter, X, ArrowUpDown } from 'lucide-react'
 export type SortOption = 'latest' | 'likes' | 'views'
 
 export const categories = [
-  { id: 'all', name: '전체', color: 'bg-gray-100 text-gray-700', icon: '📋' },
-  { id: 'general', name: '일반', color: 'bg-blue-100 text-blue-700', icon: '💬' },
-  { id: 'tech', name: '기술', color: 'bg-green-100 text-green-700', icon: '💻' },
-  { id: 'study', name: '스터디', color: 'bg-purple-100 text-purple-700', icon: '📚' },
-  { id: 'project', name: '프로젝트', color: 'bg-orange-100 text-orange-700', icon: '🚀' },
-  { id: 'career', name: '커리어', color: 'bg-pink-100 text-pink-700', icon: '💼' },
-  { id: 'qna', name: 'Q&A', color: 'bg-yellow-100 text-yellow-700', icon: '❓' },
-  { id: 'free', name: '자유', color: 'bg-indigo-100 text-indigo-700', icon: '🎉' }
+  { id: 'all', name: '공지사항', color: 'bg-gray-100 text-gray-700', icon: '📋' },
+  { id: 'general', name: '자유게시판', color: 'bg-blue-100 text-blue-700', icon: '💬' },
+  { id: 'tech', name: '버그 제보 / 건의 사항', color: 'bg-green-100 text-green-700', icon: '💻' },
+  { id: 'study', name: '자료실', color: 'bg-purple-100 text-purple-700', icon: '📚' },
+  { id: 'project', name: '후기 / 리뷰', color: 'bg-orange-100 text-orange-700', icon: '🚀' },
+  { id: 'career', name: '프로젝트 공유 / 개발 일지', color: 'bg-pink-100 text-pink-700', icon: '💼' },
+  { id: 'qna', name: '질문과 답변(Q&A_', color: 'bg-yellow-100 text-yellow-700', icon: '❓' },
+  { id: 'free', name: '가입인사 / 자기소개', color: 'bg-indigo-100 text-indigo-700', icon: '🎉' }
 ]
 
-const sortOptions = [
-  { value: 'latest' as SortOption, label: '최신순', icon: '⏰' },
-  { value: 'likes' as SortOption, label: '추천순', icon: '❤️' },
-  { value: 'views' as SortOption, label: '조회순', icon: '👀' }
-]
+
 
 interface CategoryFilterProps {
   selectedCategory?: string
@@ -89,31 +85,7 @@ export function CategoryFilter({
           ))}
         </div>
 
-        {/* 정렬 섹션 */}
-        <div className="border-t border-gray-200 pt-4">
-          <div className="flex items-center gap-3 mb-3">
-            <ArrowUpDown className="h-4 w-4 text-gray-600" />
-            <h4 className="font-medium text-gray-900 text-sm">정렬</h4>
-          </div>
-          <div className="flex gap-2">
-            {sortOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={activeSort === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleSortClick(option.value)}
-                className={`transition-all text-xs ${
-                  activeSort === option.value
-                    ? 'bg-gradient-to-r from-green-500 to-blue-500 text-white shadow-md'
-                    : 'hover:bg-gray-50 border-gray-200 text-gray-600'
-                }`}
-              >
-                <span className="mr-1">{option.icon}</span>
-                {option.label}
-              </Button>
-            ))}
-          </div>
-        </div>
+        
       </CardContent>
     </Card>
   )

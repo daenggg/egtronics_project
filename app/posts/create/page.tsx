@@ -13,6 +13,8 @@ import { X } from 'lucide-react'
 import { categories } from '@/components/category-filter'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { MediaUpload } from '@/components/media-upload'
+import { useToast } from '@/hooks/use-toast'
+
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState('')

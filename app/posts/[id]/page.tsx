@@ -63,8 +63,7 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // 목업 데이터
-    // mockPost에 category 필드 추가:
+
     const mockPost: Post = {
       id: params.id as string,
       title: '첫 번째 게시글입니다',
@@ -99,36 +98,6 @@ export default function PostDetailPage() {
       isBookmarked: false,
     }
 
-    const mockComments: Comment[] = [
-      {
-        id: '1',
-        content: '좋은 글 감사합니다! 앞으로도 좋은 내용 부탁드려요.',
-        author: {
-          id: '2',
-          name: '이영희',
-          avatar: '/placeholder.svg?height=32&width=32'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 15),
-        likes: 3,
-        isLiked: false
-      },
-      {
-        id: '2',
-        content: '저도 동감합니다. 개발 관련 주제들이 많았으면 좋겠어요.',
-        author: {
-          id: '3',
-          name: '박민수',
-          avatar: '/placeholder.svg?height=32&width=32'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 10),
-        likes: 1,
-        isLiked: true
-      }
-    ]
-
-    setPost(mockPost)
-    setComments(mockComments)
-    setLoading(false)
   }, [params.id])
 
   const handleLikePost = () => {

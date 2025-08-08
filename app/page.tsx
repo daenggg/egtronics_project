@@ -4,8 +4,6 @@ import { useState, Suspense } from 'react'
 import { PostList } from '@/components/post-list'
 import { CreatePostButton } from '@/components/create-post-button'
 import { CategoryFilter, SortOption } from '@/components/category-filter'
-import { CategoryStats } from '@/components/category-stats'
-import { HotPosts } from '@/components/hot-posts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -15,32 +13,39 @@ export default function HomePage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* 헤더 + 글쓰기 버튼 */}
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            📋 Notice Board
+            egtronics 게시판
           </h1>
           <p className="text-gray-600">다양한 주제로 소통하고 정보를 나누는 공간입니다</p>
         </div>
         <CreatePostButton />
       </div>
-      <HotPosts />
-      <CategoryFilter 
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        selectedSort={selectedSort}
-        onSortChange={setSelectedSort}
-      />
-      <Suspense fallback={<PostListSkeleton />}>
-        <PostList sortBy={selectedSort} />
-      </Suspense>
-      <div className="mt-8">
-        <CategoryStats />
+
+      {/* 메인 레이아웃: 왼쪽 필터, 오른쪽 게시물 */}
+      <div className="flex gap-6">
+        {/* 왼쪽 고정 카테고리 */}
+        <aside className="w-64 sticky top-24 h-fit self-start">
+          <CategoryFilter
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+        </aside>
+
+        {/* 오른쪽 게시글 목록 */}
+        <main className="flex-1">
+          <Suspense fallback={<PostListSkeleton />}>
+            <PostList sortBy={selectedSort} />
+          </Suspense>
+        </main>
       </div>
     </div>
   )
 }
 
+// 스켈레톤 UI
 function PostListSkeleton() {
   return (
     <div className="space-y-6">

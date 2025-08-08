@@ -9,7 +9,7 @@ import { Heart, MessageCircle, Eye, Bookmark } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { ReportDialog } from '@/components/report-dialog'
-import { categories, SortOption } from '@/components/category-filter'
+import { categories} from '@/components/category-filter'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
@@ -38,11 +38,8 @@ interface Post {
   tags: string[]
 }
 
-interface PostListProps {
-  sortBy?: SortOption
-}
 
-export function PostList({ sortBy = 'latest' }: PostListProps) {
+export function PostList() {
   const [posts, setPosts] = useState<Post[]>([])
   const { toast } = useToast()
   const { user } = useAuth()
@@ -77,7 +74,7 @@ export function PostList({ sortBy = 'latest' }: PostListProps) {
       },
       {
         id: '2',
-        title: 'React 개발 팁 공유',
+        title: 'React  공유',
         content: 'React 개발을 하면서 유용한 팁들을 공유하고 싶습니다. 특히 성능 최적화에 대해서...',
         category: 'tech',
         media: [
@@ -150,85 +147,6 @@ export function PostList({ sortBy = 'latest' }: PostListProps) {
         views: 789, // 가장 높은 조회수
         tags: ['취업', '면접', '경험담']
       },
-      {
-        id: '5',
-        title: 'TypeScript 질문있습니다',
-        content: 'TypeScript에서 제네릭 타입을 사용할 때 궁금한 점이 있어서 질문드립니다.',
-        category: 'qna',
-        media: [
-          {
-            id: '5',
-            type: 'image',
-            url: '/typescript-logo.png',
-            thumbnail: '/typescript-logo.png'
-          }
-        ],
-        isBookmarked: false,
-        author: {
-          id: '5',
-          name: '최민호',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 12), // 12시간 전
-        likes: 6,
-        comments: 9,
-        views: 89,
-        tags: ['TypeScript', '질문']
-      },
-      {
-        id: '6',
-        title: '새로운 프로젝트 아이디어 공유',
-        content: '최근에 생각해낸 흥미로운 프로젝트 아이디어가 있어서 공유하고 싶습니다.',
-        category: 'project',
-        media: [],
-        isBookmarked: false,
-        author: {
-          id: '6',
-          name: '한창의',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 10), // 10분 전 (가장 최신)
-        likes: 3,
-        comments: 1,
-        views: 23,
-        tags: ['프로젝트', '아이디어']
-      },
-      {
-        id: '7',
-        title: 'Vue.js vs React 비교',
-        content: '두 프레임워크의 장단점을 비교해보았습니다.',
-        category: 'tech',
-        media: [],
-        isBookmarked: false,
-        author: {
-          id: '7',
-          name: '최개발',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1일 전
-        likes: 15,
-        comments: 8,
-        views: 120,
-        tags: ['Vue', 'React', '비교']
-      },
-      {
-        id: '8',
-        title: '코딩테스트 준비 방법',
-        content: '효율적인 코딩테스트 준비 방법을 공유합니다.',
-        category: 'study',
-        media: [],
-        isBookmarked: false,
-        author: {
-          id: '8',
-          name: '박알고',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 36), // 1.5일 전
-        likes: 22,
-        comments: 14,
-        views: 180,
-        tags: ['코딩테스트', '알고리즘']
-      }
     ]
     setPosts(mockPosts)
   }, [])
@@ -237,20 +155,6 @@ export function PostList({ sortBy = 'latest' }: PostListProps) {
     return categories.find(cat => cat.id === categoryId) || categories[0]
   }
 
-  const sortPosts = (posts: Post[], sortOption: SortOption): Post[] => {
-    const sortedPosts = [...posts]
-    
-    switch (sortOption) {
-      case 'latest':
-        return sortedPosts.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      case 'likes':
-        return sortedPosts.sort((a, b) => b.likes - a.likes)
-      case 'views':
-        return sortedPosts.sort((a, b) => b.views - a.views)
-      default:
-        return sortedPosts
-    }
-  }
 
   const handleBookmark = (postId: string) => {
     if (!user) {
@@ -276,11 +180,11 @@ export function PostList({ sortBy = 'latest' }: PostListProps) {
     })
   }
 
-  const sortedPosts = sortPosts(posts, sortBy)
+
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-      {sortedPosts.map((post, index) => (
+      {posts.map((post, index) => (
         <Card
           key={post.id}
           className="group relative overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 rounded-2xl h-fit"
@@ -352,22 +256,6 @@ export function PostList({ sortBy = 'latest' }: PostListProps) {
                   {getCategoryInfo(post.category).name}
                 </Badge>
               </div>
-
-              {/* HOT/VIRAL 배지 */}
-              {sortBy === 'likes' && post.likes > 50 && (
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                    🔥 HOT
-                  </Badge>
-                </div>
-              )}
-              {sortBy === 'views' && post.views > 400 && (
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                    👀 VIRAL
-                  </Badge>
-                </div>
-              )}
             </div>
           </div>
 
@@ -402,12 +290,6 @@ export function PostList({ sortBy = 'latest' }: PostListProps) {
               {/* 액션 버튼들 */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-200/50">
                 <div className="flex items-center space-x-3">
-                  <div className={`flex items-center space-x-1 text-sm transition-colors cursor-pointer ${
-                    sortBy === 'likes' ? 'text-red-500 font-bold' : 'text-gray-600 hover:text-red-500'
-                  }`}>
-                    <Heart className="h-4 w-4" />
-                    <span>{post.likes}</span>
-                  </div>
                   <div className="flex items-center space-x-1 text-sm text-gray-600 hover:text-blue-500 transition-colors cursor-pointer">
                     <MessageCircle className="h-4 w-4" />
                     <span>{post.comments}</span>
