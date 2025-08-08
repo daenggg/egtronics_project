@@ -269,24 +269,6 @@ export function PostList() {
                 </CardTitle>
               </Link>
 
-              {/* 태그 */}
-              <div className="flex flex-wrap gap-1">
-                {post.tags.slice(0, 2).map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="secondary"
-                    className="text-xs bg-blue-50 text-blue-600 border-0 px-2 py-0.5 rounded-full"
-                  >
-                    #{tag}
-                  </Badge>
-                ))}
-                {post.tags.length > 2 && (
-                  <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-500 border-0 px-2 py-0.5 rounded-full">
-                    +{post.tags.length - 2}
-                  </Badge>
-                )}
-              </div>
-
               {/* 액션 버튼들 */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-200/50">
                 <div className="flex items-center space-x-3">

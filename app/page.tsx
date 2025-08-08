@@ -2,14 +2,16 @@
 
 import { useState, Suspense } from 'react'
 import { PostList } from '@/components/post-list'
-import { CreatePostButton } from '@/components/create-post-button'
-import { CategoryFilter, SortOption } from '@/components/category-filter'
+import { CategoryFilter} from '@/components/category-filter'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import Profile from '@/components/ui/profile'
+
+
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('all')
-  const [selectedSort, setSelectedSort] = useState<SortOption>('latest')
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -21,25 +23,22 @@ export default function HomePage() {
           </h1>
           <p className="text-gray-600">다양한 주제로 소통하고 정보를 나누는 공간입니다</p>
         </div>
-        <CreatePostButton />
+
       </div>
 
       {/* 메인 레이아웃: 왼쪽 필터, 오른쪽 게시물 */}
       <div className="flex gap-6">
         {/* 왼쪽 고정 카테고리 */}
         <aside className="w-64 sticky top-24 h-fit self-start">
+          <div className="mb-6">
+            <Profile />
+            </div>
           <CategoryFilter
             selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
           />
         </aside>
 
-        {/* 오른쪽 게시글 목록 */}
-        <main className="flex-1">
-          <Suspense fallback={<PostListSkeleton />}>
-            <PostList sortBy={selectedSort} />
-          </Suspense>
-        </main>
+
       </div>
     </div>
   )

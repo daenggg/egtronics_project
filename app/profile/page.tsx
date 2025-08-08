@@ -18,7 +18,6 @@ export default function ProfilePage() {
   const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [name, setName] = useState(user?.name || '')
-  const [bio, setBio] = useState('안녕하세요! 개발을 좋아하는 사용자입니다.')
 
   if (!user) {
     return <div className="container mx-auto px-4 py-8">로그인이 필요합니다.</div>
@@ -111,15 +110,7 @@ export default function ProfilePage() {
                       onChange={(e) => setName(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">소개</Label>
-                    <Textarea
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                  </div>
+
                 </>
               ) : (
                 <>
@@ -127,7 +118,6 @@ export default function ProfilePage() {
                     <h2 className="text-2xl font-bold">{name}</h2>
                     <p className="text-muted-foreground">{user.email}</p>
                   </div>
-                  <p className="text-sm">{bio}</p>
                 </>
               )}
               <div className="flex space-x-4 text-sm text-muted-foreground">

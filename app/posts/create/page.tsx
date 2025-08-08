@@ -122,32 +122,8 @@ export default function CreatePostPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="tags">태그</Label>
-              <Input
-                id="tags"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleAddTag}
-                placeholder="태그를 입력하고 Enter를 누르세요"
-              />
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {tags.map((tag) => (
-                    <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <X
-                        className="h-3 w-3 cursor-pointer"
-                        onClick={() => removeTag(tag)}
-                      />
-                    </Badge>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            <div className="space-y-2">
               <Label>미디어 파일</Label>
-              <MediaUpload onFilesChange={setMedia} maxFiles={5} />
+              <MediaUpload onFilesChange={setMedia} maxFiles={1} />
             </div>
             
             <div className="flex justify-end space-x-2">
