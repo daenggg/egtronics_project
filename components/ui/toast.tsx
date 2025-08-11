@@ -16,9 +16,10 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
+      "fixed top-4 left-1/2 z-[100] flex max-h-screen w-auto -translate-x-1/2 flex-col p-4",
       className
-    )}
+)}
+
     {...props}
   />
 ))
@@ -62,9 +63,9 @@ const ToastAction = React.forwardRef<
   <ToastPrimitives.Action
     ref={ref}
     className={cn(
-      "inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-white px-3 text-sm font-medium ring-offset-background transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 group-[.destructive]:hover:border-destructive/30 group-[.destructive]:hover:bg-white group-[.destructive]:hover:text-destructive-foreground group-[.destructive]:focus:ring-destructive",
-      className
-    )}
+      "inline-flex h-8 shrink-0 items-center justify-center rounded-lg bg-gray-100 px-4 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:bg-red-100 group-[.destructive]:hover:bg-red-200 group-[.destructive]:text-red-600 group-[.destructive]:focus:ring-red-500",className
+)}
+
     {...props}
   />
 ))

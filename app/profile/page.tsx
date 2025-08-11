@@ -172,7 +172,7 @@ export default function ProfilePage() {
                 </>
               ) : (
                 <>
-                  <h2 className="text-2xl font-bold">{nickname}</h2>
+                  <h2 className="text-2xl font-bold"> {nickname}</h2>
                   <p>이름: {name}</p>
                   <p className="text-muted-foreground">이메일: {email}</p>
                   <p>전화번호: {phone}</p>

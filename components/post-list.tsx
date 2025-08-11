@@ -48,114 +48,27 @@ export function PostList({ selectedCategory }: PostListProps) {
   const { user } = useAuth()
 
   useEffect(() => {
-    const mockPosts: Post[] = [
-      {
-        id: '1',
-        title: '첫 번째 게시글입니다',
-        content: '안녕하세요! 이것은 첫 번째 게시글의 내용입니다. 여러분의 의견을 듣고 싶습니다.',
-        category: 'general',
-        media: [
-          {
-            id: '1',
-            type: 'image',
-            url: '/beautiful-landscape.png',
-            thumbnail: '/beautiful-landscape.png'
-          }
-        ],
-        isBookmarked: false,
-        author: {
-          id: '1',
-          name: '김철수',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 30),
-        likes: 12,
-        comments: 5,
-        views: 45,
-        tags: ['일반', '인사']
-      },
-      {
-        id: '2',
-        title: 'React  공유',
-        content: 'React 개발을 하면서 유용한 팁들을 공유하고 싶습니다. 특히 성능 최적화에 대해서...',
-        category: 'tech',
-        media: [
-          {
-            id: '2',
-            type: 'image',
-            url: '/react-logo-abstract.png',
-            thumbnail: '/react-logo-abstract.png'
-          }
-        ],
-        isBookmarked: false,
-        author: {
-          id: '2',
-          name: '이영희',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        likes: 89,
-        comments: 12,
-        views: 456,
-        tags: ['개발', 'React', '팁']
-      },
-      {
-        id: '3',
-        title: '주말 스터디 모임 제안',
-        content: '이번 주말에 스터디 모임을 가져보면 어떨까요? 관심 있으신 분들은 댓글로 의견 남겨주세요.',
-        category: 'study',
-        media: [
-          {
-            id: '3',
-            type: 'image',
-            url: '/focused-study-session.png',
-            thumbnail: '/focused-study-session.png'
-          }
-        ],
-        isBookmarked: false,
-        author: {
-          id: '3',
-          name: '박민수',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
-        likes: 8,
-        comments: 3,
-        views: 67,
-        tags: ['모임', '스터디']
-      },
-      {
-        id: '4',
-        title: '프론트엔드 개발자 취업 후기',
-        content: '최근에 프론트엔드 개발자로 취업에 성공했습니다. 취업 준비 과정과 면접 경험을 공유드립니다.',
-        category: 'career',
-        media: [
-          {
-            id: '4',
-            type: 'image',
-            url: '/career-path.png',
-            thumbnail: '/career-path.png'
-          }
-        ],
-        isBookmarked: false,
-        author: {
-          id: '4',
-          name: '정수진',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-        likes: 67,
-        comments: 18,
-        views: 789,
-        tags: ['취업', '면접', '경험담']
-      },
-    ]
-
-    if (!selectedCategory) {
-      setPosts(mockPosts)
-    } else {
-      setPosts(mockPosts.filter(post => post.category === selectedCategory))
+    const controller = new AbortController()
+    const fetchPosts = async () => {
+      try {
+        const params = selectedCategory ? `?category=${encodeURIComponent(selectedCategory)}` : ''
+        const res = await fetch(`/api/posts${params}`, { signal: controller.signal })
+        if (!res.ok) throw new Error('Failed to fetch posts')
+        const data = await res.json()
+        const normalized: Post[] = (data as any[]).map((p) => ({
+          ...p,
+          createdAt: new Date(p.createdAt),
+        }))
+        setPosts(normalized)
+      } catch (err) {
+        if ((err as any)?.name === 'AbortError') return
+        console.error(err)
+        setPosts([])
+      }
     }
+
+    fetchPosts()
+    return () => controller.abort()
   }, [selectedCategory])
 
   const getCategoryInfo = (categoryId: string) => {

@@ -84,9 +84,9 @@ export function ReportDialog({ type, targetId, children }: ReportDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-600">
+          <DialogTitle className="flex bg-white items-center gap-2 text-red-600">
             <AlertTriangle className="h-5 w-5" />
             {type === 'post' ? '게시글' : '댓글'} 신고하기
           </DialogTitle>

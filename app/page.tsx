@@ -9,8 +9,9 @@ import Profile from '@/components/ui/profile'
 
 
 
+
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState('all')
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
 
 
   return (
@@ -33,12 +34,12 @@ export default function HomePage() {
           <div className="mb-6">
             <Profile />
             </div>
-          <CategoryFilter
-            selectedCategory={selectedCategory}
-          />
+            <CategoryFilter 
+            selectedCategory={selectedCategory} 
+            onCategoryChange={setSelectedCategory} 
+            />
         </aside>
-
-
+        <PostList selectedCategory={selectedCategory} />
       </div>
     </div>
   )

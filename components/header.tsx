@@ -18,7 +18,7 @@ export function Header() {
   const { user, logout } = useAuth()
   const [notifications, setNotifications] = useState([
     { id: '1', message: '새 댓글이 달렸습니다.', read: false },
-    { id: '2', message: '새 친구 요청이 도착했습니다.', read: true },
+    { id: '2', message: '게시글에 좋아요가 달렸습니다.', read: true },
     { id: '3', message: '게시글이 스크랩 되었습니다.', read: false },
   ])
 
@@ -70,13 +70,7 @@ export function Header() {
                       스크랩
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings">
-                      <Settings className="mr-2 h-4 w-4" />
-                      설정
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     로그아웃

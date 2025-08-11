@@ -101,8 +101,11 @@ export default function RegisterPage() {
         <ScrollArea className="h-[500px]">
           <form onSubmit={handleSubmit} className="space-y-6">
         <CardHeader className="text-center pb-8">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            egtronics 게시판 회원가입
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+            egtronics 오늘의 게시판
+          </CardTitle>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-400 bg-gradient-to-r bg-clip-text text-transparent">
+            회원가입
           </CardTitle>
           <CardDescription className="text-gray-600 mt-2">
             새 계정을 생성하여 커뮤니티에 참여하세요

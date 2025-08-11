@@ -63,41 +63,30 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-
-    const mockPost: Post = {
-      id: params.id as string,
-      title: '첫 번째 게시글입니다',
-      content: `안녕하세요! 이것은 첫 번째 게시글의 상세 내용입니다.
-
-여러분의 의견을 듣고 싶습니다. 이 게시판에서 어떤 주제들을 다루면 좋을지, 그리고 어떤 기능들이 더 필요한지 알려주세요.
-
-앞으로 더 좋은 콘텐츠로 찾아뵙겠습니다!`,
-      category: 'general',
-      author: {
-        id: '1',
-        name: '김철수',
-        avatar: '/placeholder.svg?height=40&width=40'
-      },
-      createdAt: new Date(Date.now() - 1000 * 60 * 30),
-      likes: 12,
-      isLiked: false,
-      views: 45,
-      tags: ['일반', '인사'],
-      media: [
-        {
-          id: '1',
-          type: 'image',
-          url: '/serene-forest-stream.png'
-        },
-        {
-          id: '2',
-          type: 'video',
-          url: '/video-thumbnail.png'
+    const controller = new AbortController()
+    const fetchPost = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/posts/${String(params.id)}`, { signal: controller.signal })
+        if (!res.ok) throw new Error('Failed to fetch post')
+        const data = await res.json()
+        const normalized: Post = {
+          ...data,
+          createdAt: new Date(data.createdAt),
         }
-      ],
-      isBookmarked: false,
+        setPost(normalized)
+        setComments([])
+      } catch (err) {
+        if ((err as any)?.name !== 'AbortError') {
+          console.error(err)
+          setPost(null)
+        }
+      } finally {
+        setLoading(false)
+      }
     }
-
+    fetchPost()
+    return () => controller.abort()
   }, [params.id])
 
   const handleLikePost = () => {

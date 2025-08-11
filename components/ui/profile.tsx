@@ -32,8 +32,7 @@ export default function Profile() {
             <CreatePostButton />
           </>
         ) : (
-          <p>비회원입니다.<br/>로그인 또는 회원가입을 
-해주세요.</p>
+          <p>비회원입니다.<br/>로그인 또는 회원가입을 해주세요.</p>
         )}
       </div>
     </div>

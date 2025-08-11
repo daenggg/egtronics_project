@@ -44,8 +44,11 @@ export default function LoginPage() {
     <div className="container mx-auto px-4 py-8 flex justify-center min-h-[80vh] items-center">
       <Card className="w-full max-w-md glass-effect border-0 shadow-2xl">
         <CardHeader className="text-center pb-8">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            egtronics 게시판 로그인
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
+            egtronics 오늘의 게시판
+          </CardTitle>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-400 bg-gradient-to-r bg-clip-text text-transparent">
+            로그인
           </CardTitle>
           <CardDescription className="text-gray-600 mt-2">
             계정에 로그인하여 커뮤니티에 참여하세요
