@@ -6,14 +6,16 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Filter } from 'lucide-react'
 
 export const categories = [
-  { id: 'announcement', name: '공지사항', color: 'bg-gray-100 text-gray-700', icon: '📋' },
-  { id: 'general', name: '자유게시판', color: 'bg-blue-100 text-blue-700', icon: '💬' },
-  { id: 'tech', name: '버그 제보 / 건의 사항', color: 'bg-green-100 text-green-700', icon: '💻' },
-  { id: 'study', name: '자료실', color: 'bg-purple-100 text-purple-700', icon: '📚' },
-  { id: 'project', name: '후기 / 리뷰', color: 'bg-orange-100 text-orange-700', icon: '🚀' },
-  { id: 'career', name: '프로젝트 공유 / 개발 일지', color: 'bg-pink-100 text-pink-700', icon: '💼' },
-  { id: 'qna', name: '질문과 답변(Q&A)', color: 'bg-yellow-100 text-yellow-700', icon: '❓' },
-  { id: 'free', name: '가입인사 / 자기소개', color: 'bg-indigo-100 text-indigo-700', icon: '🎉' }
+  { id: 'announcement', name: '공지사항', color: '', icon: '📋' },
+  { id: 'general', name: '자유게시판', color: '', icon: '💬' },
+  { id: 'tech', name: '버그 제보 / 건의 사항', color: '', icon: '💻' },
+  { id: 'study', name: '자료실', color: '', icon: '📚' },
+  { id: 'project', name: '후기 / 리뷰', color: '', icon: '🚀' },
+  { id: 'career', name: '프로젝트 공유 / 개발 일지', color: '', icon: '💼' },
+  { id: 'qna', name: '질문과 답변(Q&A)',color: '', icon: '❓' },
+  { id: 'free', name: '가입인사 / 자기소개', color: '', icon: '🎉' },
+  { id: 'scrap', name: '스크랩 모아보기', color: '', icon: '🔖' }
+
 ]
 
 interface CategoryFilterProps {
@@ -34,12 +36,11 @@ export function CategoryFilter({
   }
 
   return (
-    <Card className="mb-6 glass-effect border-0 shadow-lg">
-      <CardContent className="pt-6">
+    <Card className="mb-2 border-0 shadow-none">
+      <CardContent className="pt-2">
         {/* 카테고리 섹션 */}
-        <div className="flex items-center gap-3 mb-4">
-          <Filter className="h-5 w-5 text-gray-600" />
-          <h3 className="font-semibold text-gray-900">카테고리</h3>
+        <div className="flex items-center gap-1 mb-4">
+          <h3 className="font-semibold text-gray-900">Category</h3>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
           {categories.map((category) => {
@@ -47,12 +48,12 @@ export function CategoryFilter({
             return (
               <Button
                 key={category.id}
-                variant={isActive ? "default" : "outline"}
+                variant={isActive ? "default" : "shadow-none"}
                 size="sm"
                 onClick={() => handleCategoryClick(category.id)}
                 className={`transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-lg'
                     : `hover:${category.color.replace('text-', 'bg-').replace('100', '50')} ${category.color} border-gray-200`
                 }`}
               >

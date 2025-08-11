@@ -19,7 +19,7 @@ export function Header() {
   return (
     <header className="glass-effect sticky top-0 z-50 border-b backdrop-blur-md">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <Link href="/" className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
           홈으로
         </Link>
         

@@ -1,33 +1,40 @@
 "use client"
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { CreatePostButton } from '@/components/create-post-button'
+import { Button } from '@/components/ui/button'
+import { useAuth } from '@/contexts/auth-context'  // 예: auth context에서 user 정보 가져오기
 
 export default function Profile() {
+  const router = useRouter()
+  const { user } = useAuth()  // 로그인 상태 정보 가져오기
+
   return (
     <div className="w-48 h-56 p-4 border rounded-2xl flex flex-col items-center justify-center gap-4">
       {/* 프로필 이미지 원 */}
-      <div className="w-20 h-20 rounded-full border border-gray-400 flex items-center justify-center overflow-hidden">
-        {/* 실제 이미지가 있다면 <img> 태그로 교체 */}
-        <div className="w-14 h-14 bg-gray-300 rounded-full"></div>
+      <div className="w-14 aspect-square rounded-full border border-gray-400 flex items-center justify-center overflow-hidden">
+        <div className="w-14 aspect-square bg-gray-300 rounded-full"></div>
       </div>
 
       {/* 이름과 숫자 */}
       <div className="text-center text-gray-700 font-medium">
-        인턴<span className="text-sm text-gray-500">(1)</span>
+        {user ? user.name : '비회원'}
       </div>
 
-      {/* 버튼 그룹 */}
-      <div className="flex flex-col gap-2 w-full">
-        <button
-          className="bg-gray-400 text-white rounded-md py-2 cursor-not-allowed"
-          disabled
-        >
-          내 정보 수정하기
-        </button>
-
-        {/* 로그인 여부에 따라 다른 버튼 보여줌 */}
-        <CreatePostButton />
+      {/* 버튼 그룹 또는 로그인 안내 문구 */}
+      <div className="flex flex-col gap-2 w-full text-center text-gray-600">
+        {user ? (
+          <>
+            <Button variant="white" onClick={() => router.push('/profile')}>
+              내 정보 수정하기
+            </Button>
+            <CreatePostButton />
+          </>
+        ) : (
+          <p>비회원입니다.<br/>로그인 또는 회원가입을 
+해주세요.</p>
+        )}
       </div>
     </div>
   )

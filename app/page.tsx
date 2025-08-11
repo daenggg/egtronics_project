@@ -18,8 +18,8 @@ export default function HomePage() {
       {/* 헤더 + 글쓰기 버튼 */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-            egtronics 게시판
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
+            egtronics 오늘의 게시판
           </h1>
           <p className="text-gray-600">다양한 주제로 소통하고 정보를 나누는 공간입니다</p>
         </div>

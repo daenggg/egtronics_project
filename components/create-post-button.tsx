@@ -8,13 +8,6 @@ import Link from 'next/link'
 export function CreatePostButton() {
   const { user } = useAuth()
 
-  if (!user) {
-    return (
-      <Button asChild variant="outline" className="hover:bg-blue-50 border-blue-200 text-blue-600">
-        <Link href="/login">로그인 후 글쓰기</Link>
-      </Button>
-    )
-  }
 
   return (
     <Button asChild className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all">
