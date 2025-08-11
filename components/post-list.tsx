@@ -5,11 +5,11 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Heart, MessageCircle, Eye, Bookmark } from 'lucide-react'
+import { MessageCircle, Eye, Bookmark } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { ReportDialog } from '@/components/report-dialog'
-import { categories} from '@/components/category-filter'
+import { categories } from '@/components/category-filter'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
@@ -38,14 +38,16 @@ interface Post {
   tags: string[]
 }
 
+interface PostListProps {
+  selectedCategory: string | null
+}
 
-export function PostList() {
+export function PostList({ selectedCategory }: PostListProps) {
   const [posts, setPosts] = useState<Post[]>([])
   const { toast } = useToast()
   const { user } = useAuth()
 
   useEffect(() => {
-    // 목업 데이터 - 다양한 통계를 가진 게시물들
     const mockPosts: Post[] = [
       {
         id: '1',
@@ -66,7 +68,7 @@ export function PostList() {
           name: '김철수',
           avatar: '/placeholder.svg?height=40&width=40'
         },
-        createdAt: new Date(Date.now() - 1000 * 60 * 30), // 30분 전
+        createdAt: new Date(Date.now() - 1000 * 60 * 30),
         likes: 12,
         comments: 5,
         views: 45,
@@ -91,10 +93,10 @@ export function PostList() {
           name: '이영희',
           avatar: '/placeholder.svg?height=40&width=40'
         },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2시간 전
-        likes: 89, // 높은 좋아요 수
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
+        likes: 89,
         comments: 12,
-        views: 456, // 높은 조회수
+        views: 456,
         tags: ['개발', 'React', '팁']
       },
       {
@@ -116,7 +118,7 @@ export function PostList() {
           name: '박민수',
           avatar: '/placeholder.svg?height=40&width=40'
         },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5시간 전
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5),
         likes: 8,
         comments: 3,
         views: 67,
@@ -141,20 +143,24 @@ export function PostList() {
           name: '정수진',
           avatar: '/placeholder.svg?height=40&width=40'
         },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8시간 전
-        likes: 67, // 높은 좋아요 수
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
+        likes: 67,
         comments: 18,
-        views: 789, // 가장 높은 조회수
+        views: 789,
         tags: ['취업', '면접', '경험담']
       },
     ]
-    setPosts(mockPosts)
-  }, [])
+
+    if (!selectedCategory) {
+      setPosts(mockPosts)
+    } else {
+      setPosts(mockPosts.filter(post => post.category === selectedCategory))
+    }
+  }, [selectedCategory])
 
   const getCategoryInfo = (categoryId: string) => {
     return categories.find(cat => cat.id === categoryId) || categories[0]
   }
-
 
   const handleBookmark = (postId: string) => {
     if (!user) {
@@ -166,12 +172,13 @@ export function PostList() {
       return
     }
 
-    setPosts(prev => prev.map(post =>
-      post.id === postId ? {
-        ...post,
-        isBookmarked: !post.isBookmarked
-      } : post
-    ))
+    setPosts(prev =>
+      prev.map(post =>
+        post.id === postId
+          ? { ...post, isBookmarked: !post.isBookmarked }
+          : post
+      )
+    )
 
     const post = posts.find(p => p.id === postId)
     toast({
@@ -179,8 +186,6 @@ export function PostList() {
       description: post?.isBookmarked ? "스크랩이 해제되었습니다." : "스크랩되었습니다.",
     })
   }
-
-
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
@@ -190,7 +195,6 @@ export function PostList() {
           className="group relative overflow-hidden bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 rounded-2xl h-fit"
           style={{ animationDelay: `${index * 0.1}s` }}
         >
-          {/* 상단 작성자 정보 */}
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -221,7 +225,6 @@ export function PostList() {
             </div>
           </CardHeader>
 
-          {/* 이미지/콘텐츠 영역 - 패딩으로 작게 */}
           <div className="px-3 pb-3">
             <div className="relative">
               {post.media && post.media.length > 0 ? (
@@ -248,8 +251,6 @@ export function PostList() {
                   </div>
                 </div>
               )}
-              
-              {/* 카테고리 배지 */}
               <div className="absolute top-2 left-2">
                 <Badge className={`${getCategoryInfo(post.category).color} border-0 font-semibold px-2 py-1 rounded-full shadow-sm text-xs`}>
                   <span className="mr-1">{getCategoryInfo(post.category).icon}</span>
@@ -259,17 +260,14 @@ export function PostList() {
             </div>
           </div>
 
-          {/* 하단 정보 영역 */}
           <CardContent className="px-4 pb-4 pt-0 bg-gray-50/50">
             <div className="space-y-3">
-              {/* 제목 */}
               <Link href={`/posts/${post.id}`}>
                 <CardTitle className="text-base font-bold text-gray-900 hover:text-blue-600 transition-colors cursor-pointer line-clamp-2 leading-tight">
                   {post.title}
                 </CardTitle>
               </Link>
 
-              {/* 액션 버튼들 */}
               <div className="flex items-center justify-between pt-2 border-t border-gray-200/50">
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-1 text-sm text-gray-600 hover:text-blue-500 transition-colors cursor-pointer">

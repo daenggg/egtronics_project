@@ -14,8 +14,6 @@ export const categories = [
   { id: 'career', name: '프로젝트 공유 / 개발 일지', color: '', icon: '💼' },
   { id: 'qna', name: '질문과 답변(Q&A)',color: '', icon: '❓' },
   { id: 'free', name: '가입인사 / 자기소개', color: '', icon: '🎉' },
-  { id: 'scrap', name: '스크랩 모아보기', color: '', icon: '🔖' }
-
 ]
 
 interface CategoryFilterProps {
