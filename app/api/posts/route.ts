@@ -17,7 +17,6 @@ export async function GET(request: Request) {
 
     const res = await fetch(url.toString(), { cache: 'no-store' })
 
-    // Try to forward JSON, preserve status
     const data = await res.json().catch(async () => {
       const text = await res.text()
       return { message: text }
