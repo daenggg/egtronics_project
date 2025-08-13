@@ -4,22 +4,18 @@ import { tokenStorage } from './auth-storage'
 
 // 토큰을 포함한 fetch 함수
 export async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = tokenStorage.getToken()
-  
   const headers = {
     'Content-Type': 'application/json',
     ...options.headers,
   }
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`
-  }
-
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'include', // 쿠키 포함
   })
 }
+
 
 // GET 요청
 export async function apiGet(url: string) {

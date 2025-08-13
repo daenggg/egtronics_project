@@ -18,24 +18,16 @@ const API_BASE = '/api'
 
 // 공통 fetch 함수
 async function apiRequest<T>(
-  endpoint: string, 
+  endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const token = tokenStorage.getToken()
-  
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    credentials: 'include', // 쿠키 자동 포함
     ...options,
-  }
-
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      'Authorization': `Bearer ${token}`
-    }
   }
 
   const response = await fetch(`${API_BASE}${endpoint}`, config)
@@ -44,6 +36,10 @@ async function apiRequest<T>(
   if (!response.ok) {
     throw new Error(data.message || 'API 요청에 실패했습니다.')
   }
+
+  return data
+}
+
 
   return data
 }

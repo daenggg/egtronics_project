@@ -95,6 +95,7 @@ export class TokenStorage {
 }
 
 // 사용자 정보 저장 관리
+
 export class UserStorage {
   // 사용자 정보 저장 (민감하지 않은 정보만)
   setUser(user: any): void {
@@ -103,7 +104,7 @@ export class UserStorage {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      nickname: user.nickname
+      nickname: user.nickname,
     }
     localStorage.setItem('user', JSON.stringify(safeUser))
   }
@@ -119,6 +120,8 @@ export class UserStorage {
     localStorage.removeItem('user')
   }
 }
+
+
 
 // 기본 인스턴스들
 export const tokenStorage = new TokenStorage('cookie') // 보안을 위해 쿠키 사용
