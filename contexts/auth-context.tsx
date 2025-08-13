@@ -5,6 +5,7 @@ import { tokenStorage, userStorage, getOptimalStorageType } from '@/lib/auth-sto
 
 interface User {
   id: string
+  userId?: string  // 아이디 추가 (필요시)
   name: string
   email: string
   avatar?: string
@@ -12,11 +13,20 @@ interface User {
   phone?: string
 }
 
+interface RegisterData {
+  userId: string
+  name: string
+  email: string
+  password: string
+  phone: string
+  nickname: string
+}
+
 interface AuthContextType {
   user: User | null
   setUser: React.Dispatch<React.SetStateAction<User | null>>
   login: (email: string, password: string) => Promise<void>
-  register: (name: string, email: string, password: string) => Promise<void>
+  register: (data: RegisterData) => Promise<void>
   logout: () => void
   updateUserInfo: (userData: Partial<User>) => Promise<void>
   loading: boolean
@@ -38,12 +48,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
+    if (process.env.NODE_ENV === 'development') {
+      const tempUser: User = {
+        id: 'testuser',
+        name: '테스트 유저',
+        email,
+        avatar: '',
+        nickname: '테스트닉',
+        phone: '010-0000-0000',
+      }
+      setUser(tempUser)
+      userStorage.setUser(tempUser)
+      tokenStorage.setToken('fake-token') // 임시 토큰
+      return
+    }
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       })
 
@@ -62,24 +84,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (data: RegisterData) => {
     try {
       const response = await fetch('/api/users', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       })
 
-      const data = await response.json()
+      const resData = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || '회원가입에 실패했습니다.')
+        throw new Error(resData.message || '회원가입에 실패했습니다.')
       }
 
-      setUser(data.user)
-      userStorage.setUser(data.user)
+      setUser(resData.user)
+      userStorage.setUser(resData.user)
     } catch (error) {
       console.error('회원가입 오류:', error)
       throw error
@@ -88,9 +108,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', {
-        method: 'GET',
-      })
+      await fetch('/api/auth/logout', { method: 'GET' })
     } catch (error) {
       console.error('로그아웃 오류:', error)
     } finally {
@@ -106,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${tokenStorage.getToken()}`,
+          Authorization: `Bearer ${tokenStorage.getToken()}`,
         },
         body: JSON.stringify(userData),
       })
@@ -126,7 +144,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, register, logout, updateUserInfo, loading }}>
+    <AuthContext.Provider
+      value={{ user, setUser, login, register, logout, updateUserInfo, loading }}
+    >
       {children}
     </AuthContext.Provider>
   )

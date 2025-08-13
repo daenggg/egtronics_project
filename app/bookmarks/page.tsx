@@ -36,44 +36,8 @@ export default function BookmarksPage() {
   useEffect(() => {
     if (!user) return
 
-    // 목업 스크랩된 게시글 데이터
-    const mockBookmarkedPosts: BookmarkedPost[] = [
-      {
-        id: '2',
-        title: 'React 개발 팁 공유',
-        content: 'React 개발을 하면서 유용한 팁들을 공유하고 싶습니다. 특히 성능 최적화에 대해서...',
-        category: 'tech',
-        author: {
-          id: '2',
-          name: '이영희',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        likes: 28,
-        comments: 12,
-        views: 156,
-        tags: ['개발', 'React', '팁'],
-        bookmarkedAt: new Date(Date.now() - 1000 * 60 * 30)
-      },
-      {
-        id: '4',
-        title: '프론트엔드 개발자 취업 후기',
-        content: '최근에 프론트엔드 개발자로 취업에 성공했습니다. 취업 준비 과정과 면접 경험을 공유드립니다.',
-        category: 'career',
-        author: {
-          id: '4',
-          name: '정수진',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-        likes: 45,
-        comments: 18,
-        views: 234,
-        tags: ['취업', '면접', '경험담'],
-        bookmarkedAt: new Date(Date.now() - 1000 * 60 * 60)
-      }
-    ]
-    setBookmarkedPosts(mockBookmarkedPosts)
+    // TODO: 실제 API 호출로 스크랩된 게시글 데이터 받아오기
+    setBookmarkedPosts([]) // 현재는 빈 배열로 초기화
   }, [user])
 
   if (!user) {
@@ -138,9 +102,6 @@ export default function BookmarksPage() {
                     <div className="flex items-center space-x-1 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
                       <Eye className="h-3 w-3" />
                       <span>{post.views}</span>
-                    </div>
-                    <div className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
-                      {formatDistanceToNow(post.bookmarkedAt, { addSuffix: true, locale: ko })} 스크랩
                     </div>
                   </div>
                 </div>

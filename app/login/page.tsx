@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
+  const [userId, setUserId] = useState('')  // 이메일 대신 userId 상태 생성
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      await login(email, password)
+      await login(userId, password)  // email 대신 userId 전달
       toast({
         title: "로그인 성공",
         description: "환영합니다!",
@@ -32,7 +32,7 @@ export default function LoginPage() {
     } catch (error) {
       toast({
         title: "로그인 실패",
-        description: "이메일 또는 비밀번호를 확인해주세요.",
+        description: "아이디 또는 비밀번호를 확인해주세요.",
         variant: "destructive",
       })
     } finally {
@@ -56,18 +56,21 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* 아이디 입력 필드 */}
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-gray-700 font-medium">이메일</Label>
+              <Label htmlFor="userId" className="text-gray-700 font-medium">아이디</Label>
               <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="userId"
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
                 className="border-gray-200 focus:border-blue-300 focus:ring-blue-200"
-                placeholder="이메일을 입력하세요"
+                placeholder="아이디를 입력하세요"
                 required
               />
             </div>
+
+            {/* 비밀번호 입력 필드 */}
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-700 font-medium">비밀번호</Label>
               <Input
@@ -80,6 +83,7 @@ export default function LoginPage() {
                 required
               />
             </div>
+
             <Button 
               type="submit" 
               className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all py-3" 
@@ -88,6 +92,7 @@ export default function LoginPage() {
               {loading ? '로그인 중...' : '로그인'}
             </Button>
           </form>
+
           <div className="mt-6 text-center text-sm">
             <span className="text-gray-600">계정이 없으신가요? </span>
             <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
@@ -98,4 +103,4 @@ export default function LoginPage() {
       </Card>
     </div>
   )
-} 
+}

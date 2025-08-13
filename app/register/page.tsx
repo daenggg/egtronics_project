@@ -18,6 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function RegisterPage() {
+  // 상태 변수
+  const [userId, setUserId] = useState("");
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [emailId, setEmailId] = useState("");
@@ -27,20 +29,49 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
-
   const [phonePrefix, setPhonePrefix] = useState("010");
   const [customPhonePrefix, setCustomPhonePrefix] = useState("");
   const [phone, setPhone] = useState("");
+
+  // 에러 상태
+  const [errors, setErrors] = useState<{
+    userId?: string;
+    name?: string;
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+    phone?: string;
+    nickname?: string;
+  }>({});
+
+  // 닉네임 중복 상태
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
 
   const { register } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
+  // 이메일 전체 조합 (trim 적용)
   const email =
-    domain === "custom" ? `${emailId}@${customDomain}` : `${emailId}@${domain}`;
+    domain === "custom"
+      ? `${emailId.trim()}@${customDomain.trim()}`
+      : `${emailId.trim()}@${domain}`;
 
+  // 전화번호 전체 조합 (trim 적용)
+  const fullPhoneNumber =
+    phonePrefix === "custom" && customPhonePrefix.trim() !== ""
+      ? formatFullPhoneNumber(customPhonePrefix.trim(), phone.trim())
+      : formatFullPhoneNumber(phonePrefix, phone.trim());
+
+  // 정규식
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const phoneRegex = /^\d{3}-\d{4}-\d{4}$/;
+  const passwordRegex =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{8,13}$/;
+
+  // 닉네임 중복 체크
   const checkNickname = async () => {
-    if (!nickname) {
+    if (!nickname.trim()) {
       toast({ title: "닉네임을 입력해주세요", variant: "destructive" });
       return;
     }
@@ -48,28 +79,30 @@ export default function RegisterPage() {
     setChecking(true);
     try {
       const res = await fetch(
-        `/api/check-nickname?nickname=${encodeURIComponent(nickname)}`
+        `/api/check-nickname?nickname=${encodeURIComponent(nickname.trim())}`
       );
       const data = await res.json();
 
       if (data.available) {
         toast({ title: "사용 가능한 닉네임입니다" });
+        setNicknameAvailable(true);
+        setErrors((prev) => ({ ...prev, nickname: undefined }));
       } else {
         toast({ title: "중복된 닉네임입니다", variant: "destructive" });
+        setNicknameAvailable(false);
+        setErrors((prev) => ({ ...prev, nickname: "중복된 닉네임입니다." }));
       }
     } catch {
       toast({ title: "오류가 발생했습니다", variant: "destructive" });
+      setNicknameAvailable(null);
     } finally {
       setChecking(false);
     }
   };
 
-  // 전화번호 앞자리와 뒷자리 합쳐서 자동 포맷팅 함수
-  const formatFullPhoneNumber = (
-    prefix: string,
-    middleAndLast: string
-  ): string => {
-    const onlyNums = (prefix + middleAndLast).replace(/\D/g, "").slice(0, 11); // 최대 11자리 (010 + 8자리)
+  // 전화번호 포맷팅 함수
+  function formatFullPhoneNumber(prefix: string, middleAndLast: string): string {
+    const onlyNums = (prefix + middleAndLast).replace(/\D/g, "").slice(0, 11);
     if (onlyNums.length <= 3) {
       return onlyNums;
     } else if (onlyNums.length <= 7) {
@@ -79,69 +112,75 @@ export default function RegisterPage() {
         7
       )}`;
     }
+  }
+
+  // 유효성 검사
+  const validateAll = () => {
+    const newErrors: typeof errors = {};
+
+    if (!userId.trim()) newErrors.userId = "아이디를 입력해주세요.";
+    if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
+    if (!emailRegex.test(email)) newErrors.email = "올바른 이메일 형식이 아닙니다.";
+    if (!passwordRegex.test(password))
+      newErrors.password =
+        "비밀번호는 영문, 숫자, 특수문자 포함 8~13자리여야 합니다.";
+    if (confirmPassword !== password)
+      newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+    if (!phoneRegex.test(fullPhoneNumber))
+      newErrors.phone = "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+    if (!nickname.trim()) newErrors.nickname = "닉네임을 입력해주세요.";
+    else if (nicknameAvailable === false)
+      newErrors.nickname = "중복된 닉네임입니다.";
+    else if (nicknameAvailable === null)
+      newErrors.nickname = "닉네임 중복 확인이 필요합니다.";
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
   };
 
-  // 앞자리 input 값 변경 시 처리
-  const handlePrefixChange = (val: string) => {
-    const onlyNums = val.replace(/\D/g, "").slice(0, 3);
-    setCustomPhonePrefix(onlyNums);
-    setPhonePrefix(onlyNums === "" ? "custom" : onlyNums);
-    // 뒷자리 숫자만 합쳐서 포맷팅 다시 적용
-    const formatted = formatFullPhoneNumber(
-      onlyNums === "" ? "" : onlyNums,
-      phone.replace(/-/g, "")
-    );
-    // 포맷팅에서 앞자리는 제외하고 뒷자리만 저장
-    setPhone(formatted.slice(formatted.indexOf("-") + 1).replace(/-/g, ""));
-  };
-
-  // 뒷자리 input 값 변경 시 처리
-  const handlePhoneChange = (val: string) => {
-    const onlyNums = val.replace(/\D/g, "").slice(0, 8);
-    const prefix = phonePrefix === "custom" ? customPhonePrefix : phonePrefix;
-    const formatted = formatFullPhoneNumber(prefix, onlyNums);
-    setPhone(formatted.slice(formatted.indexOf("-") + 1).replace(/-/g, ""));
-  };
-
-  const fullPhoneNumber =
-    phonePrefix === "custom" && customPhonePrefix !== ""
-      ? formatFullPhoneNumber(customPhonePrefix, phone)
-      : formatFullPhoneNumber(phonePrefix, phone);
+  // 버튼 활성화 조건 (loading 상태 포함)
+  const isFormComplete =
+    userId.trim() &&
+    name.trim() &&
+    emailId.trim() &&
+    (domain !== "custom" || customDomain.trim()) &&
+    password.trim() &&
+    confirmPassword.trim() &&
+    phone.trim() &&
+    nickname.trim() &&
+    !loading;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
+    if (!validateAll()) {
       toast({
-        title: "비밀번호 불일치",
-        description: "비밀번호가 일치하지 않습니다.",
+        title: "입력 오류",
+        description: "입력한 정보를 다시 확인해주세요.",
         variant: "destructive",
       });
       return;
     }
 
-    if (!emailId || (domain === "custom" && !customDomain)) {
+    if (nicknameAvailable !== true) {
       toast({
-        title: "이메일을 정확히 입력해주세요.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (
-      fullPhoneNumber.length < 10 // 10자리 이상이어야 함 (ex: 010-1234-5678)
-    ) {
-      toast({
-        title: "전화번호를 정확히 입력해주세요.",
+        title: "닉네임 중복 확인을 해주세요",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-
     try {
-      await register(name, email, password);
+      await register({
+        userId,
+        name,
+        email,
+        password,
+        phone: fullPhoneNumber,
+        nickname,
+      });
       toast({ title: "회원가입 성공", description: "환영합니다!" });
       router.push("/");
     } catch {
@@ -182,6 +221,24 @@ export default function RegisterPage() {
                   placeholder="이름을 입력하세요"
                   required
                 />
+                {errors.name && (
+                  <p className="text-red-600 text-sm mt-1">{errors.name}</p>
+                )}
+              </div>
+
+              {/* 아이디 */}
+              <div className="space-y-2 mb-6">
+                <Label htmlFor="userId">아이디</Label>
+                <Input
+                  id="userId"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  placeholder="아이디를 입력하세요"
+                  required
+                />
+                {errors.userId && (
+                  <p className="text-red-600 text-sm mt-1">{errors.userId}</p>
+                )}
               </div>
 
               {/* 이메일 */}
@@ -215,6 +272,9 @@ export default function RegisterPage() {
                     required
                   />
                 )}
+                {errors.email && (
+                  <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+                )}
                 <p className="text-sm text-gray-500">전체 이메일: {email}</p>
               </div>
 
@@ -229,6 +289,9 @@ export default function RegisterPage() {
                   placeholder="비밀번호"
                   required
                 />
+                {errors.password && (
+                  <p className="text-red-600 text-sm mt-1">{errors.password}</p>
+                )}
               </div>
 
               {/* 비밀번호 확인 */}
@@ -242,19 +305,22 @@ export default function RegisterPage() {
                   placeholder="비밀번호 재입력"
                   required
                 />
+                {errors.confirmPassword && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               {/* 전화번호 */}
               <div className="space-y-2 mb-6">
                 <Label className="text-gray-700 font-medium">전화번호</Label>
                 <div className="flex gap-2 items-center">
-                  {/* 국번 선택 또는 직접 입력 */}
                   {phonePrefix === "custom" ? (
                     <Input
                       type="text"
                       value={customPhonePrefix}
                       onChange={(e) => {
-                        // 숫자만 3자리 제한
                         const onlyNums = e.target.value
                           .replace(/\D/g, "")
                           .slice(0, 3);
@@ -285,7 +351,6 @@ export default function RegisterPage() {
                     </select>
                   )}
 
-                  {/* 나머지 전화번호 입력 */}
                   <Input
                     type="tel"
                     value={phone}
@@ -306,6 +371,9 @@ export default function RegisterPage() {
                     required
                   />
                 </div>
+                {errors.phone && (
+                  <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+                )}
                 <p className="text-sm text-gray-500 mt-1">
                   전체 전화번호:{" "}
                   {phonePrefix === "custom" ? customPhonePrefix : phonePrefix}-
@@ -320,7 +388,11 @@ export default function RegisterPage() {
                   <Input
                     id="nickname"
                     value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
+                    onChange={(e) => {
+                      setNickname(e.target.value);
+                      setNicknameAvailable(null); // 닉네임 변경 시 초기화
+                      setErrors((prev) => ({ ...prev, nickname: undefined }));
+                    }}
                     placeholder="닉네임"
                     required
                   />
@@ -332,12 +404,15 @@ export default function RegisterPage() {
                     {checking ? "확인 중..." : "중복 검사"}
                   </Button>
                 </div>
+                {errors.nickname && (
+                  <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>
+                )}
               </div>
 
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3"
-                disabled={loading}
+                disabled={loading || !isFormComplete}
               >
                 {loading ? "가입 중..." : "회원가입"}
               </Button>
