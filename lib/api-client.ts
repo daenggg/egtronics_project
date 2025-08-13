@@ -41,9 +41,6 @@ async function apiRequest<T>(
 }
 
 
-  return data
-}
-
 // ===== 게시글 API =====
 
 // 게시글 목록 조회

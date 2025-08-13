@@ -1,15 +1,9 @@
-import jwt from 'jsonwebtoken'
-import bcrypt from 'bcryptjs'
-
-// JWT 시크릿 키 (실제 프로덕션에서는 환경변수로 관리)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-const JWT_EXPIRES_IN = '7d' // 7일
+// auth.ts
 
 export interface User {
   id: string
   name: string
   email: string
-  password: string
   avatar?: string
   nickname?: string
   phone?: string
@@ -17,79 +11,50 @@ export interface User {
   updatedAt: Date
 }
 
-export interface JWTPayload {
-  userId: string
-  email: string
-  iat: number
-  exp: number
+// 로그인 API 호출 함수
+export async function login(email: string, password: string): Promise<User> {
+  const res = await fetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+    credentials: 'include', // 쿠키 포함
+  })
+
+  if (!res.ok) {
+    const errorData = await res.json()
+    throw new Error(errorData.message || '로그인 실패')
+  }
+
+  const data = await res.json()
+  return data.user
 }
 
-// 비밀번호 해싱
-export async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 12
-  return bcrypt.hash(password, saltRounds)
-}
+// 로그아웃 API 호출 함수
+export async function logout() {
+  const res = await fetch('/api/auth/logout', {
+    method: 'POST',
+    credentials: 'include', // 쿠키 포함
+  })
 
-// 비밀번호 검증
-export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return bcrypt.compare(password, hashedPassword)
-}
-
-// JWT 토큰 생성
-export function generateToken(userId: string, email: string): string {
-  return jwt.sign(
-    { userId, email },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN }
-  )
-}
-
-// JWT 토큰 검증
-export function verifyToken(token: string): JWTPayload | null {
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET) as JWTPayload
-    return decoded
-  } catch (error) {
-    return null
+  if (!res.ok) {
+    const errorData = await res.json()
+    throw new Error(errorData.message || '로그아웃 실패')
   }
 }
 
-// 요청에서 토큰 추출 (Authorization 헤더 또는 쿠키에서)
-export function extractTokenFromRequest(request: Request): string | null {
-  // Authorization 헤더에서 토큰 확인
-  const authHeader = request.headers.get('authorization')
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    return authHeader.substring(7)
+// 보호된 API 요청 함수 (쿠키 자동 포함, 인증 실패 시 에러 throw)
+export async function fetchWithAuth(url: string, options: RequestInit = {}) {
+  let res = await fetch(url, { ...options, credentials: 'include' })
+
+  if (res.status === 401) {
+    // TODO: 리프레시 토큰으로 액세스 토큰 재발급 로직 추가 가능
+    throw new Error('인증 실패, 로그인 필요')
   }
 
-  // 쿠키에서 토큰 확인
-  const cookieHeader = request.headers.get('cookie')
-  if (cookieHeader) {
-    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
-      const [key, value] = cookie.trim().split('=')
-      acc[key] = value
-      return acc
-    }, {} as Record<string, string>)
-    
-    return cookies['auth-token'] || null
+  if (!res.ok) {
+    const errorData = await res.json()
+    throw new Error(errorData.message || 'API 요청 실패')
   }
 
-  return null
-}
-
-// 인증 미들웨어
-export async function authenticateUser(request: Request): Promise<JWTPayload | null> {
-  const token = extractTokenFromRequest(request)
-  if (!token) {
-    return null
-  }
-  return verifyToken(token)
-}
-
-// 간단한 인메모리 사용자 저장소 (실제로는 데이터베이스 사용)
-export const users: Map<string, User> = new Map()
-
-// 사용자 ID 생성
-export function generateUserId(): string {
-  return Date.now().toString() + Math.random().toString(36).substr(2, 9)
+  return res.json()
 }
