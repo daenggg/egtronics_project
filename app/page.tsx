@@ -20,20 +20,28 @@ interface Post {
   content: string;
   author: string;
   createdAt: Date;
+  views: number;
   likes: number;
   comments: number;
+  category: string;
 }
 
 // 목업 데이터 생성
-const mockPosts: Post[] = Array.from({ length: 20 }, (_, i) => ({
+const categories = ['announcement','general','tech','study','project','career','qna','free'];
+
+const mockPosts: Post[] = Array.from({ length: 30 }, (_, i) => ({
   id: String(i + 1),
   title: `게시글 ${i + 1}`,
-  content: `이것은 게시글 ${i + 1}의 내용입니다. 다양한 정보와 경험을 공유합니다.`,
-  author: `작성자 ${((i % 5) + 1)}`, // 작성자1~5 반복
-  createdAt: new Date(Date.now() - 1000 * 60 * 60 * (i * 3)), // 3시간씩 이전
-  likes: Math.floor(Math.random() * 50), // 0~49 좋아요
-  comments: Math.floor(Math.random() * 15), // 0~14 댓글
-}))
+  content: `이것은 게시글 ${
+    i + 1
+  }의 내용입니다. 다양한 정보와 경험을 공유합니다.`,
+  author: `작성자 ${(i % 5) + 1}`,
+  category: categories[i % categories.length], // 반복해서 카테고리 할당
+  createdAt: new Date(Date.now() - 1000 * 60 * 60 * (i * 3)),
+  views: Math.floor(Math.random() * 500),
+  likes: Math.floor(Math.random() * 50),
+  comments: Math.floor(Math.random() * 15),
+}));
 
 export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -47,6 +55,9 @@ export default function HomePage() {
   const filteredPosts = useMemo(() => {
     let data = [...mockPosts];
 
+    if (selectedCategory) {
+      data = data.filter((post) => post.category === selectedCategory);
+    }
     // 검색 필터
     if (searchQuery.trim()) {
       data = data.filter(
@@ -59,14 +70,14 @@ export default function HomePage() {
     // 정렬
     if (sortOption === "latest") {
       data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    } else if (sortOption === "oldest") {
-      data.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    } else if (sortOption === "views") {
+      data.sort((a, b) => b.views - a.views);
     } else if (sortOption === "likes") {
       data.sort((a, b) => b.likes - a.likes);
     }
 
     return data;
-  }, [searchQuery, sortOption]);
+  }, [searchQuery, sortOption, selectedCategory]);
 
   // 현재 페이지 데이터
   const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
@@ -122,8 +133,8 @@ export default function HomePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="latest">최신순</SelectItem>
-                <SelectItem value="oldest">오래된순</SelectItem>
-                <SelectItem value="likes">좋아요순</SelectItem>
+                <SelectItem value="views">조회순</SelectItem>
+                <SelectItem value="likes">추천순</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -145,8 +156,18 @@ export default function HomePage() {
                 <CardContent>
                   <p className="line-clamp-3 text-gray-700">{post.content}</p>
                   <div className="flex justify-end space-x-4 text-sm text-gray-500 mt-4">
-                    <span>좋아요 {post.likes}</span>
-                    <span>댓글 {post.comments}</span>
+                    <span className="flex items-center space-x-1">
+                      <span>❤️</span>
+                      <span>{post.likes}</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <span>💬</span>
+                      <span>{post.comments}</span>
+                    </span>
+                    <span className="flex items-center space-x-1">
+                      <span>👁️</span>
+                      <span>{post.views}</span>
+                    </span>
                   </div>
                 </CardContent>
               </Card>
