@@ -19,7 +19,7 @@ export default function Profile() {
 
       {/* 이름과 숫자 */}
       <div className="text-center text-gray-700 font-medium">
-        {user ? user.name : '비회원'}
+        {user ? user.nickname : '비회원'}
       </div>
 
       {/* 버튼 그룹 또는 로그인 안내 문구 */}
