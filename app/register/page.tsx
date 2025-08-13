@@ -45,8 +45,9 @@ export default function RegisterPage() {
   }>({});
 
   // 닉네임 중복 상태
-  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(null);
-
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(
+    null
+  );
   const { register } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -75,12 +76,16 @@ export default function RegisterPage() {
       toast({ title: "닉네임을 입력해주세요", variant: "destructive" });
       return;
     }
-
     setChecking(true);
     try {
       const res = await fetch(
-        `/api/check-nickname?nickname=${encodeURIComponent(nickname.trim())}`
+        `/users/checkNickname?nickname=${encodeURIComponent(nickname.trim())}`
       );
+
+      if (!res.ok) {
+        throw new Error(`서버 응답 오류: ${res.status}`);
+      }
+
       const data = await res.json();
 
       if (data.available) {
@@ -92,16 +97,19 @@ export default function RegisterPage() {
         setNicknameAvailable(false);
         setErrors((prev) => ({ ...prev, nickname: "중복된 닉네임입니다." }));
       }
-    } catch {
+    } catch (err) {
+      console.error(err);
       toast({ title: "오류가 발생했습니다", variant: "destructive" });
       setNicknameAvailable(null);
     } finally {
       setChecking(false);
     }
   };
-
   // 전화번호 포맷팅 함수
-  function formatFullPhoneNumber(prefix: string, middleAndLast: string): string {
+  function formatFullPhoneNumber(
+    prefix: string,
+    middleAndLast: string
+  ): string {
     const onlyNums = (prefix + middleAndLast).replace(/\D/g, "").slice(0, 11);
     if (onlyNums.length <= 3) {
       return onlyNums;
@@ -120,14 +128,16 @@ export default function RegisterPage() {
 
     if (!userId.trim()) newErrors.userId = "아이디를 입력해주세요.";
     if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
-    if (!emailRegex.test(email)) newErrors.email = "올바른 이메일 형식이 아닙니다.";
+    if (!emailRegex.test(email))
+      newErrors.email = "올바른 이메일 형식이 아닙니다.";
     if (!passwordRegex.test(password))
       newErrors.password =
         "비밀번호는 영문, 숫자, 특수문자 포함 8~13자리여야 합니다.";
     if (confirmPassword !== password)
       newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
     if (!phoneRegex.test(fullPhoneNumber))
-      newErrors.phone = "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+      newErrors.phone =
+        "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
     if (!nickname.trim()) newErrors.nickname = "닉네임을 입력해주세요.";
     else if (nicknameAvailable === false)
       newErrors.nickname = "중복된 닉네임입니다.";
@@ -248,7 +258,7 @@ export default function RegisterPage() {
                   <Input
                     value={emailId}
                     onChange={(e) => setEmailId(e.target.value)}
-                    placeholder="이메일 아이디"
+                    placeholder="이메일"
                     className="flex-1"
                     required
                   />
