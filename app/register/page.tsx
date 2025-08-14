@@ -32,6 +32,7 @@ export default function RegisterPage() {
   const [phonePrefix, setPhonePrefix] = useState("010");
   const [customPhonePrefix, setCustomPhonePrefix] = useState("");
   const [phone, setPhone] = useState("");
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
 
   // 에러 상태
   const [errors, setErrors] = useState<{
@@ -221,6 +222,42 @@ export default function RegisterPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* 프로필 사진 */}
+              <div className="space-y-2 mb-6">
+                <div className="flex justify-center">
+                  <label
+                    htmlFor="profilePicture"
+                    className="cursor-pointer inline-block relative"
+                  >
+                    {profilePicture ? (
+                      // 업로드된 이미지
+                      <img
+                        src={URL.createObjectURL(profilePicture)}
+                        alt="프로필 미리보기"
+                        className="w-25 h-25 rounded-full object-cover border"
+                      />
+                    ) : (
+                      // 기본 상태: 회색 배경 + 펜 이모지
+                      <div className="w-25 h-25 items-center rounded-full border flex items-center justify-center bg-gray-200 text-sm">
+                        프로필 사진<br/>등록하기🖊
+                      </div>
+                    )}
+                  </label>
+                </div>
+
+                <input
+                  id="profilePicture"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setProfilePicture(e.target.files[0]);
+                    }
+                  }}
+                />
+              </div>
+
               {/* 이름 */}
               <div className="space-y-2 mb-6">
                 <Label htmlFor="name">이름</Label>
