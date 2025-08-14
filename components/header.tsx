@@ -12,9 +12,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User, LogOut, Bookmark, Bell } from "lucide-react";
+import { CategoryFilter } from "@/components/category-filter";
+import { useState } from "react";
 
 export function Header() {
   const { user, logout } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const handleHomeClick = () => {
+    setSelectedCategory(null);
+  };
 
   // 더미 알림 데이터 삭제 → 실제 알림은 별도로 훅 또는 API 통해 받아와야 함
   // 읽지 않은 알림 개수는 0으로 설정 (임시)
@@ -25,6 +32,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link
           href="/"
+          onClick={handleHomeClick}
           className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
         >
           홈으로

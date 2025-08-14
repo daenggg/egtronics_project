@@ -5,6 +5,7 @@ import { CategoryFilter } from "@/components/category-filter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Profile from "@/components/ui/profile";
 import { Input } from "@/components/ui/input";
+import Pagination from "@/components/Pagination";
 import {
   Select,
   SelectContent,
@@ -26,17 +27,25 @@ interface Post {
   category: string;
 }
 
-// 목업 데이터 생성
-const categories = ['announcement','general','tech','study','project','career','qna','free'];
+const categories = [
+  "announcement",
+  "general",
+  "tech",
+  "study",
+  "project",
+  "career",
+  "qna",
+  "free",
+];
 
-const mockPosts: Post[] = Array.from({ length: 30 }, (_, i) => ({
+const mockPosts: Post[] = Array.from({ length: 50 }, (_, i) => ({
   id: String(i + 1),
   title: `게시글 ${i + 1}`,
   content: `이것은 게시글 ${
     i + 1
   }의 내용입니다. 다양한 정보와 경험을 공유합니다.`,
   author: `작성자 ${(i % 5) + 1}`,
-  category: categories[i % categories.length], // 반복해서 카테고리 할당
+  category: categories[i % categories.length],
   createdAt: new Date(Date.now() - 1000 * 60 * 60 * (i * 3)),
   views: Math.floor(Math.random() * 500),
   likes: Math.floor(Math.random() * 50),
@@ -175,30 +184,12 @@ export default function HomePage() {
           </div>
 
           {/* 페이지네이션 */}
-          <div className="flex justify-center space-x-2 mt-6">
-            <Button
-              variant="outline"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => prev - 1)}
-            >
-              이전
-            </Button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <Button
-                key={i}
-                variant={currentPage === i + 1 ? "default" : "outline"}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </Button>
-            ))}
-            <Button
-              variant="outline"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => prev + 1)}
-            >
-              다음
-            </Button>
+          <div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
           </div>
         </main>
       </div>
