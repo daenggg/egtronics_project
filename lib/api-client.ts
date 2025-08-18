@@ -6,7 +6,7 @@ import {
   ScrapListResponse, LikeResponse, PaginationParams
 } from './types'
 
-const API_BASE = '/api'
+const API_BASE = 'http://localhost:8080'
 
 // axios 인스턴스 생성
 const api = axios.create({
@@ -43,7 +43,7 @@ export async function createPost(payload: CreatePostRequest): Promise<Post> {
 }
 
 export async function updatePost(id: string, payload: UpdatePostRequest): Promise<Post> {
-  const { data } = await api.put<Post>(`/posts/${id}`, payload)
+  const { data } = await api.patch<Post>(`/posts/${id}`, payload)
   return data
 }
 

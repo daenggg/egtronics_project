@@ -4,7 +4,7 @@ import { tokenStorage } from "./auth-storage"
 
 // axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "/", // 필요 시 기본 URL 지정
+  baseURL: "http://localhost:8080", // 필요 시 기본 URL 지정
   withCredentials: true, // 쿠키 포함
   headers: {
     "Content-Type": "application/json",

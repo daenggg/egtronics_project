@@ -78,35 +78,54 @@ export default function RegisterPage() {
   // 닉네임 중복 체크
   const checkNickname = async () => {
     if (!nickname.trim()) {
-      toast({ title: "닉네임을 입력해주세요", variant: "destructive", duration: 2000, });
+      toast({
+        title: "닉네임을 입력해주세요",
+        variant: "destructive",
+        duration: 2000,
+      });
       return;
     }
     setChecking(true);
     try {
       const res = await axios.get(`http://localhost:3001/users/checkNickname`, {
         params: { nickname: nickname.trim() },
+        validateStatus: (status) => status < 500, // 4xx도 정상 처리
       });
 
-      const data = res.data;
-
-      if (data.available) {
-        toast({ title: "사용 가능한 닉네임입니다",duration: 2000, });
-        
+      if (res.status === 200) {
+        toast({ title: "사용 가능한 닉네임입니다", duration: 2000 });
         setNicknameAvailable(true);
         setErrors((prev) => ({ ...prev, nickname: undefined }));
-      } else {
-        toast({ title: "중복된 닉네임입니다", variant: "destructive", duration: 2000, });
+      } else if (res.status === 409) {
+        toast({
+          title: "중복된 닉네임입니다",
+          variant: "destructive",
+          duration: 2000,
+        });
         setNicknameAvailable(false);
         setErrors((prev) => ({ ...prev, nickname: "중복된 닉네임입니다." }));
+      } else {
+        // 그 외 예기치 못한 상태
+        toast({
+          title: "오류가 발생했습니다",
+          variant: "destructive",
+          duration: 2000,
+        });
+        setNicknameAvailable(null);
       }
     } catch (err) {
       console.error(err);
-      toast({ title: "오류가 발생했습니다", variant: "destructive",duration: 2000, });
+      toast({
+        title: "오류가 발생했습니다",
+        variant: "destructive",
+        duration: 2000,
+      });
       setNicknameAvailable(null);
     } finally {
       setChecking(false);
     }
   };
+
   // 전화번호 포맷팅 함수
   function formatFullPhoneNumber(
     prefix: string,
@@ -195,7 +214,11 @@ export default function RegisterPage() {
         phone: fullPhoneNumber,
         nickname,
       });
-      toast({ title: "회원가입 성공", description: "환영합니다!", duration: 2000, });
+      toast({
+        title: "회원가입 성공",
+        description: "환영합니다!",
+        duration: 2000,
+      });
       router.push("/");
     } catch {
       toast({
