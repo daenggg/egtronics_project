@@ -1,0 +1,115 @@
+import axios from 'axios'
+import { tokenStorage } from './auth-storage'
+import { 
+  Post, CreatePostRequest, UpdatePostRequest, PostListResponse,
+  Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse,
+  ScrapListResponse, LikeResponse, PaginationParams
+} from './types'
+
+const API_BASE = '/api'
+
+// axios 인스턴스 생성
+const api = axios.create({
+  baseURL: API_BASE,
+  withCredentials: true, // 쿠키 포함
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
+
+// 요청 인터셉터: 토큰 자동 포함
+api.interceptors.request.use(config => {
+  const token = tokenStorage.getToken()
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// ===== 게시글 API =====
+export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
+  const { data } = await api.get<PostListResponse>('/posts', { params })
+  return data
+}
+
+export async function getPost(id: string): Promise<Post> {
+  const { data } = await api.get<Post>(`/posts/${id}`)
+  return data
+}
+
+export async function createPost(payload: CreatePostRequest): Promise<Post> {
+  const { data } = await api.post<Post>('/posts', payload)
+  return data
+}
+
+export async function updatePost(id: string, payload: UpdatePostRequest): Promise<Post> {
+  const { data } = await api.put<Post>(`/posts/${id}`, payload)
+  return data
+}
+
+export async function deletePost(id: string): Promise<void> {
+  await api.delete(`/posts/${id}`)
+}
+
+export async function likePost(id: string): Promise<LikeResponse> {
+  const { data } = await api.post<LikeResponse>(`/posts/${id}/like`)
+  return data
+}
+
+export async function unlikePost(id: string): Promise<LikeResponse> {
+  const { data } = await api.delete<LikeResponse>(`/posts/${id}/like`)
+  return data
+}
+
+// ===== 댓글 API =====
+export async function getComments(postId: string): Promise<CommentListResponse> {
+  const { data } = await api.get<CommentListResponse>(`/posts/${postId}/comments`)
+  return data
+}
+
+export async function createComment(postId: string, payload: CreateCommentRequest): Promise<Comment> {
+  const { data } = await api.post<Comment>(`/posts/${postId}/comments`, payload)
+  return data
+}
+
+export async function updateComment(postId: string, commentId: string, payload: UpdateCommentRequest): Promise<Comment> {
+  const { data } = await api.put<Comment>(`/posts/${postId}/comments/${commentId}`, payload)
+  return data
+}
+
+export async function deleteComment(postId: string, commentId: string): Promise<void> {
+  await api.delete(`/posts/${postId}/comments/${commentId}`)
+}
+
+export async function likeComment(postId: string, commentId: string): Promise<LikeResponse> {
+  const { data } = await api.post<LikeResponse>(`/posts/${postId}/comments/${commentId}/likes`)
+  return data
+}
+
+export async function unlikeComment(postId: string, commentId: string): Promise<LikeResponse> {
+  const { data } = await api.delete<LikeResponse>(`/posts/${postId}/comments/${commentId}/likes`)
+  return data
+}
+
+// ===== 스크랩 API =====
+export async function scrapPost(postId: string): Promise<any> {
+  const { data } = await api.post(`/posts/${postId}/scrap`)
+  return data
+}
+
+export async function unscrapPost(postId: string): Promise<void> {
+  await api.delete(`/posts/${postId}/scrap`)
+}
+
+export async function getMyScraps(page: number = 1, limit: number = 20): Promise<ScrapListResponse> {
+  const { data } = await api.get<ScrapListResponse>('/users/me/scraps', { params: { page, limit } })
+  return data
+}
+
+// ===== 에러 처리 헬퍼 =====
+export function handleApiError(error: any): string {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message || error.message
+  }
+  return error.message || '알 수 없는 오류가 발생했습니다.'
+}
