@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData) => {
     try {
-      const res = await axios.post('/api/users', data)
+      const res = await axios.post('/users', data)
       setUser(res.data.user)
       userStorage.setUser(res.data.user)
     } catch (error: any) {
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserInfo = async (userData: Partial<User>) => {
     try {
-      const { data } = await axios.put('/api/users', userData, {
+      const { data } = await axios.put('/users', userData, {
         headers: {
           Authorization: `Bearer ${tokenStorage.getToken()}`,
         },
