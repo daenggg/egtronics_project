@@ -43,7 +43,7 @@ export async function createPost(payload: CreatePostRequest): Promise<Post> {
 }
 
 export async function updatePost(id: string, payload: UpdatePostRequest): Promise<Post> {
-  const { data } = await api.patch<Post>(`/posts/${id}`, payload)
+  const { data } = await api.put<Post>(`/posts/${id}`, payload)
   return data
 }
 
