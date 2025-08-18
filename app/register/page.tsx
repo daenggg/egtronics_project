@@ -1,6 +1,7 @@
 "use client";
 
 import axios from "axios";
+import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -34,6 +35,8 @@ export default function RegisterPage() {
   const [customPhonePrefix, setCustomPhonePrefix] = useState("");
   const [phone, setPhone] = useState("");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 에러 상태
   const [errors, setErrors] = useState<{
@@ -324,33 +327,55 @@ export default function RegisterPage() {
                 <p className="text-sm text-gray-500">전체 이메일: {email}</p>
               </div>
 
-              {/* 비밀번호 */}
               <div className="space-y-2 mb-6">
                 <Label htmlFor="password">비밀번호</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="비밀번호"
+                    required
+                    className="pr-10" // 아이콘 공간 확보
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className="text-red-600 text-sm mt-1">{errors.password}</p>
                 )}
               </div>
 
-              {/* 비밀번호 확인 */}
               <div className="space-y-2 mb-4">
                 <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="비밀번호 재입력"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="비밀번호 재입력"
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
+                  </button>
+                </div>
                 {errors.confirmPassword && (
                   <p className="text-red-600 text-sm mt-1">
                     {errors.confirmPassword}

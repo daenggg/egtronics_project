@@ -15,8 +15,9 @@ const api = axios.create({
 api.interceptors.request.use((config: AxiosRequestConfig) => {
   const token = tokenStorage.get() // 토큰 가져오기
   if (token) {
+    // headers가 undefined일 수 있으므로 기본 객체로 초기화
     config.headers = {
-      ...config.headers,
+      ...(config.headers || {}),
       Authorization: `Bearer ${token}`,
     }
   }
@@ -24,9 +25,9 @@ api.interceptors.request.use((config: AxiosRequestConfig) => {
 })
 
 // GET 요청
-export async function apiGet(url: string, params?: any) {
+export async function apiGet<T = any>(url: string, params?: any): Promise<T> {
   try {
-    const res = await api.get(url, { params })
+    const res = await api.get<T>(url, { params })
     return res.data
   } catch (err: any) {
     handleApiError(err)
@@ -34,9 +35,9 @@ export async function apiGet(url: string, params?: any) {
 }
 
 // POST 요청
-export async function apiPost(url: string, data: any) {
+export async function apiPost<T = any>(url: string, data: any): Promise<T> {
   try {
-    const res = await api.post(url, data)
+    const res = await api.post<T>(url, data)
     return res.data
   } catch (err: any) {
     handleApiError(err)
@@ -44,9 +45,9 @@ export async function apiPost(url: string, data: any) {
 }
 
 // PUT 요청
-export async function apiPut(url: string, data: any) {
+export async function apiPut<T = any>(url: string, data: any): Promise<T> {
   try {
-    const res = await api.put(url, data)
+    const res = await api.put<T>(url, data)
     return res.data
   } catch (err: any) {
     handleApiError(err)
@@ -54,9 +55,9 @@ export async function apiPut(url: string, data: any) {
 }
 
 // DELETE 요청
-export async function apiDelete(url: string) {
+export async function apiDelete<T = any>(url: string): Promise<T> {
   try {
-    const res = await api.delete(url)
+    const res = await api.delete<T>(url)
     return res.data
   } catch (err: any) {
     handleApiError(err)
@@ -71,3 +72,5 @@ function handleApiError(err: any): never {
     throw new Error(err.message || "API 요청 실패")
   }
 }
+
+export default api
