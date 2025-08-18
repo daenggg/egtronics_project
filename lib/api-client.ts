@@ -8,16 +8,16 @@ import {
 
 export const API_BASE = 'http://localhost:8080';
 
-// axios 인스턴스 생성
+// axios 인스턴스
 const api = axios.create({
   baseURL: API_BASE,
-  withCredentials: true, // 쿠키 포함
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-// 요청 인터셉터: 토큰 자동 포함
+
 api.interceptors.request.use(config => {
   const token = tokenStorage.getToken()
   if (token && config.headers) {
@@ -26,7 +26,7 @@ api.interceptors.request.use(config => {
   return config
 })
 
-// ===== 게시글 API =====
+// 게시글 API
 export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
   const { data } = await api.get<PostListResponse>('/posts', { params })
   return data
@@ -61,7 +61,40 @@ export async function unlikePost(id: string): Promise<LikeResponse> {
   return data
 }
 
-// ===== 댓글 API =====
+// ===== 회원관리 API =====
+
+export async function signUp(payload: { username: string; password: string; email: string }) {
+  const { data } = await api.post('/users', payload)
+  return data
+}
+
+export async function login(payload: { username: string; password: string }) {
+  const { data } = await api.post('/auth/login', payload)
+  tokenStorage.setToken(data.token) 
+  return data
+}
+
+export async function logout() {
+  await api.get('/auth/logout')
+  tokenStorage.removeToken() 
+}
+
+export async function deleteAccount() {
+  await api.delete('/users/me')
+  tokenStorage.removeToken() 
+}
+
+export async function getMyProfile() {
+  const { data } = await api.get('/users/me')
+  return data
+}
+
+export async function updateMyProfile(payload: { username?: string; email?: string; password?: string }) {
+  const { data } = await api.put('/users', payload)
+  return data
+}
+
+// 댓글 API
 export async function getComments(postId: string): Promise<CommentListResponse> {
   const { data } = await api.get<CommentListResponse>(`/posts/${postId}/comments`)
   return data
@@ -106,7 +139,12 @@ export async function getMyScraps(page: number = 1, limit: number = 20): Promise
   return data
 }
 
-// ===== 에러 처리 헬퍼 =====
+
+
+
+
+
+
 export function handleApiError(error: any): string {
   if (axios.isAxiosError(error)) {
     return error.response?.data?.message || error.message
