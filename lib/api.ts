@@ -1,10 +1,11 @@
 // utils/api.ts
 import axios, { AxiosRequestConfig } from "axios"
 import { tokenStorage } from "./auth-storage"
+import { API_BASE } from '@/lib/api-client';
 
 // axios 인스턴스 생성
 const api = axios.create({
-  baseURL: "http://localhost:8080", // 필요 시 기본 URL 지정
+  baseURL: API_BASE, // 필요 시 기본 URL 지정
   withCredentials: true, // 쿠키 포함
   headers: {
     "Content-Type": "application/json",

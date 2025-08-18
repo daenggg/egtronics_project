@@ -6,7 +6,7 @@ import {
   ScrapListResponse, LikeResponse, PaginationParams
 } from './types'
 
-const API_BASE = 'http://localhost:8080'
+export const API_BASE = 'http://localhost:8080';
 
 // axios 인스턴스 생성
 const api = axios.create({
