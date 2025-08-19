@@ -42,6 +42,7 @@ interface Post {
   likes: number;
   isLiked: boolean;
   views: number;
+  reportedByCurrentUser?: boolean;
 }
 
 interface Comment {
@@ -67,39 +68,11 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 기존 API 호출은 주석 처리
-    /*
-    const controller = new AbortController()
-    const getPost = async () => {
-      try {
-        setLoading(true)
-        const res = await axios.get(`/api/posts/${String(params.id)}`, {
-          signal: controller.signal
-        })
-        const data = res.data
-        const normalized: Post = { ...data, createdAt: new Date(data.createdAt) }
-        setPost(normalized)
-        setComments([])
-      } catch (err: any) {
-        if (axios.isCancel(err)) {
-          console.log("요청 취소됨")
-        } else {
-          console.error(err)
-          setPost(null)
-        }
-      } finally {
-        setLoading(false)
-      }
-    }
-    getPost()
-    return () => controller.abort()
-    */
-
     // 목업 데이터 사용
     const mockPost: Post = {
       id: "1",
       title: "샘플 게시글 제목",
-      content: "여기는 게시글 내용. 안녕하세요 여기 가입했습니다. 게시판은 처음 와보는데 잘꾸며져있네요 앞으로 자주 방문하겠습니다.",
+      content: "여기는 게시글 내용. 안녕하세요 여기 가입했습니다...",
       category: "tech",
       media: [{ id: "m1", type: "image", url: "/placeholder.svg" }],
       isBookmarked: false,
@@ -112,6 +85,7 @@ export default function PostDetailPage() {
       likes: 10,
       isLiked: false,
       views: 123,
+      reportedByCurrentUser: false,
     };
 
     const mockComments: Comment[] = [
@@ -240,7 +214,11 @@ export default function PostDetailPage() {
     setPost((prev) =>
       prev ? { ...prev, isBookmarked: !prev.isBookmarked } : null
     );
+  };
 
+  // ✅ 신고 완료 상태 업데이트
+  const handlePostReported = () => {
+    setPost((prev) => (prev ? { ...prev, reportedByCurrentUser: true } : prev));
   };
 
   return (
@@ -276,7 +254,16 @@ export default function PostDetailPage() {
                 <Eye className="h-4 w-4" />
                 <span>{post.views}</span>
               </div>
-              <ReportDialog type="post" targetId={post.id} />
+              <ReportDialog
+                type="post"
+                targetId={post.id}
+                alreadyReported={post.reportedByCurrentUser}
+                onReported={() =>
+                  setPost((prev) =>
+                    prev ? { ...prev, reportedByCurrentUser: true } : prev
+                  )
+                }
+              />
             </div>
           </div>
           <Badge
@@ -454,8 +441,8 @@ export default function PostDetailPage() {
                         })}
                       </p>
                     </div>
-                    <ReportDialog type="comment" targetId={comment.id} />
                   </div>
+
                   <p className="text-sm mb-4 text-gray-700 leading-relaxed">
                     {comment.content}
                   </p>

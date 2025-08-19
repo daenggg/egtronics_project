@@ -19,10 +19,12 @@ import { Flag, AlertTriangle } from "lucide-react";
 interface ReportDialogProps {
   type: "post" | "comment";
   targetId: string;
+  alreadyReported?: boolean;
+  onReported?: () => void;
   children?: React.ReactNode;
 }
 
-const reportReasons = [
+const Reasons = [
   { value: "spam", label: "스팸/광고" },
   { value: "harassment", label: "괴롭힘/혐오 발언" },
   { value: "inappropriate", label: "부적절한 내용" },
@@ -31,7 +33,13 @@ const reportReasons = [
   { value: "other", label: "기타" },
 ];
 
-export function ReportDialog({ type, targetId, children }: ReportDialogProps) {
+export function ReportDialog({
+  type,
+  targetId,
+  alreadyReported = false,
+  onReported, // ✅ props로 추가
+  children,
+}: ReportDialogProps) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [description, setDescription] = useState("");
@@ -40,6 +48,7 @@ export function ReportDialog({ type, targetId, children }: ReportDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!reason) {
       toast({
         title: "신고 사유 선택",
@@ -54,6 +63,7 @@ export function ReportDialog({ type, targetId, children }: ReportDialogProps) {
 
     try {
       // 실제 구현에서는 API 호출
+      // 예: await api.reportPost(targetId, reason, description);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast({
@@ -67,10 +77,13 @@ export function ReportDialog({ type, targetId, children }: ReportDialogProps) {
         ),
         duration: 2000,
       });
-
+      if (onReported) onReported();
       setOpen(false);
       setReason("");
       setDescription("");
+
+      // ✅ 이미 신고한 상태로 업데이트 (상위 컴포넌트에서 상태 관리 필요)
+      // 예: onReported && onReported();
     } catch (error) {
       toast({
         title: "신고 실패",
@@ -86,71 +99,81 @@ export function ReportDialog({ type, targetId, children }: ReportDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {children || (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-red-500 hover:text-red-600 hover:bg-red-50"
-          >
-            <Flag className="h-4 w-4 mr-1" />
-            신고
-          </Button>
-        )}
+        <Button
+          variant={alreadyReported ? "outline" : "ghost"} // 신고 완료면 outline
+          size="sm"
+          disabled={alreadyReported} // 이미 신고했으면 비활성화
+          className={`${
+            alreadyReported
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-red-500 hover:text-red-600 hover:bg-red-50"
+          }`}
+        >
+          <Flag className="h-4 w-4 mr-1" />
+          {alreadyReported ? "신고 완료" : "신고"}
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-white">
-        <DialogHeader>
-          <DialogTitle className="flex bg-white items-center gap-2 text-red-600">
-            <AlertTriangle className="h-5 w-5" />
-            {type === "post" ? "게시글" : "댓글"} 신고하기
-          </DialogTitle>
-          <DialogDescription>
-            부적절한 콘텐츠를 신고해주세요. 신고 내용은 관리자가 검토합니다.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-3">
-            <Label>신고 사유</Label>
-            <RadioGroup value={reason} onValueChange={setReason}>
-              {reportReasons.map((item) => (
-                <div key={item.value} className="flex items-center space-x-2">
-                  <RadioGroupItem value={item.value} id={item.value} />
-                  <Label htmlFor={item.value} className="text-sm font-normal">
-                    {item.label}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">상세 설명 (선택사항)</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="추가 설명이 있다면 입력해주세요..."
-              className="min-h-[80px]"
-            />
-          </div>
+      {!alreadyReported && ( // 이미 신고했으면 다이얼로그 열지 않음
+        <DialogContent className="sm:max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex bg-white items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              {type === "post" ? "게시글" : "댓글"} 신고하기
+            </DialogTitle>
+            <DialogDescription>
+              부적절한 콘텐츠를 신고해주세요. 신고 내용은 관리자가 검토합니다.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              취소
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              {loading ? "신고 중..." : "신고하기"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-3">
+              <Label>신고 사유</Label>
+              <RadioGroup value={reason} onValueChange={setReason}>
+                {Reasons.map((item) => (
+                  <div key={item.value} className="flex items-center space-x-2">
+                    <RadioGroupItem value={item.value} id={item.value} />
+                    <Label htmlFor={item.value} className="text-sm font-normal">
+                      {item.label}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">상세 설명 (선택사항)</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="추가 설명이 있다면 입력해주세요..."
+                className="min-h-[80px]"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                취소
+              </Button>
+              <Button
+                disabled={alreadyReported}
+                className={
+                  alreadyReported
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                }
+              >
+                {alreadyReported ? "신고 완료" : "신고"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      )}
     </Dialog>
   );
 }

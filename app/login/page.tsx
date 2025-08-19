@@ -18,7 +18,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginPage() {
-  const [userId, setUserId] = useState(""); // 이메일 대신 userId 상태 생성
+  const [userId, setUserId] = useState(""); 
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();

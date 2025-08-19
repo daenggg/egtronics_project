@@ -1,11 +1,14 @@
 "use client";
 
+import React, { useState } from "react";
 import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +19,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function RegisterPage() {
+  const { register } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
   // 상태 변수
   const [userId, setUserId] = useState("");
   const [name, setName] = useState("");
@@ -29,119 +35,120 @@ export default function RegisterPage() {
   const [customDomain, setCustomDomain] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(false);
   const [phonePrefix, setPhonePrefix] = useState("010");
   const [customPhonePrefix, setCustomPhonePrefix] = useState("");
   const [phone, setPhone] = useState("");
   const [profilePicture, setProfilePicture] = useState<File | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // 에러 상태
-  const [errors, setErrors] = useState<{
-    userId?: string;
-    name?: string;
-    email?: string;
-    password?: string;
-    confirmPassword?: string;
-    phone?: string;
-    nickname?: string;
-  }>({});
-
-  // 닉네임 중복 상태
+  // 상태 관리
+  const [loading, setLoading] = useState(false);
+  const [checkingUserId, setCheckingUserId] = useState(false);
+  const [checkingNickname, setCheckingNickname] = useState(false);
+  const [userIdAvailable, setUserIdAvailable] = useState<boolean | null>(null);
   const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(
     null
   );
-  const { register } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
-  // 이메일 전체 조합 (trim 적용)
+  // 조합된 값
   const email =
     domain === "custom"
       ? `${emailId.trim()}@${customDomain.trim()}`
       : `${emailId.trim()}@${domain}`;
 
-  // 전화번호 전체 조합 (trim 적용)
   const fullPhoneNumber =
     phonePrefix === "custom" && customPhonePrefix.trim() !== ""
-      ? formatFullPhoneNumber(customPhonePrefix.trim(), phone.trim())
-      : formatFullPhoneNumber(phonePrefix, phone.trim());
+      ? formatPhone(customPhonePrefix.trim(), phone.trim())
+      : formatPhone(phonePrefix, phone.trim());
 
   // 정규식
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[A-Za-z0-9_-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   const phoneRegex = /^\d{3}-\d{4}-\d{4}$/;
+  const userIdRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]{6,20}$/;
   const passwordRegex =
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{8,13}$/;
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{6,20}$/;
+  const koreanRegex = /^[가-힣]+$/;
+  const englishRegex = /^[A-Za-z]+$/;
 
-  // 닉네임 중복 체크
-  const checkNickname = async () => {
-    if (!nickname.trim()) {
+  // 유틸 함수
+  function formatPhone(prefix: string, rest: string): string {
+    const onlyNums = (prefix + rest).replace(/\D/g, "").slice(0, 11);
+    if (onlyNums.length <= 3) return onlyNums;
+    if (onlyNums.length <= 7)
+      return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3)}`;
+    return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(
+      7
+    )}`;
+  }
+
+  // 아이디 중복 검사
+  const checkUserId = async () => {
+    if (!userId.trim() || !userIdRegex.test(userId)) {
       toast({
-        title: "닉네임을 입력해주세요",
+        title: "아이디 오류",
+        description: "아이디를 다시 확인해주세요.",
         variant: "destructive",
-        duration: 2000,
       });
       return;
     }
-    setChecking(true);
+
+    setCheckingUserId(true);
     try {
-      const res = await axios.get(`http://localhost:3001/users/checkNickname`, {
-        params: { nickname: nickname.trim() },
-        validateStatus: (status) => status < 500, // 4xx도 정상 처리
+      const res = await axios.get("http://localhost:3001/users/checkUserId", {
+        params: { userId: userId.trim() },
+        validateStatus: (s) => s < 500,
       });
 
       if (res.status === 200) {
-        toast({ title: "사용 가능한 닉네임입니다", duration: 2000 });
-        setNicknameAvailable(true);
-        setErrors((prev) => ({ ...prev, nickname: undefined }));
+        setUserIdAvailable(true);
+        setErrors((prev) => ({ ...prev, userId: undefined }));
+        toast({ title: "사용 가능한 아이디입니다" });
       } else if (res.status === 409) {
-        toast({
-          title: "중복된 닉네임입니다",
-          variant: "destructive",
-          duration: 2000,
-        });
-        setNicknameAvailable(false);
-        setErrors((prev) => ({ ...prev, nickname: "중복된 닉네임입니다." }));
-      } else {
-        // 그 외 예기치 못한 상태
-        toast({
-          title: "오류가 발생했습니다",
-          variant: "destructive",
-          duration: 2000,
-        });
-        setNicknameAvailable(null);
+        setUserIdAvailable(false);
+        setErrors((prev) => ({
+          ...prev,
+          userId: "이미 사용 중인 아이디입니다.",
+        }));
+        toast({ title: "이미 사용 중인 아이디입니다", variant: "destructive" });
       }
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "오류가 발생했습니다",
-        variant: "destructive",
-        duration: 2000,
-      });
-      setNicknameAvailable(null);
+    } catch {
+      toast({ title: "서버 오류", variant: "destructive" });
     } finally {
-      setChecking(false);
+      setCheckingUserId(false);
     }
   };
 
-  // 전화번호 포맷팅 함수
-  function formatFullPhoneNumber(
-    prefix: string,
-    middleAndLast: string
-  ): string {
-    const onlyNums = (prefix + middleAndLast).replace(/\D/g, "").slice(0, 11);
-    if (onlyNums.length <= 3) {
-      return onlyNums;
-    } else if (onlyNums.length <= 7) {
-      return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3)}`;
-    } else {
-      return `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(
-        7
-      )}`;
+  // 닉네임 중복 검사
+  const checkNickname = async () => {
+    if (!nickname.trim()) {
+      toast({ title: "닉네임을 입력해주세요", variant: "destructive" });
+      return;
     }
-  }
+
+    setCheckingNickname(true);
+    try {
+      const res = await axios.get("http://localhost:3001/users/checkNickname", {
+        params: { nickname: nickname.trim() },
+        validateStatus: (s) => s < 500,
+      });
+
+      if (res.status === 200) {
+        setNicknameAvailable(true);
+        setErrors((prev) => ({ ...prev, nickname: undefined }));
+        toast({ title: "사용 가능한 닉네임입니다" });
+      } else if (res.status === 409) {
+        setNicknameAvailable(false);
+        setErrors((prev) => ({ ...prev, nickname: "중복된 닉네임입니다." }));
+        toast({ title: "중복된 닉네임입니다", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "서버 오류", variant: "destructive" });
+    } finally {
+      setCheckingNickname(false);
+    }
+  };
 
   // 유효성 검사
   const validateAll = () => {
@@ -149,11 +156,14 @@ export default function RegisterPage() {
 
     if (!userId.trim()) newErrors.userId = "아이디를 입력해주세요.";
     if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
+    else if (!(koreanRegex.test(name) || englishRegex.test(name)))
+      newErrors.name = "이름은 한글 또는 영어로 입력해주세요.";
+
     if (!emailRegex.test(email))
       newErrors.email = "올바른 이메일 형식이 아닙니다.";
     if (!passwordRegex.test(password))
       newErrors.password =
-        "비밀번호는 영문, 숫자, 특수문자 포함 8~13자리여야 합니다.";
+        "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
     if (confirmPassword !== password)
       newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
     if (!phoneRegex.test(fullPhoneNumber))
@@ -166,41 +176,23 @@ export default function RegisterPage() {
       newErrors.nickname = "닉네임 중복 확인이 필요합니다.";
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  // 버튼 활성화 조건 (loading 상태 포함)
-  const isFormComplete =
-    userId.trim() &&
-    name.trim() &&
-    emailId.trim() &&
-    (domain !== "custom" || customDomain.trim()) &&
-    password.trim() &&
-    confirmPassword.trim() &&
-    phone.trim() &&
-    nickname.trim() &&
-    !loading;
-
+  // 회원가입 제출
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateAll()) {
       toast({
         title: "입력 오류",
-        description: "입력한 정보를 다시 확인해주세요.",
+        description: "입력 정보를 확인해주세요.",
         variant: "destructive",
-        duration: 2000,
       });
       return;
     }
 
     if (nicknameAvailable !== true) {
-      toast({
-        title: "닉네임 중복 확인을 해주세요",
-        variant: "destructive",
-        duration: 2000,
-      });
+      toast({ title: "닉네임 중복 확인을 해주세요", variant: "destructive" });
       return;
     }
 
@@ -214,23 +206,29 @@ export default function RegisterPage() {
         phone: fullPhoneNumber,
         nickname,
       });
-      toast({
-        title: "회원가입 성공",
-        description: "환영합니다!",
-        duration: 2000,
-      });
+      toast({ title: "회원가입 성공", description: "환영합니다!" });
       router.push("/");
     } catch {
       toast({
         title: "회원가입 실패",
         description: "다시 시도해주세요.",
         variant: "destructive",
-        duration: 2000,
       });
     } finally {
       setLoading(false);
     }
   };
+
+  const isFormComplete =
+    userId &&
+    name &&
+    emailId &&
+    (domain !== "custom" || customDomain) &&
+    password &&
+    confirmPassword &&
+    phone &&
+    nickname &&
+    !loading;
 
   return (
     <div className="container mx-auto px-4 py-8 flex justify-center min-h-[80vh] items-center">
@@ -248,6 +246,7 @@ export default function RegisterPage() {
                 새 계정을 생성하여 커뮤니티에 참여하세요
               </CardDescription>
             </CardHeader>
+
             <CardContent>
               {/* 프로필 사진 */}
               <div className="space-y-2 mb-6">
@@ -257,15 +256,13 @@ export default function RegisterPage() {
                     className="cursor-pointer inline-block relative"
                   >
                     {profilePicture ? (
-                      // 업로드된 이미지
                       <img
                         src={URL.createObjectURL(profilePicture)}
                         alt="프로필 미리보기"
                         className="w-25 h-25 rounded-full object-cover border"
                       />
                     ) : (
-                      // 기본 상태: 회색 배경 + 펜 이모지
-                      <div className="w-25 h-25 items-center rounded-full border flex items-center justify-center bg-gray-200 text-sm">
+                      <div className="w-25 h-25 rounded-full border flex items-center justify-center bg-gray-200 text-sm">
                         프로필 사진
                         <br />
                         등록하기🖊
@@ -273,17 +270,14 @@ export default function RegisterPage() {
                     )}
                   </label>
                 </div>
-
                 <input
                   id="profilePicture"
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      setProfilePicture(e.target.files[0]);
-                    }
-                  }}
+                  onChange={(e) =>
+                    e.target.files && setProfilePicture(e.target.files[0])
+                  }
                 />
               </div>
 
@@ -293,10 +287,29 @@ export default function RegisterPage() {
                 <Input
                   id="name"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value;
+
+                    // 최대 20글자 제한
+                    if (value.length > 20) {
+                      value = value.slice(0, 20);
+                    }
+
+                    setName(value);
+
+                    // 오류 처리
+                    setErrors((prev) => ({
+                      ...prev,
+                      name: !value.trim()
+                        ? "이름을 입력해주세요."
+                        : !(koreanRegex.test(value) || englishRegex.test(value))
+                        ? "이름은 한글 또는 영어만 가능합니다."
+                        : undefined,
+                    }));
+                  }}
                   placeholder="이름을 입력하세요"
-                  required
                 />
+
                 {errors.name && (
                   <p className="text-red-600 text-sm mt-1">{errors.name}</p>
                 )}
@@ -305,13 +318,42 @@ export default function RegisterPage() {
               {/* 아이디 */}
               <div className="space-y-2 mb-6">
                 <Label htmlFor="userId">아이디</Label>
-                <Input
-                  id="userId"
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  placeholder="아이디를 입력하세요"
-                  required
-                />
+                <div className="flex space-x-2">
+                  <Input
+                    id="userId"
+                    value={userId}
+                    onChange={(e) => {
+                      let value = e.target.value;
+
+                      // 최대 20글자 제한
+                      if (value.length > 20) {
+                        value = value.slice(0, 20);
+                      }
+
+                      setUserId(value);
+                      setUserIdAvailable(null);
+
+                      // 오류 처리
+                      setErrors((prev) => ({
+                        ...prev,
+                        userId: value.trim()
+                          ? userIdRegex.test(value)
+                            ? undefined
+                            : "아이디는 영문, 숫자, 특수문자를 넣을 수 있습니다. (4~20자리)."
+                          : "아이디를 입력해주세요.",
+                      }));
+                    }}
+                    placeholder="아이디를 입력하세요"
+                  />
+
+                  <Button
+                    type="button"
+                    onClick={checkUserId}
+                    disabled={checkingUserId}
+                  >
+                    {checkingUserId ? "확인 중..." : "중복 검사"}
+                  </Button>
+                </div>
                 {errors.userId && (
                   <p className="text-red-600 text-sm mt-1">{errors.userId}</p>
                 )}
@@ -323,15 +365,44 @@ export default function RegisterPage() {
                 <div className="flex gap-2">
                   <Input
                     value={emailId}
-                    onChange={(e) => setEmailId(e.target.value)}
-                    placeholder="이메일"
-                    className="flex-1"
-                    required
+                    onChange={(e) => {
+                      let value = e.target.value;
+
+                      // 도메인 포함 최대 30글자 제한
+                      const domainLength =
+                        domain === "custom"
+                          ? customDomain.length
+                          : domain.length;
+                      if (value.length + 1 + domainLength > 30) {
+                        // @ 포함해서 +1
+                        value = value.slice(0, 30 - 1 - domainLength);
+                      }
+
+                      setEmailId(value);
+
+                      // 오류 처리
+                      if (
+                        !emailRegex.test(
+                          value +
+                            "@" +
+                            (domain === "custom" ? customDomain : domain)
+                        )
+                      ) {
+                        setErrors((prev) => ({
+                          ...prev,
+                          email: "올바른 이메일 형식이 아닙니다.",
+                        }));
+                      } else {
+                        setErrors((prev) => ({ ...prev, email: undefined }));
+                      }
+                    }}
+                    placeholder="이메일을 입력하세요"
                   />
+
                   <select
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
-                    className="border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                    className="border-gray-200"
                   >
                     <option value="naver.com">@naver.com</option>
                     <option value="gmail.com">@gmail.com</option>
@@ -343,9 +414,7 @@ export default function RegisterPage() {
                   <Input
                     value={customDomain}
                     onChange={(e) => setCustomDomain(e.target.value)}
-                    placeholder="도메인을 입력하세요"
-                    className="mt-2"
-                    required
+                    placeholder="도메인 입력"
                   />
                 )}
                 {errors.email && (
@@ -354,22 +423,34 @@ export default function RegisterPage() {
                 <p className="text-sm text-gray-500">전체 이메일: {email}</p>
               </div>
 
+              {/* 비밀번호 */}
               <div className="space-y-2 mb-6">
                 <Label htmlFor="password">비밀번호</Label>
                 <div className="relative">
                   <Input
-                    id="password"
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="비밀번호"
-                    required
-                    className="pr-10" // 아이콘 공간 확보
+                    onChange={(e) => {
+                      // 20글자 초과 방지
+                      const value = e.target.value.slice(0, 20);
+                      setPassword(value);
+
+                      // 오류 처리
+                      setErrors((prev) => ({
+                        ...prev,
+                        password:
+                          !/^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{6,20}$/.test(
+                            value
+                          )
+                            ? "비밀번호는 영문, 숫자, 특수문자 모두 포함 6~20자리여야 합니다."
+                            : undefined,
+                      }));
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -379,22 +460,32 @@ export default function RegisterPage() {
                 )}
               </div>
 
-              <div className="space-y-2 mb-4">
+              {/* 비밀번호 확인 */}
+              <div className="space-y-2 mb-6">
                 <Label htmlFor="confirmPassword">비밀번호 확인</Label>
                 <div className="relative">
                   <Input
-                    id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="비밀번호 재입력"
-                    required
-                    className="pr-10"
+                    onChange={(e) => {
+                      // 20글자 초과 방지
+                      const value = e.target.value.slice(0, 20);
+                      setConfirmPassword(value);
+
+                      // 비밀번호 일치 여부 체크
+                      setErrors((prev) => ({
+                        ...prev,
+                        confirmPassword:
+                          value !== password
+                            ? "비밀번호가 일치하지 않습니다."
+                            : undefined,
+                      }));
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400"
                   >
                     {showConfirmPassword ? (
                       <EyeOff size={20} />
@@ -478,7 +569,7 @@ export default function RegisterPage() {
                   {phone}
                 </p>
               </div>
-
+              
               {/* 닉네임 */}
               <div className="space-y-2 mb-6">
                 <Label htmlFor="nickname">닉네임</Label>
@@ -486,27 +577,37 @@ export default function RegisterPage() {
                   <Input
                     id="nickname"
                     value={nickname}
+                    maxLength={20} // 브라우저 입력 제한
                     onChange={(e) => {
-                      setNickname(e.target.value);
-                      setNicknameAvailable(null); // 닉네임 변경 시 초기화
-                      setErrors((prev) => ({ ...prev, nickname: undefined }));
+                      const value = e.target.value.slice(0, 20); // 혹시 maxLength 무시될 경우 대비
+                      setNickname(value);
+                      setNicknameAvailable(null);
+                      setErrors((prev) => ({
+                        ...prev,
+                        nickname: value.trim()
+                          ? undefined
+                          : "닉네임을 입력해주세요.",
+                      }));
                     }}
-                    placeholder="닉네임"
-                    required
+                    placeholder="닉네임을 입력하세요"
                   />
                   <Button
                     type="button"
                     onClick={checkNickname}
-                    disabled={checking}
+                    disabled={checkingNickname}
                   >
-                    {checking ? "확인 중..." : "중복 검사"}
+                    {checkingNickname ? "확인 중..." : "중복 검사"}
                   </Button>
                 </div>
                 {errors.nickname && (
                   <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>
                 )}
+                <p className="text-sm text-gray-500 mt-1">
+                  {nickname.length}/20
+                </p>
               </div>
 
+              {/* 회원가입 버튼 */}
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3"
@@ -514,6 +615,8 @@ export default function RegisterPage() {
               >
                 {loading ? "가입 중..." : "회원가입"}
               </Button>
+
+              {/* 로그인 링크 */}
               <div className="mt-6 text-center text-sm">
                 <span className="text-gray-600">이미 계정이 있으신가요? </span>
                 <Link href="/login" className="text-blue-600 hover:underline">

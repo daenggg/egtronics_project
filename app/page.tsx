@@ -168,7 +168,7 @@ export default function HomePage() {
                     <p className="line-clamp-3 text-gray-700">{post.content}</p>
                     <div className="flex justify-end space-x-4 text-sm text-gray-500 mt-4">
                       <span className="flex items-center space-x-1">
-                        <span>❤️</span>
+                        <span>🤍</span>
                         <span>{post.likes}</span>
                       </span>
                       <span className="flex items-center space-x-1">

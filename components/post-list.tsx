@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { MessageCircle, Eye, Bookmark } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ko } from 'date-fns/locale'
-import { ReportDialog } from '@/components/report-dialog'
+
 import { categories } from '@/components/category-filter'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -132,11 +132,7 @@ export function PostList({ selectedCategory }: PostListProps) {
                   <Eye className="h-3 w-3" />
                   <span>{post.views}</span>
                 </div>
-                <ReportDialog type="post" targetId={post.id}>
-                  <Button variant="ghost" size="sm" className="p-1 h-6 w-6 rounded-full text-gray-400 hover:text-red-500">
-                    <span className="text-xs">⚠️</span>
-                  </Button>
-                </ReportDialog>
+
               </div>
             </div>
           </CardHeader>

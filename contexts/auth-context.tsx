@@ -50,9 +50,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     if (process.env.NODE_ENV === 'development') {
       const tempUser: User = {
-        id: 'testuser',
+        id: 'u1',
         name: '테스트 유저',
-        email,
+        email:'asdjfi@naver.com',
         avatar: '',
         nickname: '테스트닉',
         phone: '010-0000-0000',
