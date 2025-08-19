@@ -105,6 +105,38 @@ export default function PostDetailPage() {
         likes: 5,
         isLiked: false,
       },
+      {
+        id: "c2",
+        content: "두 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(),
+        likes: 5,
+        isLiked: false,
+      },
+      {
+        id: "asd",
+        content: "세 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(),
+        likes: 8,
+        isLiked: false,
+      },
+      {
+        id: "2345",
+        content: "네 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(),
+        likes: 9,
+        isLiked: false,
+      },
+      {
+        id: "234",
+        content: "다섯 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(),
+        likes: 10,
+        isLiked: false,
+      },
     ];
 
     setPost(mockPost);
