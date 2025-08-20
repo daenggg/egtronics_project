@@ -77,7 +77,7 @@ export default function LoginPage() {
                 type="text"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
-                className="border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                className="pr-10"
                 placeholder="아이디를 입력하세요"
                 required
               />
