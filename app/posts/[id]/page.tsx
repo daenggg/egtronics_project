@@ -94,7 +94,7 @@ export default function PostDetailPage() {
         content: "첫 번째 댓글입니다.",
         author: { id: "u2", name: "김철수", avatar: "/placeholder.svg" },
         createdAt: new Date(),
-        likes: 2,
+        likes: 8,
         isLiked: false,
       },
       {
@@ -160,6 +160,17 @@ export default function PostDetailPage() {
     const otherComments = comments.filter((c) => !topCommentIds.has(c.id));
 
     return [...topComments, ...otherComments];
+  }, [comments]);
+
+  const bestLikeThreshold = useMemo(() => {
+    if (comments.length < 3) {
+      // 댓글이 3개 미만일 경우, 좋아요가 1개 이상이면 모두 BEST로 간주할 수 있도록 0을 반환합니다.
+      return 0;
+    }
+    // 좋아요 순으로 정렬하여 3번째 댓글의 좋아요 수를 기준점으로 삼습니다.
+    // 이렇게 하면 3등과 좋아요 수가 같은 댓글들도 모두 BEST 댓글로 포함됩니다.
+    const sortedByLikes = [...comments].sort((a, b) => b.likes - a.likes);
+    return sortedByLikes[2].likes;
   }, [comments]);
 
   const handleLikePost = () => {
@@ -461,7 +472,8 @@ export default function PostDetailPage() {
       <div className="space-y-3">
         <h3 className="text-lg font-semibold">댓글 {comments.length}개</h3>
         {sortedComments.map((comment, index) => {
-          const isTopComment = index < 3 && comment.likes > 0;
+          const isTopComment =
+            comment.likes > 0 && comment.likes >= bestLikeThreshold;
           return (
             <Card
               key={comment.id}
