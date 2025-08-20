@@ -33,9 +33,6 @@ export function CategoryFilter({
     onCategoryChange?.(newCategory)
   }
 
-  // 렌더링 부분은 그대로 유지
-
-
   return (
     <Card className="mb-2 border-0 shadow-none">
       <CardContent className="pt-2">

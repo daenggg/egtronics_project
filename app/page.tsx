@@ -95,6 +95,11 @@ export default function HomePage() {
     currentPage * postsPerPage
   );
 
+  const handleCategoryChange = (category: string | null) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* 헤더 */}
@@ -117,7 +122,7 @@ export default function HomePage() {
           </div>
           <CategoryFilter
             selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={handleCategoryChange}
           />
         </aside>
 
@@ -135,7 +140,10 @@ export default function HomePage() {
             />
             <Select
               value={sortOption}
-              onValueChange={(value) => setSortOption(value)}
+              onValueChange={(value) => {
+                setSortOption(value);
+                setCurrentPage(1);
+              }}
             >
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="정렬" />
