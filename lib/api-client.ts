@@ -1,10 +1,9 @@
 import axios from 'axios'
 import { tokenStorage } from './auth-storage'
 import { 
-  Post, CreatePostRequest, UpdatePostRequest, PostListResponse, 
-  Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, 
-  ScrapListResponse, LikeResponse, PaginationParams, 
-  User, AuthResponse, SignUpRequest, LoginRequest, UpdateProfileRequest
+  Post, CreatePostRequest, UpdatePostRequest, PostListResponse,
+  Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse,
+  ScrapListResponse, LikeResponse, PaginationParams
 } from './types'
 
 export const API_BASE = 'http://localhost:8080';
@@ -64,29 +63,29 @@ export async function unlikePost(id: string): Promise<LikeResponse> {
 
 // ===== 회원관리 API =====
 
-export async function signUp(payload: SignUpRequest): Promise<User> {
-  const { data } = await api.post<User>('/users', payload)
+export async function signUp(payload: { username: string; password: string; email: string }) {
+  const { data } = await api.post('/users', payload)
   return data
 }
 
-export async function login(payload: LoginRequest): Promise<AuthResponse> {
-  const { data } = await api.post<AuthResponse>('/auth/login', payload)
+export async function login(payload: { username: string; password: string }) {
+  const { data } = await api.post('/auth/login', payload)
   tokenStorage.setToken(data.token) 
   return data
 }
 
-export async function logout(): Promise<void> {
+export async function logout() {
   await api.get('/auth/logout')
   tokenStorage.removeToken() 
 }
 
-export async function deleteAccount(): Promise<void> {
+export async function deleteAccount() {
   await api.delete('/users/me')
   tokenStorage.removeToken() 
 }
 
-export async function getMyProfile(): Promise<User> {
-  const { data } = await api.get<User>('/users/me')
+export async function getMyProfile() {
+  const { data } = await api.get('/users/me')
   return data
 }
 
@@ -126,8 +125,8 @@ export async function unlikeComment(postId: string, commentId: string): Promise<
 }
 
 // ===== 스크랩 API =====
-export async function scrapPost(postId: string): Promise<void> {
-  const { data } = await api.post<void>(`/posts/${postId}/scrap`)
+export async function scrapPost(postId: string): Promise<any> {
+  const { data } = await api.post(`/posts/${postId}/scrap`)
   return data
 }
 

@@ -41,21 +41,47 @@ export default function CreatePostPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+ 
     try {
-      // 실제 구현에서는 API 호출
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      // 1. /api/posts 로 실제 API 요청을 보냅니다.
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          content,
+          category,
+          media, // 실제로는 미디어 파일 업로드 로직이 필요합니다.
+        }),
+      });
+ 
+      if (!response.ok) {
+        // 서버에서 에러 응답을 보냈을 경우
+        throw new Error('게시글 작성에 실패했습니다.');
+      }
+ 
       toast({
         title: "게시글 작성 완료",
         description: "게시글이 성공적으로 작성되었습니다.",
         duration: 2000,
       });
+ 
+      // 2. router.refresh()를 호출하여 서버 데이터를 다시 불러옵니다.
+      // 이렇게 하면 post-list.tsx가 새로운 게시글을 포함한 목록을 다시 렌더링합니다.
+      router.refresh();
+ 
+      // 3. 데이터 갱신 후 홈으로 이동합니다.
       router.push("/");
     } catch (error) {
+      console.error(error);
       toast({
         title: "작성 실패",
-        description: "다시 시도해주세요.",
+        description:
+          error instanceof Error
+            ? error.message
+            : "알 수 없는 오류가 발생했습니다.",
         variant: "destructive",
         duration: 2000,
       });
@@ -63,7 +89,7 @@ export default function CreatePostPage() {
       setLoading(false);
     }
   };
-
+ 
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="max-w-4xl mx-auto">
