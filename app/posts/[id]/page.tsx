@@ -90,10 +90,34 @@ export default function PostDetailPage() {
 
     const mockComments: Comment[] = [
       {
+        id: "6756",
+        content: "다섯 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 1), // 1시간 전
+        likes: 10,
+        isLiked: false,
+      },
+      {
+        id: "2345",
+        content: "네 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2시간 전
+        likes: 9,
+        isLiked: false,
+      },
+      {
+        id: "asd",
+        content: "세 번째 댓글입니다.",
+        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3), // 3시간 전
+        likes: 8,
+        isLiked: false,
+      },
+      {
         id: "c1",
         content: "첫 번째 댓글입니다.",
         author: { id: "u2", name: "김철수", avatar: "/placeholder.svg" },
-        createdAt: new Date(),
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4시간 전
         likes: 8,
         isLiked: false,
       },
@@ -101,7 +125,7 @@ export default function PostDetailPage() {
         id: "c2",
         content: "두 번째 댓글입니다.",
         author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
-        createdAt: new Date(),
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5시간 전
         likes: 5,
         isLiked: false,
       },
@@ -109,32 +133,8 @@ export default function PostDetailPage() {
         id: "c3",
         content: "정말 유용한 정보네요!",
         author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
-        createdAt: new Date(),
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6시간 전
         likes: 5,
-        isLiked: false,
-      },
-      {
-        id: "asd",
-        content: "세 번째 댓글입니다.",
-        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
-        createdAt: new Date(),
-        likes: 8,
-        isLiked: false,
-      },
-      {
-        id: "2345",
-        content: "네 번째 댓글입니다.",
-        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
-        createdAt: new Date(),
-        likes: 9,
-        isLiked: false,
-      },
-      {
-        id: "234",
-        content: "다섯 번째 댓글입니다.",
-        author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
-        createdAt: new Date(),
-        likes: 10,
         isLiked: false,
       },
     ];
@@ -144,34 +144,39 @@ export default function PostDetailPage() {
     setLoading(false);
   }, [params.id]);
 
-  const sortedComments = useMemo(() => {
-    if (comments.length === 0) {
-      return [];
-    }
-
-    // 1. 좋아요 순으로 내림차순 정렬된 복사본 생성
-    const sortedByLikes = [...comments].sort((a, b) => b.likes - a.likes);
-
-    // 2. 좋아요 수가 가장 많은 상위 3개 댓글 추출
-    const topComments = sortedByLikes.slice(0, 3);
-    const topCommentIds = new Set(topComments.map((c) => c.id));
-
-    // 3. 나머지 댓글 (상위 3개를 제외하고, 원래 시간 순서 유지)
-    const otherComments = comments.filter((c) => !topCommentIds.has(c.id));
-
-    return [...topComments, ...otherComments];
-  }, [comments]);
-
   const bestLikeThreshold = useMemo(() => {
     if (comments.length < 3) {
-      // 댓글이 3개 미만일 경우, 좋아요가 1개 이상이면 모두 BEST로 간주할 수 있도록 0을 반환합니다.
+
       return 0;
     }
-    // 좋아요 순으로 정렬하여 3번째 댓글의 좋아요 수를 기준점으로 삼습니다.
-    // 이렇게 하면 3등과 좋아요 수가 같은 댓글들도 모두 BEST 댓글로 포함됩니다.
+
     const sortedByLikes = [...comments].sort((a, b) => b.likes - a.likes);
     return sortedByLikes[2].likes;
   }, [comments]);
+
+  const sortedComments = useMemo(() => {
+    if (!comments || comments.length === 0) {
+      return [];
+    }
+
+    const bestComments: Comment[] = [];
+    const otherComments: Comment[] = [];
+
+    comments.forEach((comment) => {
+      if (comment.likes > 0 && comment.likes >= bestLikeThreshold) {
+        bestComments.push(comment);
+      } else {
+        otherComments.push(comment);
+      }
+    });
+
+    bestComments.sort((a, b) => {
+      if (a.likes !== b.likes) return b.likes - a.likes;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
+    return [...bestComments, ...otherComments];
+  }, [comments, bestLikeThreshold]);
 
   const handleLikePost = () => {
     if (!user) {
