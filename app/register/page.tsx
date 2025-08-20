@@ -155,20 +155,29 @@ export default function RegisterPage() {
     const newErrors: typeof errors = {};
 
     if (!userId.trim()) newErrors.userId = "아이디를 입력해주세요.";
+    else if (userIdAvailable === false)
+      newErrors.userId = "이미 사용 중인 아이디입니다.";
+    else if (userIdAvailable === null)
+      newErrors.userId = "아이디 중복 확인이 필요합니다.";
+
     if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
     else if (!(koreanRegex.test(name) || englishRegex.test(name)))
       newErrors.name = "이름은 한글 또는 영어로 입력해주세요.";
 
     if (!emailRegex.test(email))
       newErrors.email = "올바른 이메일 형식이 아닙니다.";
+
     if (!passwordRegex.test(password))
       newErrors.password =
         "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
+
     if (confirmPassword !== password)
       newErrors.confirmPassword = "비밀번호가 일치하지 않습니다.";
+
     if (!phoneRegex.test(fullPhoneNumber))
       newErrors.phone =
         "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+
     if (!nickname.trim()) newErrors.nickname = "닉네임을 입력해주세요.";
     else if (nicknameAvailable === false)
       newErrors.nickname = "중복된 닉네임입니다.";
@@ -191,6 +200,11 @@ export default function RegisterPage() {
       return;
     }
 
+    // 아이디/닉네임 중복 체크 안 했으면 막기
+    if (userIdAvailable !== true) {
+      toast({ title: "아이디 중복 확인을 해주세요", variant: "destructive" });
+      return;
+    }
     if (nicknameAvailable !== true) {
       toast({ title: "닉네임 중복 확인을 해주세요", variant: "destructive" });
       return;
@@ -516,7 +530,7 @@ export default function RegisterPage() {
                         setCustomPhonePrefix(onlyNums);
                       }}
                       placeholder="000"
-                      className="w-20 border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                      className="w-20 border-gray-800 focus:border-blue-300 focus:ring-blue-200"
                       autoFocus
                       required
                     />
@@ -556,7 +570,7 @@ export default function RegisterPage() {
                       setPhone(formatted);
                     }}
                     placeholder="전화번호"
-                    className="flex-grow border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                    className="flex-grow border-gray-800 focus:border-blue-300 focus:ring-blue-200"
                     required
                   />
                 </div>
@@ -569,7 +583,7 @@ export default function RegisterPage() {
                   {phone}
                 </p>
               </div>
-              
+
               {/* 닉네임 */}
               <div className="space-y-2 mb-6">
                 <Label htmlFor="nickname">닉네임</Label>
