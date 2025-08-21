@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { tokenStorage } from './auth-storage'
-import { 
+import { User } from './auth'
+import {
   Post, CreatePostRequest, UpdatePostRequest, PostListResponse,
   Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse,
   ScrapListResponse, LikeResponse, PaginationParams
@@ -63,34 +64,34 @@ export async function unlikePost(id: string): Promise<LikeResponse> {
 
 // ===== 회원관리 API =====
 
-export async function signUp(payload: { username: string; password: string; email: string }) {
+export async function signUp(payload: { name: string; nickname: string; email: string; password: string; phone: string }) {
   const { data } = await api.post('/users', payload)
   return data
 }
 
-export async function login(payload: { username: string; password: string }) {
+export async function login(payload: { email: string; password: string }): Promise<{ token: string; user: User }> {
   const { data } = await api.post('/auth/login', payload)
-  tokenStorage.setToken(data.token) 
+  tokenStorage.setToken(data.token)
   return data
 }
 
 export async function logout() {
-  await api.get('/auth/logout')
-  tokenStorage.removeToken() 
+  await api.post('/auth/logout')
+  tokenStorage.removeToken()
 }
 
 export async function deleteAccount() {
-  await api.delete('/users/me')
-  tokenStorage.removeToken() 
+  await api.delete('/me')
+  tokenStorage.removeToken()
 }
 
-export async function getMyProfile() {
-  const { data } = await api.get('/users/me')
+export async function getMyProfile(): Promise<User> {
+  const { data } = await api.get<User>('/me')
   return data
 }
 
-export async function updateMyProfile(payload: { username?: string; email?: string; password?: string }) {
-  const { data } = await api.put('/users', payload)
+export async function updateMyProfile(payload: Partial<Pick<User, 'name' | 'nickname' | 'phone' | 'avatar'>> & { password?: string }): Promise<User> {
+  const { data } = await api.put<User>('/me', payload)
   return data
 }
 

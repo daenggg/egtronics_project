@@ -38,7 +38,7 @@ const categories = [
   "free",
 ];
 
-const mockPosts: Post[] = Array.from({ length: 50 }, (_, i) => ({
+const mockPosts: Post[] = Array.from({ length: 200 }, (_, i) => ({
   id: String(i + 1),
   title: `게시글 ${i + 1}`,
   content: `이것은 게시글 ${
