@@ -136,7 +136,7 @@ export default function ProfilePage() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex items-start space-x-6">
+          <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left md:gap-8">
             <div className="relative">
               <Avatar className="h-24 w-24 cursor-pointer border border-gray-800">
                 <AvatarImage
@@ -181,12 +181,12 @@ export default function ProfilePage() {
                     <Input id="email" value={email} disabled />
                   </div>
                    <div className="space-y-2">
-                    <Label htmlFor="id">아이디</Label>
-                    <Input id="id" value={user.id} disabled />
+                    <Label htmlFor="userId">아이디</Label>
+                    <Input id="userId" value={user.userId || user.id} disabled />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">비밀번호</Label>
-                    <Input id="password" value={nickname} />
+
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">전화번호</Label>
@@ -202,7 +202,7 @@ export default function ProfilePage() {
                   <h2 className="text-2xl font-bold"> {nickname}</h2>
                   <p>이름: {name}</p>
                   <p className="text-muted-foreground">이메일: {email}</p>
-                  <p>아이디: {user.id}</p>
+                  <p>아이디: {user.userId || user.id}</p>
                   <p>비밀번호: ********</p>
                   <p>전화번호: {phone}</p>
                 </>

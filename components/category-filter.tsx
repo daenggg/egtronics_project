@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { Filter } from 'lucide-react'
 
 export const categories = [
   { id: 'announcement', name: '공지사항', color: '', icon: '📋' },
@@ -17,20 +17,26 @@ export const categories = [
 ]
 
 interface CategoryFilterProps {
-  selectedCategory?: string | null
-  onCategoryChange?: (category: string | null) => void
+  onCategorySelect?: () => void
 }
 
-export function CategoryFilter({ 
-  selectedCategory = null, 
-  onCategoryChange
-}: CategoryFilterProps) {
-  const [activeCategory, setActiveCategory] = useState<string | null>(selectedCategory)
+export function CategoryFilter({ onCategorySelect }: CategoryFilterProps) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
+
+  useEffect(() => {
+    setActiveCategory(searchParams.get('category'))
+  }, [searchParams])
 
   const handleCategoryClick = (categoryId: string) => {
     const newCategory = activeCategory === categoryId ? null : categoryId
-    setActiveCategory(newCategory)
-    onCategoryChange?.(newCategory)
+    if (newCategory) {
+      router.push(`/?category=${newCategory}`)
+    } else {
+      router.push('/')
+    }
+    onCategorySelect?.()
   }
 
   return (
@@ -46,13 +52,13 @@ export function CategoryFilter({
             return (
               <Button
                 key={category.id}
-                variant={isActive ? "default" : "shadow-none"}
+                // variant={isActive ? "default" : "shadow-none"}
                 size="sm"
                 onClick={() => handleCategoryClick(category.id)}
                 className={`transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-lg'
-                    : `hover:${category.color.replace('text-', 'bg-').replace('100', '50')} ${category.color} border-gray-200`
+                    ? "bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-lg"
+                    : "hover:bg-gray-100 border-gray-200"
                 }`}
               >
                 <span className="mr-2">{category.icon}</span>

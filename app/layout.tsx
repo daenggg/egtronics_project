@@ -4,6 +4,7 @@ import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
 import { Header } from '@/components/header'
 import { Toaster } from '@/components/ui/toaster'
+import { Sidebar } from '@/components/sidebar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,8 +23,9 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${inter.className} bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen`}>
         <AuthProvider>
-          <Header />
-          <main className="min-h-screen bg-gray-50">
+          <Header />          
+          <Sidebar />
+          <main className="min-h-screen bg-gray-50 pt-20">
             {children}
           </main>
           <Toaster />

@@ -13,17 +13,17 @@ const api = axios.create({
 })
 
 // 요청 인터셉터로 토큰 자동 추가
-api.interceptors.request.use((config: AxiosRequestConfig) => {
-  const token = tokenStorage.get() // 토큰 가져오기
-  if (token) {
-    // headers가 undefined일 수 있으므로 기본 객체로 초기화
-    config.headers = {
-      ...(config.headers || {}),
-      Authorization: `Bearer ${token}`,
-    }
-  }
-  return config
-})
+// api.interceptors.request.use((config: AxiosRequestConfig) => {
+//   const token = tokenStorage.get() // 토큰 가져오기
+//   if (token) {
+//     // headers가 undefined일 수 있으므로 기본 객체로 초기화
+//     config.headers = {
+//       ...(config.headers || {}),
+//       Authorization: `Bearer ${token}`,
+//     }
+//   }
+//   return config
+// })
 
 // GET 요청
 export async function apiGet<T = any>(url: string, params?: any): Promise<T> {

@@ -10,13 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { User, LogOut, Bookmark, Bell } from "lucide-react";
-import { CategoryFilter } from "@/components/category-filter";
+} from "@/components/ui/dropdown-menu"
+import { User, LogOut, Bookmark, Bell, Menu } from "lucide-react"
 import { useState } from "react";
 
 export function Header() {
-  const { user, logout } = useAuth();
+  const { user, logout, toggleSidebar } = useAuth()
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const handleHomeClick = () => {
@@ -29,18 +28,43 @@ export function Header() {
 
   return (
     <header className="glass-effect sticky top-0 z-50 border-b backdrop-blur-md">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <Link
-          href="/"
-          onClick={handleHomeClick}
-          className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
-        >
-          홈으로
-        </Link>
+      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" onClick={toggleSidebar}>
+            <Menu className="h-6 w-6" />
+          </Button>
+          <Link
+            href="/"
+            onClick={handleHomeClick}
+            className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
+          >
+            홈으로
+          </Link>
+        </div>
 
         <nav className="flex items-center space-x-4">
           {user ? (
             <>
+              {/* 알림 */}
+              <Link href="/notifications" className="relative">
+                <Button
+                  variant="ghost"
+                  className="relative w-12 p-2 rounded-full hover:bg-gray-100"
+                >
+                  <Bell className="h-6 w-6" />
+                  <span
+                    className={`absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full
+        ${
+          unreadCount === 0
+            ? "bg-gray-400 text-gray-800"
+            : "bg-red-600 text-white"
+        }`}
+                  >
+                    {unreadCount}
+                  </span>
+                </Button>
+              </Link>
+
               {/* 프로필 드롭다운 */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -92,26 +116,6 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-
-              {/* 알림 */}
-              <Link href="/notifications" className="relative">
-                <Button
-                  variant="ghost"
-                  className="relative w-12 p-2 rounded-full hover:bg-gray-100"
-                >
-                  <Bell className="h-6 w-6" />
-                  <span
-                    className={`absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none rounded-full
-        ${
-          unreadCount === 0
-            ? "bg-gray-400 text-gray-800"
-            : "bg-red-600 text-white"
-        }`}
-                  >
-                    {unreadCount}
-                  </span>
-                </Button>
-              </Link>
             </>
           ) : (
             <div className="flex space-x-2">

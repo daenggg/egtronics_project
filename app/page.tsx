@@ -1,10 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react"
+import { useSearchParams } from 'next/navigation'
+import { formatDistanceToNow } from 'date-fns'
+import { ko } from 'date-fns/locale'
+import { Eye, Heart, MessageCircle } from 'lucide-react'
 import { CategoryFilter } from "@/components/category-filter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Profile from "@/components/ui/profile";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/Pagination";
 import {
@@ -19,7 +24,11 @@ interface Post {
   id: string;
   title: string;
   content: string;
-  author: string;
+  author: {
+    id: string;
+    name: string;
+    avatar?: string;
+  };
   createdAt: Date;
   views: number;
   likes: number;
@@ -44,7 +53,10 @@ const mockPosts: Post[] = Array.from({ length: 200 }, (_, i) => ({
   content: `이것은 게시글 ${
     i + 1
   }의 내용입니다. 다양한 정보와 경험을 공유합니다.`,
-  author: `작성자 ${(i % 5) + 1}`,
+  author: {
+    id: `u${(i % 5) + 1}`,
+    name: `작성자 ${(i % 5) + 1}`,
+  },
   category: categories[i % categories.length],
   createdAt: new Date(Date.now() - 1000 * 60 * 60 * (i * 3)),
   views: Math.floor(Math.random() * 500),
@@ -53,10 +65,16 @@ const mockPosts: Post[] = Array.from({ length: 200 }, (_, i) => ({
 }));
 
 export default function HomePage() {
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams()
+  const selectedCategory = searchParams.get('category')
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("latest");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // 카테고리가 URL을 통해 변경될 때 페이지를 1로 리셋합니다.
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedCategory])
 
   const postsPerPage = 12;
 
@@ -95,41 +113,22 @@ export default function HomePage() {
     currentPage * postsPerPage
   );
 
-  const handleCategoryChange = (category: string | null) => {
-    setSelectedCategory(category);
-    setCurrentPage(1);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* 헤더 */}
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
-            egtronics 오늘의 게시판
-          </h1>
-          <p className="text-gray-600">
-            다양한 주제로 소통하고 정보를 나누는 공간입니다
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-6">
-        {/* 왼쪽 고정 */}
-        <aside className="w-64 sticky top-24 h-fit self-start">
-          <div className="mb-6">
-            <Profile />
+      {/* 메인 영역 */}
+      <div className="space-y-6 min-w-0">
+          {/* 페이지 헤더 */}
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
+              egtronics 오늘의 게시판
+            </h1>
+            <p className="text-gray-600">
+              다양한 주제로 소통하고 정보를 나누는 공간입니다
+            </p>
           </div>
-          <CategoryFilter
-            selectedCategory={selectedCategory}
-            onCategoryChange={handleCategoryChange}
-          />
-        </aside>
 
-        {/* 메인 영역 */}
-        <main className="flex-1 space-y-6">
           {/* 검색 & 정렬 */}
-          <div className="flex gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Input
               placeholder="제목 또는 본문 키워드로 검색어를 입력하세요"
               value={searchQuery}
@@ -145,7 +144,7 @@ export default function HomePage() {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-full sm:w-40">
                 <SelectValue placeholder="정렬" />
               </SelectTrigger>
               <SelectContent>
@@ -157,36 +156,40 @@ export default function HomePage() {
           </div>
 
           {/* 게시글 리스트 */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {currentPosts.map((post) => (
               <Link key={post.id} href={`/posts/${post.id}`} className="block">
-                <Card className="glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
-                  <CardHeader>
-                    <div className="flex justify-between items-center mb-2">
-                      <h2 className="text-xl font-semibold">{post.title}</h2>
-                      <span className="text-sm text-gray-500">
-                        {post.author}
-                      </span>
+                <Card className="h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
+                  <CardHeader className="flex-row items-center gap-3 space-y-0">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={post.author.avatar} alt={post.author.name} />
+                      <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">{post.author.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: ko })}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-400">
-                      {post.createdAt.toLocaleString()}
-                    </p>
                   </CardHeader>
-                  <CardContent>
-                    <p className="line-clamp-3 text-gray-700">{post.content}</p>
-                    <div className="flex justify-end space-x-4 text-sm text-gray-500 mt-4">
-                      <span className="flex items-center space-x-1">
-                        <span>🤍</span>
+                  <CardContent className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <h2 className="text-lg font-bold mb-2 line-clamp-2">{post.title}</h2>
+                      <p className="line-clamp-3 text-sm text-gray-700 mb-4">{post.content}</p>
+                    </div>
+                    <div className="flex justify-end space-x-4 text-sm text-gray-500 mt-2 pt-2 border-t">
+                      <div className="flex items-center space-x-1" title="추천">
+                        <Heart className="h-4 w-4 text-red-400" />
                         <span>{post.likes}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <span>💬</span>
+                      </div>
+                      <div className="flex items-center space-x-1" title="댓글">
+                        <MessageCircle className="h-4 w-4 text-blue-400" />
                         <span>{post.comments}</span>
-                      </span>
-                      <span className="flex items-center space-x-1">
-                        <span>👀</span>
+                      </div>
+                      <div className="flex items-center space-x-1" title="조회수">
+                        <Eye className="h-4 w-4 text-gray-400" />
                         <span>{post.views}</span>
-                      </span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -202,7 +205,6 @@ export default function HomePage() {
               onPageChange={(page) => setCurrentPage(page)}
             />
           </div>
-        </main>
       </div>
     </div>
   );

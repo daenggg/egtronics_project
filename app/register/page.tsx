@@ -20,6 +20,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -273,10 +280,10 @@ export default function RegisterPage() {
                       <img
                         src={URL.createObjectURL(profilePicture)}
                         alt="프로필 미리보기"
-                        className="w-25 h-25 rounded-full object-cover border"
+                        className="w-24 h-24 rounded-full object-cover border"
                       />
                     ) : (
-                      <div className="w-25 h-25 rounded-full border flex items-center justify-center bg-gray-200 text-sm">
+                      <div className="w-24 h-24 rounded-full border flex items-center justify-center bg-gray-200 text-sm text-center">
                         프로필 사진
                         <br />
                         등록하기🖊
@@ -376,7 +383,7 @@ export default function RegisterPage() {
               {/* 이메일 */}
               <div className="space-y-2 mb-6">
                 <Label>이메일</Label>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     value={emailId}
                     onChange={(e) => {
@@ -413,16 +420,17 @@ export default function RegisterPage() {
                     placeholder="이메일을 입력하세요"
                   />
 
-                  <select
-                    value={domain}
-                    onChange={(e) => setDomain(e.target.value)}
-                    className="border-gray-200"
-                  >
-                    <option value="naver.com">@naver.com</option>
-                    <option value="gmail.com">@gmail.com</option>
-                    <option value="daum.net">@daum.net</option>
-                    <option value="custom">직접 입력</option>
-                  </select>
+                  <Select value={domain} onValueChange={setDomain}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="naver.com">@naver.com</SelectItem>
+                      <SelectItem value="gmail.com">@gmail.com</SelectItem>
+                      <SelectItem value="daum.net">@daum.net</SelectItem>
+                      <SelectItem value="custom">직접 입력</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 {domain === "custom" && (
                   <Input
@@ -518,7 +526,7 @@ export default function RegisterPage() {
               {/* 전화번호 */}
               <div className="space-y-2 mb-6">
                 <Label className="text-gray-700 font-medium">전화번호</Label>
-                <div className="flex gap-2 items-center">
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   {phonePrefix === "custom" ? (
                     <Input
                       type="text"
@@ -535,23 +543,27 @@ export default function RegisterPage() {
                       required
                     />
                   ) : (
-                    <select
+                    <Select
                       value={phonePrefix}
-                      onChange={(e) => {
-                        if (e.target.value === "custom") {
+                      onValueChange={(value) => {
+                        if (value === "custom") {
                           setPhonePrefix("custom");
                           setCustomPhonePrefix("");
                         } else {
-                          setPhonePrefix(e.target.value);
+                          setPhonePrefix(value);
                         }
                       }}
-                      className="border-gray-200 focus:border-blue-300 focus:ring-blue-200"
                     >
-                      <option value="010">010</option>
-                      <option value="011">011</option>
-                      <option value="016">016</option>
-                      <option value="custom">직접 입력</option>
-                    </select>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="010">010</SelectItem>
+                        <SelectItem value="011">011</SelectItem>
+                        <SelectItem value="016">016</SelectItem>
+                        <SelectItem value="custom">직접 입력</SelectItem>
+                      </SelectContent>
+                    </Select>
                   )}
 
                   <Input

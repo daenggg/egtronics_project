@@ -31,6 +31,8 @@ interface AuthContextType {
   logout: () => void
   updateUserInfo: (userData: Partial<User>) => Promise<void>
   loading: boolean
+  isSidebarOpen: boolean
+  toggleSidebar: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,6 +40,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
   useEffect(() => {
     const savedUser = userStorage.getUser()
@@ -51,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (process.env.NODE_ENV === 'development') {
       const tempUser: User = {
         id: 'u1',
+        userId: 'testuser',
         name: '테스트 유저',
         email:'asdjfi@naver.com',
         avatar: '',
@@ -114,9 +118,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev)
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, setUser, login, register, logout, updateUserInfo, loading }}
+      value={{
+        user,
+        setUser,
+        login,
+        register,
+        logout,
+        updateUserInfo,
+        loading,
+        isSidebarOpen,
+        toggleSidebar,
+      }}
     >
       {children}
     </AuthContext.Provider>

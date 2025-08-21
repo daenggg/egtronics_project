@@ -148,8 +148,8 @@ export default function PostDetailPage() {
         isLiked: false,
       },
             {
-        id: "6756",
-        content: "다섯 번째 댓글입니다.",
+        id: "c4",
+        content: "여섯 번째 댓글입니다.",
         author: { id: "u3", name: "이영희", avatar: "/placeholder.svg" },
         createdAt: new Date(Date.now() - 1000 * 60 * 60 * 1), // 1시간 전
         likes: 2,
@@ -353,7 +353,7 @@ export default function PostDetailPage() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 게시글 */}
       <Card className="mb-8 glass-effect border-0 shadow-2xl">
-        <CardHeader className="bg-gradient-to-r  rounded-t-lg">
+        <CardHeader className="rounded-t-lg p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-12 w-12 ring-2 ring-blue-200">
@@ -406,7 +406,7 @@ export default function PostDetailPage() {
             {post.title}
           </h1>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-4 sm:p-6">
           <div className="prose max-w-none mb-4 text-gray-800 leading-relaxed">
             <p className="whitespace-pre-wrap text-medium">{post.content}</p>
           </div>
@@ -436,8 +436,8 @@ export default function PostDetailPage() {
               </div>
             </div>
           )}
-          <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-            <div className="flex items-center space-x-4">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               <Button
                 variant={post.isLiked ? "default" : "outline"}
                 size="sm"
@@ -502,7 +502,7 @@ export default function PostDetailPage() {
       {/* 댓글 작성 */}
       {user && (
         <Card className="mb-8 glass-effect border-0 shadow-2xl">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmitComment} className="space-y-4">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-10 w-10 ring-2 ring-blue-100">
@@ -550,7 +550,7 @@ export default function PostDetailPage() {
               }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="flex items-start space-x-6">
                   <Avatar className="h-10 w-10 ring-2 ring-gray-100">
                     <AvatarImage
