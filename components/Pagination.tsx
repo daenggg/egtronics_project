@@ -8,50 +8,36 @@ interface PaginationProps {
 }
 
 export default function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const range = 2; // 현재 페이지 기준 앞뒤 몇 개 보여줄지
+  const pageGroupSize = 5;
 
   const renderPageNumbers = () => {
     const pageButtons = [];
-    let start = Math.max(1, currentPage - range);
-    let end = Math.min(totalPages, currentPage + range);
+    const range = Math.floor(pageGroupSize / 2); // 현재 페이지를 중심으로 좌우에 몇 개의 페이지를 보여줄지 결정
 
-    // 첫 페이지 + ...
-    if (start > 1) {
-      pageButtons.push(
-        <Button
-          key={1}
-          variant={currentPage === 1 ? "outline3" : "outline2"}
-          onClick={() => onPageChange(1)}
-        >
-          1
-        </Button>
-      );
-      if (start > 2) pageButtons.push(<span key="start-ellipsis">...</span>);
+    let startPage = currentPage - range;
+    let endPage = currentPage + range;
+
+    // 마지막 페이지 그룹이 5개 미만일 경우, endPage가 totalPages를 넘지 않도록 조정하고 startPage를 다시 계산
+    if (endPage > totalPages) {
+      endPage = totalPages;
+      startPage = Math.max(1, endPage - pageGroupSize + 1);
     }
 
-    // 가운데 페이지
-    for (let i = start; i <= end; i++) {
+    // 첫 페이지 그룹이 1보다 작아질 경우, startPage를 1로 고정하고 endPage를 다시 계산
+    if (startPage < 1) {
+      startPage = 1;
+      endPage = Math.min(totalPages, startPage + pageGroupSize - 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
       pageButtons.push(
         <Button
           key={i}
           variant={currentPage === i ? "outline3" : "outline2"}
           onClick={() => onPageChange(i)}
+          className="w-10 h-10 flex items-center justify-center" // 버튼 크기를 고정하여 일관된 UI를 제공합니다.
         >
           {i}
-        </Button>
-      );
-    }
-
-    // 끝 페이지 + ...
-    if (end < totalPages) {
-      if (end < totalPages - 1) pageButtons.push(<span key="end-ellipsis">...</span>);
-      pageButtons.push(
-        <Button
-          key={totalPages}
-          variant={currentPage === totalPages ? "default" : "outline2"}
-          onClick={() => onPageChange(totalPages)}
-        >
-          {totalPages}
         </Button>
       );
     }

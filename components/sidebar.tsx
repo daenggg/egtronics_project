@@ -24,7 +24,7 @@ export function Sidebar() {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 ease-in-out ${
+        className={`fixed inset-0 bg-black/60 z-30 transition-opacity duration-300 ease-in-out lg:hidden ${
           isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         onClick={toggleSidebar}

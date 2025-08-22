@@ -21,7 +21,7 @@ const GradientMenuIcon = () => (
     viewBox="0 0 24 24"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    className="h-8 w-8" // 아이콘 크기를 키웁니다.
+    className="h-10 w-10" // 아이콘 크기를 키웁니다.
   >
     <defs>
       <linearGradient id="menu-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -29,7 +29,7 @@ const GradientMenuIcon = () => (
         <stop offset="100%" stopColor="#8b5cf6" /> {/* to-purple-500 */}
       </linearGradient>
     </defs>
-    <path d="M4 6h16M4 12h16M4 18h16" stroke="url(#menu-gradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M4 6h16M4 12h16M4 18h16" stroke="url(#menu-gradient)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
