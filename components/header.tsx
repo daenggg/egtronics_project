@@ -27,7 +27,6 @@ export function Header() {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="md:hidden"
           >
             <Menu className="h-6 w-6" />
           </Button>
