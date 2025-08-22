@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { Upload, X, Image, Video, File } from 'lucide-react'
 
-interface MediaFile {
+export interface MediaFile {
   id: string
   file: File
   url: string
