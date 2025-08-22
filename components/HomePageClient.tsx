@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -62,7 +62,8 @@ const mockPosts: Post[] = Array.from({ length: 200 }, (_, i) => ({
   comments: Math.floor(Math.random() * 15),
 }));
 
-export default function HomePageClient() {
+// The main content component that uses client-side hooks
+function HomePageClientContent() {
   const searchParams = useSearchParams();
   const selectedCategory = searchParams.get("category");
   const [searchQuery, setSearchQuery] = useState("");
@@ -208,5 +209,21 @@ export default function HomePageClient() {
         </div>
       </div>
     </div>
+  );
+}
+
+// This is the exported component. It wraps the main content in a Suspense boundary
+// to prevent errors during static rendering.
+export default function HomePageClient() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-center">게시판을 불러오는 중입니다...</p>
+        </div>
+      }
+    >
+      <HomePageClientContent />
+    </Suspense>
   );
 }

@@ -1,24 +1,23 @@
 import { Suspense } from "react";
 
-// 같은 폴더에 있는 CreatePost 컴포넌트를 import 합니다.
-// (만약 사용하는 파일이 create-post-client.tsx 라면 그에 맞게 수정)
+// 같은 폴더에 있는 두 컴포넌트를 모두 import 합니다.
 import CreatePost from "./CreatePost";
+import CreatePostClientView from "./create-post-client";
 
-const Loading = () => <p>게시글 작성 양식을 불러오는 중...</p>;
+const Loading = () => <p>Loading create form...</p>;
 
 export default function CreatePostPage() {
   return (
     <div>
-      <h1>새 게시글 작성</h1>
-      
-      {/* CreatePost 컴포넌트가 useSearchParams를 사용하므로
-        이 페이지에서도 반드시 Suspense로 감싸줍니다.
+      <h1>Create a New Post</h1>
+      {/* 두 컴포넌트 모두 useSearchParams를 사용하므로
+        하나의 Suspense 블록 안에 함께 넣어줄 수 있습니다.
       */}
       <Suspense fallback={<Loading />}>
         <CreatePost />
+        <hr /> {/* 컴포넌트 구분을 위한 선 */}
+        <CreatePostClientView />
       </Suspense>
     </div>
   );
 }
-
-//^모^
