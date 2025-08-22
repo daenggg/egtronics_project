@@ -34,6 +34,11 @@ interface Post {
   likes: number;
   comments: number;
   category: string;
+  media?: Array<{
+    id: string;
+    type: "image" | "video";
+    url: string;
+  }>;
 }
 
 const categoryIds = [
@@ -58,6 +63,7 @@ const mockPosts: Post[] = Array.from({ length: 200 }, (_, i) => ({
     name: `작성자 ${(i % 5) + 1}`,
   },
   category: categoryIds[i % categoryIds.length],
+  media: [{ id: `m${i}`, type: "image", url: "/picture.jpg" }],
   createdAt: new Date(Date.now() - 1000 * 60 * 60 * (i * 3)),
   views: Math.floor(Math.random() * 500),
   likes: Math.floor(Math.random() * 50),
@@ -134,7 +140,7 @@ function HomePageClientContent() {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4">
       <div className="space-y-6 min-w-0">
         {/* 헤더 */}
         <div>
@@ -178,27 +184,27 @@ function HomePageClientContent() {
             const categoryInfo = getCategoryInfo(post.category);
             return (
               <Link key={post.id} href={`/posts/${post.id}`} className="block">
-                <Card className="h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
-                  <CardHeader className="flex-row items-center gap-3 space-y-0">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage
-                        src={post.author.avatar}
-                        alt={post.author.name}
-                      />
-                      <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm">{post.author.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {formatDistanceToNow(post.createdAt, {
-                          addSuffix: true,
-                          locale: ko,
-                        })}
-                      </p>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="flex-1 flex flex-col justify-between">
+                <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
+                  <CardContent className="flex-1 flex flex-col justify-between p-4">
                     <div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage
+                            src={post.author.avatar}
+                            alt={post.author.name}
+                          />
+                          <AvatarFallback>{post.author.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm">{post.author.name}</p>
+                          <p className="text-xs text-gray-500">
+                            {formatDistanceToNow(post.createdAt, {
+                              addSuffix: true,
+                              locale: ko,
+                            })}
+                          </p>
+                        </div>
+                      </div>
                       <Badge
                         variant="secondary"
                         className="mb-2 font-medium"
@@ -212,6 +218,15 @@ function HomePageClientContent() {
                       <p className="line-clamp-3 text-sm text-gray-700 mb-4">
                         {post.content}
                       </p>
+                      {post.media && post.media.length > 0 && (
+                        <div className="relative aspect-video mt-4 rounded-lg overflow-hidden">
+                          <img
+                            src={post.media[0].url}
+                            alt={post.title}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className="flex justify-end space-x-4 text-sm text-gray-500 mt-2 pt-2 border-t">
                       <div className="flex items-center space-x-1" title="추천">
