@@ -65,6 +65,35 @@ export async function unlikePost(id: string): Promise<LikeResponse> {
 
 // ===== 회원관리 API =====
 
+/**
+ * 아이디(userId) 중복 확인
+ * @returns `true`이면 사용 가능, `false`이면 중복.
+ */
+export async function checkIdAvailability(userId: string): Promise<boolean> {
+  try {
+    await api.get('/users/checkId', { params: { userId } });
+    return true; // 2xx 응답은 사용 가능
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 409) {
+      return false; // 409 Conflict는 중복
+    }
+    throw error; // 그 외 에러는 그대로 던짐
+  }
+}
+
+/** 닉네임 중복 확인 */
+export async function checkNicknameAvailability(nickname: string): Promise<boolean> {
+  try {
+    await api.get('/users/checkNickname', { params: { nickname } });
+    return true;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 409) {
+      return false;
+    }
+    throw error;
+  }
+}
+
 export async function signUp(payload: { name: string; nickname: string; email: string; password: string; phone: string }) {
   const { data } = await api.post('/users', payload)
   return data

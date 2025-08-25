@@ -1,12 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import axios from "axios";
 import { Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { useAuth } from "@/contexts/auth-context";
+import {
+  checkIdAvailability,
+  checkNicknameAvailability,
+  handleApiError,
+} from "@/lib/api-client";
 import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
@@ -28,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function RegisterPage() {
+export default function RegisterForm() {
   const { register } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
@@ -49,9 +53,9 @@ export default function RegisterPage() {
 
   // 상태 관리
   const [loading, setLoading] = useState(false);
-  const [checkingUserId, setCheckingUserId] = useState(false);
+  const [checkingId, setCheckingId] = useState(false);
   const [checkingNickname, setCheckingNickname] = useState(false);
-  const [userIdAvailable, setUserIdAvailable] = useState<boolean | null>(null);
+  const [idAvailable, setIdAvailable] = useState<boolean | null>(null);
   const [nicknameAvailable, setNicknameAvailable] = useState<boolean | null>(
     null
   );
@@ -91,7 +95,7 @@ export default function RegisterPage() {
   }
 
   // 아이디 중복 검사
-  const checkUserId = async () => {
+  const checkId = async () => {
     if (!userId.trim() || !userIdRegex.test(userId)) {
       toast({
         title: "아이디 오류",
@@ -101,29 +105,25 @@ export default function RegisterPage() {
       return;
     }
 
-    setCheckingUserId(true);
+    setCheckingId(true);
     try {
-      const res = await axios.get("http://localhost:8080/users/checkUserId", {
-        params: { userId: userId.trim() },
-        validateStatus: (s) => s < 500,
-      });
-
-      if (res.status === 200) {
-        setUserIdAvailable(true);
+      const isAvailable = await checkIdAvailability(userId.trim());
+      if (isAvailable) {
+        setIdAvailable(true);
         setErrors((prev) => ({ ...prev, userId: undefined }));
         toast({ title: "사용 가능한 아이디입니다" });
-      } else if (res.status === 409) {
-        setUserIdAvailable(false);
+      } else {
+        setIdAvailable(false);
         setErrors((prev) => ({
           ...prev,
           userId: "이미 사용 중인 아이디입니다.",
         }));
         toast({ title: "이미 사용 중인 아이디입니다", variant: "destructive" });
       }
-    } catch {
-      toast({ title: "서버 오류", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "서버 오류", description: handleApiError(err), variant: "destructive" });
     } finally {
-      setCheckingUserId(false);
+      setCheckingId(false);
     }
   };
 
@@ -136,22 +136,18 @@ export default function RegisterPage() {
 
     setCheckingNickname(true);
     try {
-      const res = await axios.get("http://localhost:8080/users/checkNickname", {
-        params: { nickname: nickname.trim() },
-        validateStatus: (s) => s < 500,
-      });
-
-      if (res.status === 200) {
+      const isAvailable = await checkNicknameAvailability(nickname.trim());
+      if (isAvailable) {
         setNicknameAvailable(true);
         setErrors((prev) => ({ ...prev, nickname: undefined }));
         toast({ title: "사용 가능한 닉네임입니다" });
-      } else if (res.status === 409) {
+      } else {
         setNicknameAvailable(false);
         setErrors((prev) => ({ ...prev, nickname: "중복된 닉네임입니다." }));
         toast({ title: "중복된 닉네임입니다", variant: "destructive" });
       }
-    } catch {
-      toast({ title: "서버 오류", variant: "destructive" });
+    } catch (err) {
+      toast({ title: "서버 오류", description: handleApiError(err), variant: "destructive" });
     } finally {
       setCheckingNickname(false);
     }
@@ -162,9 +158,9 @@ export default function RegisterPage() {
     const newErrors: typeof errors = {};
 
     if (!userId.trim()) newErrors.userId = "아이디를 입력해주세요.";
-    else if (userIdAvailable === false)
+    else if (idAvailable === false)
       newErrors.userId = "이미 사용 중인 아이디입니다.";
-    else if (userIdAvailable === null)
+    else if (idAvailable === null)
       newErrors.userId = "아이디 중복 확인이 필요합니다.";
 
     if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
@@ -208,7 +204,7 @@ export default function RegisterPage() {
     }
 
     // 아이디/닉네임 중복 체크 안 했으면 막기
-    if (userIdAvailable !== true) {
+    if (idAvailable !== true) {
       toast({ title: "아이디 중복 확인을 해주세요", variant: "destructive" });
       return;
     }
@@ -352,7 +348,7 @@ export default function RegisterPage() {
                       }
 
                       setUserId(value);
-                      setUserIdAvailable(null);
+                      setIdAvailable(null);
 
                       // 오류 처리
                       setErrors((prev) => ({
@@ -369,10 +365,10 @@ export default function RegisterPage() {
 
                   <Button
                     type="button"
-                    onClick={checkUserId}
-                    disabled={checkingUserId}
+                    onClick={checkId}
+                    disabled={checkingId}
                   >
-                    {checkingUserId ? "확인 중..." : "중복 검사"}
+                    {checkingId ? "확인 중..." : "중복 검사"}
                   </Button>
                 </div>
                 {errors.userId && (
