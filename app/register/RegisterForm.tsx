@@ -227,8 +227,8 @@ export default function RegisterForm() {
         authority: true,
         profilePicture: "",
       });
-      toast({ title: "회원가입 성공", description: "환영합니다!" });
-      router.push("/");
+      toast({ title: "회원가입 성공", description: "로그인 페이지로 이동합니다." });
+      router.push("/login");
     } catch {
       toast({
         title: "회원가입 실패",

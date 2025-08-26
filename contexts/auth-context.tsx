@@ -94,12 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData) => {
     try {
-      const tokenData = await apiRegister(data)
-      tokenStorage.setToken(tokenData.accessToken); // AccessToken 저장
-      // 회원가입 및 로그인 성공 후, 프로필 정보를 가져옴
-      const userProfile = await getMyProfile()
-      setUser(userProfile)
-      userStorage.setUser(userProfile)
+      // api-client의 signUp 함수를 호출하여 회원가입만 진행합니다.
+      // 백엔드에서 토큰이 반환되지만, 자동 로그인을 막기 위해 사용하지 않습니다.
+      await apiRegister(data)
     } catch (error: any) {
       console.error('회원가입 오류:', error.response?.data || error.message)
       throw new Error(error.response?.data?.message || '회원가입에 실패했습니다.')
