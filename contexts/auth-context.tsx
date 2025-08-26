@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { userStorage } from '@/lib/auth-storage'
+import { userStorage, tokenStorage } from '@/lib/auth-storage'
 import {
   login as apiLogin,
   signUp as apiRegister,
@@ -28,6 +28,7 @@ interface RegisterData {
   password: string
   phoneNumber: string
   nickname: string
+  authority: boolean
   profilePicture: string
 }
 
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 이 경우 로컬 스토리지의 사용자 정보를 삭제하여 상태를 동기화합니다.
         setUser(null);
         userStorage.removeUser();
+        tokenStorage.removeToken(); // 저장된 토큰도 함께 삭제
       } finally {
         setLoading(false);
       }
@@ -78,8 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (userId: string, password: string) => {
     try {
       // api-client의 login 함수 사용 (HttpOnly 쿠키 방식)
-      await apiLogin({ userId, password })
-      // 로그인 성공 후, 전체 사용자 프로필 정보를 가져옴
+      const tokenData = await apiLogin({ userId, password })
+      tokenStorage.setToken(tokenData.accessToken); // AccessToken 저장
+      // 토큰 저장 후, 전체 사용자 프로필 정보를 가져옴
       const userProfile = await getMyProfile()
       setUser(userProfile)
       userStorage.setUser(userProfile)
@@ -91,9 +94,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData) => {
     try {
-      // api-client의 signUp 함수 사용
-      await apiRegister(data)
-      // 회원가입 성공 후, 자동으로 로그인 처리되므로 프로필 정보를 가져옴
+      const tokenData = await apiRegister(data)
+      tokenStorage.setToken(tokenData.accessToken); // AccessToken 저장
+      // 회원가입 및 로그인 성공 후, 프로필 정보를 가져옴
       const userProfile = await getMyProfile()
       setUser(userProfile)
       userStorage.setUser(userProfile)
@@ -111,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null)
       userStorage.removeUser()
+      tokenStorage.removeToken() // AccessToken 삭제
     }
   }
 

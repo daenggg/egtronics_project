@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { User } from './auth'
+import { tokenStorage } from './auth-storage'
 import {
   Post, CreatePostRequest, UpdatePostRequest, PostListResponse,
   Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse,
@@ -8,6 +9,12 @@ import {
 
 // 환경 변수에서 API 기본 URL을 가져오고, 없으면 로컬 개발용 주소로 대체합니다.
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+
+// 백엔드의 JwtToken DTO와 일치하는 인터페이스
+export interface JwtToken {
+  grantType: string;
+  accessToken: string;
+}
 
 // axios 인스턴스
 const api = axios.create({
@@ -20,6 +27,20 @@ const api = axios.create({
   xsrfHeaderName: 'X-CSRF-TOKEN', // Spring Security의 기본 CSRF 헤더 이름
 })
 
+/**
+ * 모든 요청에 `Authorization` 헤더를 추가하는 인터셉터
+ */
+api.interceptors.request.use(
+  (config) => {
+    const token = tokenStorage.getToken();
+    // 토큰이 있고, Authorization 헤더가 아직 설정되지 않았다면 추가
+    if (token && !config.headers.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // 게시글 API
 export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
@@ -99,20 +120,20 @@ export async function signUp(payload: {
   email: string;
   password: string;
   phoneNumber: string;
+  authority: boolean;
   profilePicture: string;
-}): Promise<User> {
-  const { data } = await api.post<User>('/users', payload)
+}): Promise<JwtToken> {
+  const { data } = await api.post<JwtToken>('/users/', payload)
   return data
 }
 
 /**
  * 로그인 요청. 성공 시 백엔드에서 HttpOnly 쿠키로 토큰을 설정합니다.
  * @param payload - userId와 password를 포함합니다.
- * @returns 로그인한 사용자의 기본 정보 (userId, nickname)
+ * @returns JWT 토큰 정보 (accessToken)
  */
-export async function login(payload: { userId: string; password: string }): Promise<{ userId: string; nickname: string }> {
-
-  const { data } = await api.post<{ userId:string; nickname: string; }>('/auth/login', payload)
+export async function login(payload: { userId: string; password: string }): Promise<JwtToken> {
+  const { data } = await api.post<JwtToken>('/auth/login', payload)
   return data
 }
 

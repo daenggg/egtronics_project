@@ -224,6 +224,7 @@ export default function RegisterForm() {
         password,
         phoneNumber: fullPhoneNumber,
         nickname,
+        authority: true,
         profilePicture: "",
       });
       toast({ title: "회원가입 성공", description: "환영합니다!" });
