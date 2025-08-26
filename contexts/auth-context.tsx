@@ -28,7 +28,6 @@ interface RegisterData {
   password: string
   phoneNumber: string
   nickname: string
-  authority: boolean
   profilePicture: string
 }
 

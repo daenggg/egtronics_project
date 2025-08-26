@@ -224,7 +224,6 @@ export default function RegisterForm() {
         password,
         phoneNumber: fullPhoneNumber,
         nickname,
-        authority: true,
         profilePicture: "",
       });
       toast({ title: "회원가입 성공", description: "환영합니다!" });
@@ -360,7 +359,7 @@ export default function RegisterForm() {
                         userId: value.trim()
                           ? userIdRegex.test(value)
                             ? undefined
-                            : "아이디는 영문, 숫자, 특수문자를 넣을 수 있습니다. (4~20자리)."
+                            : "아이디는 영문, 숫자, 특수문자를 넣을 수 있습니다. (6~20자리)."
                           : "아이디를 입력해주세요.",
                       }));
                     }}

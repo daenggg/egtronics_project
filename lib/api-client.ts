@@ -16,6 +16,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  xsrfCookieName: 'XSRF-TOKEN', // Spring Security의 기본 CSRF 쿠키 이름
+  xsrfHeaderName: 'X-CSRF-TOKEN', // Spring Security의 기본 CSRF 헤더 이름
 })
 
 
@@ -97,7 +99,6 @@ export async function signUp(payload: {
   email: string;
   password: string;
   phoneNumber: string;
-  authority: boolean;
   profilePicture: string;
 }): Promise<User> {
   const { data } = await api.post<User>('/users', payload)
