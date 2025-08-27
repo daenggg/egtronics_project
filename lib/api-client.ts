@@ -3,8 +3,8 @@ import { User } from './auth'
 import { tokenStorage } from './auth-storage'
 import {
   Post, CreatePostRequest, UpdatePostRequest, PostListResponse,
-  Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse,
-  ScrapListResponse, LikeResponse, PaginationParams
+  Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, LikeResponse, PaginationParams,
+  Scrap, Notification, UnreadCountResponse
 } from './types'
 
 // 환경 변수에서 API 기본 URL을 가져오고, 없으면 로컬 개발용 주소로 대체합니다.
@@ -225,12 +225,40 @@ export async function unscrapPost(postId: string): Promise<void> {
   await api.delete(`/posts/${postId}/scrap`)
 }
 
-// TODO: 백엔드에 스크랩 목록 조회 API 구현 필요 (현재는 백엔드 엔드포인트가 존재하지 않음)
-export async function getMyScraps(page: number = 1, limit: number = 20): Promise<ScrapListResponse> {
-  // 현재 백엔드에 /users/me/scraps 와 같은 엔드포인트가 존재하지 않습니다.
-  // 실제 API가 구현될 때까지는 이 함수가 호출될 때 오류가 발생하거나, 임시 데이터를 반환해야 할 수 있습니다.
-  const { data } = await api.get<ScrapListResponse>('/users/me/scraps', { params: { page, limit } })
+/**
+ * 내 스크랩 목록 조회
+ * @returns Scrap[]
+ */
+export async function getMyScraps(): Promise<Scrap[]> {
+  // 백엔드 ScrapController의 경로가 /posts/my/scraps 이므로 수정합니다.
+  const { data } = await api.get<Scrap[]>('/posts/my/scraps')
   return data
+}
+
+// ===== 알림 API =====
+
+/**
+ * 알림 목록 조회
+ */
+export async function getNotifications(): Promise<Notification[]> {
+  const { data } = await api.get<Notification[]>('/notifications');
+  return data;
+}
+
+/**
+ * 알림 읽음 처리
+ */
+export async function markNotificationAsRead(id: number): Promise<void> {
+  // API 명세에 따라 POST에서 PUT으로 변경
+  await api.put(`/notifications/${id}/read`);
+}
+
+/**
+ * 읽지 않은 알림 개수 조회
+ */
+export async function getUnreadNotificationCount(): Promise<UnreadCountResponse> {
+  const { data } = await api.get<UnreadCountResponse>('/notifications/unread-count');
+  return data;
 }
 
 export function handleApiError(error: any): string {

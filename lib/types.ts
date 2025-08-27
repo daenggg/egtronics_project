@@ -69,19 +69,23 @@ export interface CommentListResponse {
 }
 
 // 스크랩 관련 타입 정의
+// 백엔드의 ScrapResponseDto와 일치시킵니다.
 export interface Scrap {
-  id: string
-  postId: string
-  userId: string
-  createdAt: Date
-  post: Post // 스크랩된 게시글 정보
+  postId: number;
+  title: string;
+  nickname: string;
+  createdDate: string;
 }
 
-export interface ScrapListResponse {
-  scraps: Scrap[]
-  totalCount: number
-  currentPage: number
-  totalPages: number
+export type ScrapListResponse = Scrap[];
+
+// 알림 관련 타입 정의
+export interface Notification {
+  id: number;
+  content: string;
+  url: string;
+  read: boolean;
+  createdDate: string;
 }
 
 // API 응답 공통 타입
@@ -90,6 +94,10 @@ export interface ApiResponse<T = any> {
   message: string
   data?: T
   error?: string
+}
+
+export interface UnreadCountResponse {
+  unreadCount: number;
 }
 
 // 페이징 관련 타입

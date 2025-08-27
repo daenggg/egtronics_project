@@ -19,6 +19,8 @@ import {
 import { MediaUpload, MediaFile } from "@/components/media-upload";
 import { useToast } from "@/hooks/use-toast";
 import { useCreatePost } from "@/hooks/use-posts";
+// 1. 파일 업로드 함수를 import 합니다. (이 함수는 따로 만들어야 합니다)
+import { uploadFile } from "@/lib/api-client";
 
 export default function CreatePostPage() {
   const [title, setTitle] = useState("");
@@ -37,28 +39,45 @@ export default function CreatePostPage() {
   }, [user, router]);
 
   if (!user) {
-    // 리디렉션하는 동안 아무것도 렌더링하지 않거나 로딩 상태를 표시합니다.
     return null;
   }
 
-  const handleSubmit = (e: FormEvent) => {
+  // 2. handleSubmit을 async 함수로 변경합니다. (await 키워드 사용을 위해)
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // 백엔드 API는 'photo' 필드에 단일 이미지 URL을 기대합니다.
-    // MediaUpload 컴포넌트는 maxFiles={1}로 설정되어 있으므로, media 배열의 첫 번째 요소를 사용합니다.
+    // 파일을 먼저 업로드하고 URL을 받아오는 로직으로 변경합니다.
+    let photoUrl = ""; // 최종 이미지 URL을 저장할 변수
+
+    // 3. 업로드할 이미지가 있는지 확인합니다.
+    // media[0].file이 실제 File 객체라고 가정합니다. MediaFile 타입에 file 속성이 있어야 합니다.
+    if (media.length > 0 && media[0].file) {
+      try {
+        toast({ title: "이미지를 업로드하는 중입니다..." });
+        // 4. 파일 업로드 API를 먼저 호출하여 실제 URL을 받아옵니다.
+        photoUrl = await uploadFile(media[0].file);
+      } catch (error) {
+        toast({
+          title: "이미지 업로드 실패",
+          description: "이미지 업로드 중 오류가 발생했습니다. 다시 시도해주세요.",
+          variant: "destructive",
+        });
+        return; // 이미지 업로드 실패 시 게시글 작성을 중단합니다.
+      }
+    }
+
+    // 5. 받아온 URL을 payload에 담아 게시글 작성 API를 호출합니다.
     const payload = {
       title,
       content,
       category,
-      photo: media.length > 0 ? media[0].url : undefined,
+      photo: photoUrl, // 업로드된 실제 URL 또는 (이미지가 없으면) 빈 문자열
     };
 
     createPost(payload, {
       onSuccess: () => {
-        // useCreatePost 훅에서 성공 토스트와 캐시 무효화는 이미 처리됩니다.
-        // 여기서는 페이지 이동만 처리합니다.
-        router.refresh(); // 목록 페이지의 서버 컴포넌트 데이터 갱신
-        router.push("/"); // 홈으로 이동
+        router.refresh();
+        router.push("/");
       },
       // onError는 useCreatePost 훅에서 자동으로 처리됩니다.
     });

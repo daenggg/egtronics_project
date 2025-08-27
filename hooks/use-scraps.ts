@@ -5,16 +5,15 @@ import {
   unscrapPost,
   handleApiError
 } from '@/lib/api-client'
-import { ScrapListResponse } from '@/lib/types'
+import { Scrap } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
 
 // 내 스크랩 목록 조회 Hook
-export function useMyScraps(page: number = 1, limit: number = 20) {
-  const { toast } = useToast()
-  
+export function useMyScraps() {
   return useQuery({
-    queryKey: ['scraps', page, limit],
-    queryFn: () => getMyScraps(page, limit),
+    // 백엔드 API가 페이지네이션을 지원하지 않으므로 파라미터 제거
+    queryKey: ['my-scraps'],
+    queryFn: getMyScraps,
     staleTime: 2 * 60 * 1000, // 2분
   })
 }
@@ -32,27 +31,11 @@ export function useScrapPost() {
         description: "게시글이 스크랩되었습니다.",
       })
       
-      // 게시글 목록의 스크랩 상태 업데이트
-      queryClient.setQueriesData({ queryKey: ['posts'] }, (old: any) => {
-        if (!old?.posts) return old
-        return {
-          ...old,
-          posts: old.posts.map((post: any) => 
-            post.id === postId 
-              ? { ...post, isScrapped: true }
-              : post
-          )
-        }
-      })
-      
-      // 게시글 상세의 스크랩 상태 업데이트
-      queryClient.setQueryData(['post', postId], (old: any) => {
-        if (!old) return old
-        return { ...old, isScrapped: true }
-      })
-      
-      // 스크랩 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['scraps'] })
+      // Optimistic update 대신, 관련 데이터 캐시를 모두 무효화하여
+      // 서버로부터 최신 상태를 다시 불러오는 것이 더 안전하고 확실합니다.
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      queryClient.invalidateQueries({ queryKey: ['post', postId] })
+      queryClient.invalidateQueries({ queryKey: ['my-scraps'] })
     },
     onError: (error) => {
       toast({
@@ -77,27 +60,10 @@ export function useUnscrapPost() {
         description: "스크랩이 취소되었습니다.",
       })
       
-      // 게시글 목록의 스크랩 상태 업데이트
-      queryClient.setQueriesData({ queryKey: ['posts'] }, (old: any) => {
-        if (!old?.posts) return old
-        return {
-          ...old,
-          posts: old.posts.map((post: any) => 
-            post.id === postId 
-              ? { ...post, isScrapped: false }
-              : post
-          )
-        }
-      })
-      
-      // 게시글 상세의 스크랩 상태 업데이트
-      queryClient.setQueryData(['post', postId], (old: any) => {
-        if (!old) return old
-        return { ...old, isScrapped: false }
-      })
-      
-      // 스크랩 목록 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['scraps'] })
+      // 관련 데이터 캐시를 모두 무효화합니다.
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      queryClient.invalidateQueries({ queryKey: ['post', postId] })
+      queryClient.invalidateQueries({ queryKey: ['my-scraps'] })
     },
     onError: (error) => {
       toast({

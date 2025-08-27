@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUnreadNotificationCount } from "@/hooks/use-notifications";
 import { User, LogOut, Bookmark, Bell } from "lucide-react";
 
 // 홈으로 링크와 동일한 그라데이션을 적용한 메뉴 아이콘
@@ -35,9 +36,8 @@ const GradientMenuIcon = () => (
 
 export function Header() {
   const { user, logout, toggleSidebar } = useAuth();
-
-  // 더미 알림 데이터. 실제로는 API를 통해 받아와야 합니다.
-  const unreadCount = 0;
+  // API를 통해 읽지 않은 알림 개수를 가져옵니다.
+  const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   return (
     <header className="glass-effect sticky top-0 z-50 border-b backdrop-blur-md">
