@@ -77,18 +77,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
   }, []);
 
-  const login = async (userId: string, password: string) => {
+const login = async (userId: string, password: string) => {
     try {
-      // api-client의 login 함수 사용 (HttpOnly 쿠키 방식)
-      const tokenData = await apiLogin({ userId, password })
-      tokenStorage.setToken(tokenData.accessToken); // AccessToken 저장
-      // 토큰 저장 후, 전체 사용자 프로필 정보를 가져옴
-      const userProfile = await getMyProfile()
-      setUser(userProfile)
-      userStorage.setUser(userProfile)
+      // 1. apiLogin을 호출합니다. 백엔드는 응답으로 HttpOnly 쿠키를 설정해주고,
+      //    본문(body)에는 사용자 정보를 반환합니다.
+      //    이 함수가 성공적으로 실행되면, 브라우저에는 이미 accessToken 쿠키가 저장된 상태입니다.
+      await apiLogin({ userId, password });
+
+      // 2. 이제 쿠키가 설정되었으므로, 로컬 스토리지에 토큰을 저장할 필요가 없습니다.
+      //    대신, 내 정보를 바로 가져와서 상태를 업데이트합니다.
+      const userProfile = await getMyProfile();
+      
+      setUser(userProfile);
+      userStorage.setUser(userProfile); // 사용자 정보는 계속 로컬 스토리지에 저장
+
+      // 아래 두 줄은 삭제합니다.
+      // const tokenData = await apiLogin({ userId, password })
+      // tokenStorage.setToken(tokenData.accessToken);
+
     } catch (error: any) {
-      console.error('로그인 오류:', error.response?.data || error.message)
-      throw new Error(error.response?.data?.message || '로그인에 실패했습니다.')
+      console.error('로그인 오류:', error.response?.data || error.message);
+      throw new Error(error.response?.data?.message || '로그인에 실패했습니다.');
     }
   }
 

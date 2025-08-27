@@ -27,9 +27,7 @@ const api = axios.create({
   xsrfHeaderName: 'X-CSRF-TOKEN', // Spring Security의 기본 CSRF 헤더 이름
 })
 
-/**
- * 모든 요청에 `Authorization` 헤더를 추가하는 인터셉터
- */
+/*
 api.interceptors.request.use(
   (config) => {
     const token = tokenStorage.getToken();
@@ -41,6 +39,7 @@ api.interceptors.request.use(
   },
   (error) => Promise.reject(error)
 );
+ */
 
 // 게시글 API
 export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
@@ -231,7 +230,7 @@ export async function unscrapPost(postId: string): Promise<void> {
  */
 export async function getMyScraps(): Promise<Scrap[]> {
   // 백엔드 ScrapController의 경로가 /posts/my/scraps 이므로 수정합니다.
-  const { data } = await api.get<Scrap[]>('/posts/my/scraps')
+  const { data } = await api.get<Scrap[]>('/users/me/scraps')
   return data
 }
 
