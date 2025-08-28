@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, FormEvent, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,15 +22,20 @@ import { useCreatePost } from "@/hooks/use-posts";
 // 1. 파일 업로드 함수를 import 합니다. (이 함수는 따로 만들어야 합니다)
 import { uploadFile } from "@/lib/api-client";
 
-export default function CreatePostPage() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [category, setCategory] = useState("");
-  const [media, setMedia] = useState<MediaFile[]>([]);
+function CreatePostForm() {
   const { user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const { mutate: createPost, isPending: loading } = useCreatePost();
+
+  // URL에서 초기 카테고리 값을 읽어옵니다.
+  const initialCategory = searchParams.get("category") || "";
+
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [category, setCategory] = useState(initialCategory);
+  const [media, setMedia] = useState<MediaFile[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -38,23 +43,31 @@ export default function CreatePostPage() {
     }
   }, [user, router]);
 
+  // URL 파라미터가 변경될 때 카테고리 상태를 업데이트합니다.
+  useEffect(() => {
+    setCategory(searchParams.get("category") || "");
+  }, [searchParams]);
+
   if (!user) {
     return null;
   }
 
-  // 2. handleSubmit을 async 함수로 변경합니다. (await 키워드 사용을 위해)
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // 파일을 먼저 업로드하고 URL을 받아오는 로직으로 변경합니다.
-    let photoUrl = ""; // 최종 이미지 URL을 저장할 변수
+    if (!category) {
+      toast({
+        title: "카테고리 선택 필요",
+        description: "게시글의 카테고리를 선택해주세요.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // 3. 업로드할 이미지가 있는지 확인합니다.
-    // media[0].file이 실제 File 객체라고 가정합니다. MediaFile 타입에 file 속성이 있어야 합니다.
+    let photoUrl = "";
     if (media.length > 0 && media[0].file) {
       try {
         toast({ title: "이미지를 업로드하는 중입니다..." });
-        // 4. 파일 업로드 API를 먼저 호출하여 실제 URL을 받아옵니다.
         photoUrl = await uploadFile(media[0].file);
       } catch (error) {
         toast({
@@ -62,11 +75,10 @@ export default function CreatePostPage() {
           description: "이미지 업로드 중 오류가 발생했습니다. 다시 시도해주세요.",
           variant: "destructive",
         });
-        return; // 이미지 업로드 실패 시 게시글 작성을 중단합니다.
+        return;
       }
     }
 
-    // 5. 받아온 URL을 payload에 담아 게시글 작성 API를 호출합니다.
     const payload = {
       title,
       content,
@@ -79,7 +91,6 @@ export default function CreatePostPage() {
         router.refresh();
         router.push("/");
       },
-      // onError는 useCreatePost 훅에서 자동으로 처리됩니다.
     });
   };
 
@@ -158,5 +169,13 @@ export default function CreatePostPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function CreatePostPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center">페이지를 불러오는 중입니다...</div>}>
+      <CreatePostForm />
+    </Suspense>
   );
 }

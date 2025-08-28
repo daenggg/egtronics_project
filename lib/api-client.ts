@@ -2,7 +2,7 @@ import axios from 'axios'
 import { tokenStorage } from './auth-storage'
 import {
   PostWithDetails, CreatePostRequest, UpdatePostRequest, PostListResponse,
-  Comment, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, LikeResponse, PaginationParams,
+  Comment, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, LikeResponse, PaginationParams,
   Scrap, Notification, UnreadCountResponse,
   User
 } from './types'
@@ -174,13 +174,13 @@ export async function getComments(postId: string): Promise<CommentListResponse> 
   return data
 }
 
-export async function createComment(postId: string, payload: CreateCommentRequest): Promise<Comment> {
-  const { data } = await api.post<Comment>(`/posts/${postId}/comments`, payload)
+export async function createComment(postId: string | number, payload: CreateCommentRequest): Promise<CommentWithDetails> {
+  const { data } = await api.post<CommentWithDetails>(`/posts/${String(postId)}/comments`, payload)
   return data
 }
 
-export async function updateComment(postId: string, commentId: string, payload: UpdateCommentRequest): Promise<Comment> {
-  const { data } = await api.put<Comment>(`/posts/${postId}/comments/${commentId}`, payload)
+export async function updateComment(postId: string, commentId: string, payload: UpdateCommentRequest): Promise<CommentWithDetails> {
+  const { data } = await api.put<CommentWithDetails>(`/posts/${postId}/comments/${commentId}`, payload)
   return data
 }
 

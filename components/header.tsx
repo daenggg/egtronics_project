@@ -95,7 +95,7 @@ export function Header() {
                         alt={user.name}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                        {user.name.charAt(0)}
+                        {user.nickname.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>

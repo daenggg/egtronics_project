@@ -35,7 +35,7 @@ export default function Profile() {
           <Avatar className="h-12 w-12 ring-2 ring-blue-200">
             <AvatarImage src={user.profilePicture || "/placeholder.svg"} alt={user.name} />
             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              {user.name.charAt(0)}
+              {user.nickname.charAt(0)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 overflow-hidden">

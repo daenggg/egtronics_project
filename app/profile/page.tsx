@@ -167,7 +167,7 @@ export default function ProfilePage() {
               <Avatar className="h-24 w-24 cursor-pointer border-2 border-white shadow-lg">
                 <AvatarImage src={profilePicture || "/placeholder.svg"} alt={user.name} />
                 <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                  {user.name.charAt(0)}
+                  {user.nickname.charAt(0)}
                 </AvatarFallback>
               </Avatar>
               {isEditing && (
