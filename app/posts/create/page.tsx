@@ -52,10 +52,15 @@ function CreatePostForm() {
     return null;
   }
 
+// --- [수정됨] --- 안정성이 강화된 handleSubmit 함수
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!category) {
+    // 1. category 상태(문자열)를 정수(number)로 변환
+    const categoryId = parseInt(category, 10);
+
+    // 2. 변환된 값이 유효한 숫자인지 검사 (NaN 이거나 0 이하인지 확인)
+    if (isNaN(categoryId) || categoryId <= 0) {
       toast({
         title: "카테고리 선택 필요",
         description: "게시글의 카테고리를 선택해주세요.",
@@ -64,6 +69,7 @@ function CreatePostForm() {
       return;
     }
 
+    // 3. (검증 통과 후) 이미지 업로드 로직 실행
     let photoUrl = "";
     if (media.length > 0 && media[0].file) {
       try {
@@ -79,13 +85,16 @@ function CreatePostForm() {
       }
     }
 
+    // 4. 안전하게 변환된 categoryId로 payload 생성
     const payload = {
       title,
       content,
-      categoryId: Number(category),
+      categoryId: categoryId, // 안전하게 변환된 숫자 ID 사용
       photo: photoUrl,
     };
 
+    console.log("✅ 서버로 전송하는 실제 데이터:", JSON.stringify(payload, null, 2));
+    
     createPost(payload, {
       onSuccess: () => {
         router.refresh();

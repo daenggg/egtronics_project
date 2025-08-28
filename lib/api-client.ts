@@ -41,7 +41,7 @@ export async function getPost(id: string): Promise<PostWithDetails> {
 }
 
 export async function createPost(payload: CreatePostRequest): Promise<PostWithDetails> {
-  const { data } = await api.post<PostWithDetails>('/posts', payload)
+  const { data } = await api.post<PostWithDetails>('/posts/', payload)
   return data
 }
 
