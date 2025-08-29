@@ -155,9 +155,21 @@ export async function getMyProfile(): Promise<User> {
   return data
 }
 
-export async function updateMyProfile(payload: FormData): Promise<User> {
-  const { data } = await api.patch<User>('/users/me', payload);
+export async function updateMyProfile(payload: FormData): Promise<string> {
+  // 백엔드 서비스(UserService)의 editProfile 메서드는 void를 반환하므로, 컨트롤러는 User 객체 대신 성공 메시지(string)를 반환할 가능성이 높습니다.
+  // 백엔드 UserController의 editProfile 메서드는 @PatchMapping("/") 으로 매핑되어 있으므로, /users/me가 아닌 /users/ 로 요청해야 합니다.
+  const { data } = await api.patch<string>('/users/', payload);
   return data
+}
+
+export async function getMyPosts(): Promise<PostWithDetails[]> {
+  const { data } = await api.get<PostWithDetails[]>('/users/me/posts');
+  return data;
+}
+
+export async function getMyComments(): Promise<CommentWithDetails[]> {
+  const { data } = await api.get<CommentWithDetails[]>('/users/me/comments');
+  return data;
 }
 
 // 댓글 API

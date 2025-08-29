@@ -374,6 +374,7 @@ export default function PostDetailPage() {
           return (
             <Card
               key={comment.commentId}
+              id={`comment-${comment.commentId}`}
               className={`glass-effect border-0 shadow-xl animate-fade-in ${
                 isTopComment ? "ring-2 ring-yellow-400" : ""
               }`}

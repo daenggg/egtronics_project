@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import {
@@ -16,15 +17,25 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Save } from "lucide-react";
+import { Edit, Save, Heart, Eye } from "lucide-react";
 import { User } from "@/lib/types";
+import { useMyPosts, useMyComments } from "@/hooks/use-my-activities";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
   const { user, updateUserInfo } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string | undefined>>({});
+
+  // 유효성 검사를 위한 정규식
+  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{6,20}$/;
+  const koreanRegex = /^[가-힣]+$/;
+  const englishRegex = /^[A-Za-z]+$/;
+  const phoneRegex = /^\d{3}-\d{4}-\d{4}$/;
 
   // 상태 변수
   const [name, setName] = useState("");
@@ -34,6 +45,10 @@ export default function ProfilePage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  // 내 활동내역 불러오기
+  const { data: myPosts, isLoading: isLoadingPosts } = useMyPosts();
+  const { data: myComments, isLoading: isLoadingComments } = useMyComments();
 
   // user 정보가 변경될 때마다 상태 업데이트
   useEffect(() => {
@@ -61,11 +76,42 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSave = async () => {
+  const validate = () => {
+    const newErrors: Record<string, string | undefined> = {};
+
+    if (!name.trim()) {
+      newErrors.name = "이름을 입력해주세요.";
+    } else if (!koreanRegex.test(name) && !englishRegex.test(name)) {
+      newErrors.name = "이름은 한글 또는 영어로만 입력 가능합니다.";
+    }
+
+    if (!nickname.trim()) {
+      newErrors.nickname = "닉네임을 입력해주세요.";
+    }
+
+    if (!phoneRegex.test(phoneNumber)) {
+      newErrors.phoneNumber =
+        "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+    }
+
+    if (newPassword && !passwordRegex.test(newPassword)) {
+      newErrors.newPassword =
+        "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
+    }
+
     if (newPassword && newPassword !== confirmPassword) {
+      newErrors.confirmPassword = "새 비밀번호가 일치하지 않습니다.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validate()) {
       toast({
-        title: "비밀번호 오류",
-        description: "새 비밀번호가 일치하지 않습니다.",
+        title: "입력 오류",
+        description: "입력된 정보를 다시 확인해주세요.",
         variant: "destructive",
         duration: 2000,
       });
@@ -74,25 +120,23 @@ export default function ProfilePage() {
     setIsSaving(true);
 
     try {
-      // 백엔드 API는 multipart/form-data를 기대하므로 FormData 객체를 생성합니다.
       const formData = new FormData();
 
-      // 백엔드는 선택적 파라미터를 처리하므로, 현재 상태 값을 모두 추가합니다.
+      // 회원가입과 동일한 방식으로 각 필드를 FormData에 직접 추가합니다.
       formData.append("name", name);
       formData.append("nickname", nickname);
       formData.append("phoneNumber", phoneNumber);
 
-      // 새 프로필 사진 파일이 선택된 경우, 'profilePicture' 필드에 추가합니다.
-      if (avatarFile) {
-        formData.append("profilePicture", avatarFile);
-      }
-
-      // 새 비밀번호가 입력된 경우, 'password' 필드에 추가합니다.
+      // 새 비밀번호가 입력된 경우에만 추가합니다.
       if (newPassword) {
         formData.append("password", newPassword);
       }
 
-      // auth-context의 updateUserInfo 함수는 FormData를 인자로 받습니다.
+      // 새 프로필 사진 파일이 선택된 경우에만 추가합니다.
+      if (avatarFile) {
+        formData.append("profilePicture", avatarFile);
+      }
+
       await updateUserInfo(formData);
 
       setIsEditing(false);
@@ -190,16 +234,36 @@ export default function ProfilePage() {
                     <Input
                       id="nickname"
                       value={nickname}
-                      onChange={(e) => setNickname(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setNickname(value);
+                        if (!value.trim()) {
+                          setErrors((prev) => ({ ...prev, nickname: "닉네임을 입력해주세요." }));
+                        } else {
+                          setErrors((prev) => ({ ...prev, nickname: undefined }));
+                        }
+                      }}
                     />
+                    {errors.nickname && <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>}
                   </div>
                   <div className="space-y-2 text-left">
                     <Label htmlFor="name">이름</Label>
                     <Input
                       id="name"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setName(value);
+                        if (!value.trim()) {
+                          setErrors((prev) => ({ ...prev, name: "이름을 입력해주세요." }));
+                        } else if (!koreanRegex.test(value) && !englishRegex.test(value)) {
+                          setErrors((prev) => ({ ...prev, name: "이름은 한글 또는 영어로만 입력 가능합니다." }));
+                        } else {
+                          setErrors((prev) => ({ ...prev, name: undefined }));
+                        }
+                      }}
                     />
+                    {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
                   </div>
                   <div className="space-y-2 text-left">
                     <Label htmlFor="email">이메일</Label>
@@ -214,8 +278,17 @@ export default function ProfilePage() {
                     <Input
                       id="phoneNumber"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setPhoneNumber(value);
+                        if (!phoneRegex.test(value)) {
+                          setErrors((prev) => ({ ...prev, phoneNumber: "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)" }));
+                        } else {
+                          setErrors((prev) => ({ ...prev, phoneNumber: undefined }));
+                        }
+                      }}
                     />
+                    {errors.phoneNumber && <p className="text-red-600 text-sm mt-1">{errors.phoneNumber}</p>}
                   </div>
                   <div className="space-y-2 text-left">
                     <Label htmlFor="newPassword">새 비밀번호</Label>
@@ -223,9 +296,24 @@ export default function ProfilePage() {
                       id="newPassword"
                       type="password"
                       value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setNewPassword(value);
+                        if (value && !passwordRegex.test(value)) {
+                          setErrors((prev) => ({ ...prev, newPassword: "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다." }));
+                        } else {
+                          setErrors((prev) => ({ ...prev, newPassword: undefined }));
+                        }
+                        // 비밀번호 확인 필드도 다시 검사
+                        if (confirmPassword && value !== confirmPassword) {
+                          setErrors((prev) => ({ ...prev, confirmPassword: "새 비밀번호가 일치하지 않습니다." }));
+                        } else {
+                          setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                        }
+                      }}
                       placeholder="변경 시에만 입력"
                     />
+                    {errors.newPassword && <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>}
                   </div>
                   <div className="space-y-2 text-left">
                     <Label htmlFor="confirmPassword">비밀번호 확인</Label>
@@ -233,9 +321,18 @@ export default function ProfilePage() {
                       id="confirmPassword"
                       type="password"
                       value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setConfirmPassword(value);
+                        if (newPassword && value !== newPassword) {
+                          setErrors((prev) => ({ ...prev, confirmPassword: "새 비밀번호가 일치하지 않습니다." }));
+                        } else {
+                          setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
+                        }
+                      }}
                       placeholder="새 비밀번호 확인"
                     />
+                    {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
                   </div>
                 </>
               ) : (
@@ -278,19 +375,69 @@ export default function ProfilePage() {
         </TabsList>
 
         <TabsContent value="posts" className="space-y-4">
-          <Card>
-            <CardContent className="p-6 text-center text-gray-500">
-              작성한 게시글이 없습니다.
-            </CardContent>
-          </Card>
+          {isLoadingPosts ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-20 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : myPosts && myPosts.length > 0 ? (
+            myPosts.map((post) => (
+              <Link href={`/posts/${post.postId}`} key={post.postId}>
+                <Card className="hover:bg-gray-50/50 transition-colors cursor-pointer">
+                  <CardContent className="p-4">
+                    <h4 className="font-semibold truncate">{post.title}</h4>
+                    <p className="text-sm text-gray-500 mt-1 truncate">
+                      {post.content}
+                    </p>
+                    <div className="text-xs text-gray-400 mt-2 flex items-center justify-between">
+                      <span>{new Date(post.createdDate).toLocaleDateString()}</span>
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1"><Heart className="h-3 w-3" /> {post.likeCount}</span>
+                        <span className="flex items-center gap-1"><Eye className="h-3 w-3" /> {post.viewCount}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-gray-500">
+                작성한 게시글이 없습니다.
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         <TabsContent value="comments" className="space-y-4">
-          <Card>
-            <CardContent className="p-6 text-center text-gray-500">
-              작성한 댓글이 없습니다.
-            </CardContent>
-          </Card>
+          {isLoadingComments ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              ))}
+            </div>
+          ) : myComments && myComments.length > 0 ? (
+            myComments.map((comment) => (
+              <Link href={`/posts/${comment.postId}#comment-${comment.commentId}`} key={comment.commentId}>
+                <Card className="hover:bg-gray-50/50 transition-colors cursor-pointer">
+                  <CardContent className="p-4">
+                    <p className="font-medium truncate">{comment.content}</p>
+                    <div className="text-xs text-gray-400 mt-2 flex items-center justify-between">
+                      <span>{new Date(comment.createdDate).toLocaleDateString()}</span>
+                      <span className="flex items-center gap-1"><Heart className="h-3 w-3" /> {comment.likeCount}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-gray-500">
+                작성한 댓글이 없습니다.
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

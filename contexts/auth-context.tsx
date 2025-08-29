@@ -106,7 +106,11 @@ const login = async (userId: string, password: string) => {
 
   const updateUserInfo = async (userData: FormData) => {
     try {
-      const updatedUser = await updateMyProfile(userData)
+      // 1. 프로필 업데이트 API를 호출합니다. 이 API는 User 객체를 반환하지 않습니다.
+      await updateMyProfile(userData)
+      // 2. 업데이트가 성공했으므로, getMyProfile()을 호출하여 최신 사용자 정보를 다시 가져옵니다.
+      const updatedUser = await getMyProfile()
+      // 3. 가져온 최신 정보로 상태와 로컬 스토리지를 업데이트합니다.
       setUser(updatedUser)
       userStorage.setUser(updatedUser)
     } catch (error: any) {
