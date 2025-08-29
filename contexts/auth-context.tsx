@@ -106,8 +106,7 @@ const login = async (userId: string, password: string) => {
 
   const updateUserInfo = async (userData: FormData) => {
     try {
-      await updateMyProfile(userData)
-      const updatedUser = await getMyProfile()
+      const updatedUser = await updateMyProfile(userData)
       setUser(updatedUser)
       userStorage.setUser(updatedUser)
     } catch (error: any) {

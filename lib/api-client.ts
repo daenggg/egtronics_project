@@ -155,8 +155,8 @@ export async function getMyProfile(): Promise<User> {
   return data
 }
 
-export async function updateMyProfile(payload: FormData): Promise<string> {
-  const { data } = await api.patch<string>('/users/', payload);
+export async function updateMyProfile(payload: FormData): Promise<User> {
+  const { data } = await api.patch<User>('/users/me', payload);
   return data
 }
 
