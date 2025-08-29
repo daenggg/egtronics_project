@@ -70,6 +70,23 @@ export interface PostWithDetails extends Post {
   reportedByCurrentUser?: boolean; // 신고 여부
 }
 
+/**
+ * (API 응답용 확장 인터페이스)
+ * 게시글 목록 조회 (GET /posts) API가 반환하는 데이터 형식입니다.
+ * PostWithDetails보다 가벼운 버전입니다.
+ */
+export interface PostPreview {
+  postId: number;
+  title: string;
+  content: string | null;
+  nickname: string;
+  createdDate: string;
+  likeCount: number;
+  viewCount: number;
+  categoryName: string;
+  photo: string | null;
+}
+
 export interface CommentWithDetails extends Comment {
   author: {
     userId: string;
@@ -96,7 +113,7 @@ export interface UpdatePostRequest {
   photo?: string | null;
 }
 
-export type PostListResponse = PostWithDetails[];
+export type PostListResponse = PostPreview[];
 
 export interface CreateCommentRequest {
   content: string;

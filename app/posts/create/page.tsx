@@ -65,21 +65,16 @@ function CreatePostForm() {
       return;
     }
 
+    // 회원가입과 동일한 방식으로, 백엔드 API가 각 필드를 개별적으로 받을 수 있도록 FormData를 구성합니다.
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
     formData.append("categoryId", String(categoryId));
 
+    // 사용자가 사진 파일을 첨부한 경우에만 'photo' 필드를 FormData에 추가합니다.
     if (media.length > 0 && media[0].file) {
       formData.append("photo", media[0].file);
     }
-
-    console.log("✅ 서버로 전송하는 데이터:", {
-      title,
-      content,
-      categoryId,
-      photo: media.length > 0 ? media[0].file?.name : "없음",
-    });
 
     createPost(formData, {
       onSuccess: () => {

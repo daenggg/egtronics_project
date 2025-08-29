@@ -1,17 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo, useEffect, Suspense, useCallback } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { formatDistanceToNow } from "date-fns";
-import { ko } from "date-fns/locale";
-import { Eye, Heart, MessageCircle } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Eye, Heart } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { categories as allCategories } from "@/components/category-filter";
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/Pagination";
+import { usePosts } from "@/hooks/use-posts";
+import { PostPreview } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Select,
   SelectContent,
@@ -20,117 +21,67 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
-  createdAt: Date;
-  views: number;
-  likes: number;
-  comments: number;
-  category: string;
-  media?: Array<{
-    id: string;
-    type: "image" | "video";
-    url: string;
-  }>;
-}
-
-const categoryIds = [
-  "announcement",
-  "general",
-  "tech",
-  "study",
-  "project",
-  "career",
-  "qna",
-  "free",
-];
-
-const mockPosts: Post[] = Array.from({ length: 200 }, (_, i) => ({
-  id: String(i + 1),
-  title: `게시글 ${i + 1}`,
-  content: `이것은 게시글 ${
-    i + 1
-  }의 내용입니다. 다양한 정보와 경험을 공유합니다.`,
-  author: {
-    id: `u${(i % 5) + 1}`,
-    name: `작성자 ${(i % 5) + 1}`,
-  },
-  category: categoryIds[i % categoryIds.length],
-  media: [{ id: `m${i}`, type: "image", url: "/picture.jpg" }],
-  createdAt: new Date(Date.now() - 1000 * 60 * 60 * (i * 3)),
-  views: Math.floor(Math.random() * 500),
-  likes: Math.floor(Math.random() * 50),
-  comments: Math.floor(Math.random() * 15),
-}));
-
-// The main content component that uses client-side hooks
 function HomePageClientContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedCategory = searchParams.get("category");
+  const selectedCategoryId = searchParams.get("category");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("latest");
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 페이지 새로고침 시 카테고리 선택 해제
-  useEffect(() => {
-    // 이 코드는 클라이언트에서만 실행됩니다.
-    if (typeof window !== "undefined") {
-      // PerformanceNavigationTiming[] 타입으로 캐스팅하여 'type' 속성 오류를 해결합니다.
-      const navigationEntries = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
-      if (navigationEntries.length > 0 && navigationEntries[0].type === "reload") {
-        if (searchParams.has('category')) {
-          router.replace('/', { scroll: false });
-        }
-      }
-    }
-  }, [router, searchParams]);
+  // 실제 API를 통해 데이터를 가져옵니다.
+  const { data: posts, isLoading, isError, error } = usePosts();
 
   // 카테고리가 URL로 바뀌면 페이지 초기화
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory]);
+  }, [selectedCategoryId]);
 
-  const getCategoryInfo = (categoryId: string) => {
+  const getCategoryInfo = (categoryName: string) => {
     return (
-      allCategories.find((cat) => cat.id === categoryId) || { id: "unknown", name: "미분류", icon: "📁" }
+      allCategories.find((cat) => cat.name === categoryName) || {
+        id: "unknown",
+        name: "미분류",
+        icon: "📁",
+      }
     );
   };
   const postsPerPage = 12;
 
   // 필터 + 정렬된 데이터
   const filteredPosts = useMemo(() => {
-    let data = [...mockPosts];
+    if (!posts) return [];
+    let data: PostPreview[] = [...posts];
 
-    if (selectedCategory) {
-      data = data.filter((post) => post.category === selectedCategory);
+    if (selectedCategoryId) {
+      const category = allCategories.find((c) => c.id === selectedCategoryId);
+      if (category) {
+        data = data.filter((post) => post.categoryName === category.name);
+      }
     }
 
     if (searchQuery.trim()) {
+      const lowercasedQuery = searchQuery.toLowerCase();
       data = data.filter(
         (post) =>
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.content.toLowerCase().includes(searchQuery.toLowerCase())
+          post.title.toLowerCase().includes(lowercasedQuery) ||
+          (post.content && post.content.toLowerCase().includes(lowercasedQuery))
       );
     }
 
     if (sortOption === "latest") {
-      data.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      data.sort(
+        (a, b) =>
+          new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+      );
     } else if (sortOption === "views") {
-      data.sort((a, b) => b.views - a.views);
+      data.sort((a, b) => b.viewCount - a.viewCount);
     } else if (sortOption === "likes") {
-      data.sort((a, b) => b.likes - a.likes);
+      data.sort((a, b) => b.likeCount - a.likeCount);
     }
 
     return data;
-  }, [searchQuery, sortOption, selectedCategory]);
+  }, [posts, searchQuery, sortOption, selectedCategoryId]);
 
   // 현재 페이지 데이터
   const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
@@ -138,6 +89,99 @@ function HomePageClientContent() {
     (currentPage - 1) * postsPerPage,
     currentPage * postsPerPage
   );
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-80 w-full rounded-lg" />
+          ))}
+        </div>
+      );
+    }
+
+    if (isError) {
+      return (
+        <Alert variant="destructive">
+          <AlertTitle>오류 발생</AlertTitle>
+          <AlertDescription>
+            게시글 목록을 불러오는 중 오류가 발생했습니다: {error?.message}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (currentPosts.length === 0) {
+      return (
+        <div className="text-center py-20 col-span-full">
+          <h3 className="text-xl font-medium text-gray-800">
+            게시글이 없습니다.
+          </h3>
+          <p className="text-gray-500 mt-2">
+            {selectedCategoryId || searchQuery
+              ? "다른 조건으로 검색해보세요."
+              : "첫 번째 게시글을 작성해보세요!"}
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {currentPosts.map((post) => {
+          const categoryInfo = getCategoryInfo(post.categoryName);
+          return (
+            <Link
+              key={post.postId}
+              href={`/posts/${post.postId}`}
+              className="block"
+            >
+              <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
+                {post.photo && (
+                  <div className="aspect-video w-full overflow-hidden rounded-t-xl">
+                    <img
+                      src={post.photo}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  </div>
+                )}
+                <CardHeader className="pb-2 px-4 pt-4">
+                  <Badge
+                    variant="secondary"
+                    className="mb-2 font-medium self-start"
+                  >
+                    <span className="mr-1.5">{categoryInfo.icon}</span>
+                    {categoryInfo.name}
+                  </Badge>
+                  <CardTitle className="text-lg font-bold pt-2 truncate group-hover:text-blue-600 transition-colors">
+                    {post.title}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow flex flex-col justify-between p-4">
+                  <p className="text-sm text-gray-600 h-10 overflow-hidden text-ellipsis">
+                    {post.content}
+                  </p>
+                  <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
+                    <span className="font-medium">{post.nickname}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <Heart className="h-3 w-3" /> {post.likeCount}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Eye className="h-3 w-3" /> {post.viewCount}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="container mx-auto px-4 py-4">
@@ -179,84 +223,16 @@ function HomePageClientContent() {
         </div>
 
         {/* 게시글 리스트 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-          {currentPosts.map((post) => {
-            const categoryInfo = getCategoryInfo(post.category);
-            return (
-              <Link key={post.id} href={`/posts/${post.id}`} className="block">
-                <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
-                  <CardContent className="flex-1 flex flex-col justify-between p-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <Avatar className="h-10 w-10">
-                          <AvatarImage
-                            src={post.author.avatar}
-                            alt={post.author.name}
-                          />
-                          <AvatarFallback>{post.author.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <p className="font-semibold text-sm">{post.author.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {formatDistanceToNow(post.createdAt, {
-                              addSuffix: true,
-                              locale: ko,
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className="mb-2 font-medium"
-                      >
-                        <span className="mr-1.5">{categoryInfo.icon}</span>
-                        {categoryInfo.name}
-                      </Badge>
-                      <h2 className="text-lg font-bold mb-2 line-clamp-2">
-                        {post.title}
-                      </h2>
-                      <p className="line-clamp-3 text-sm text-gray-700 mb-4">
-                        {post.content}
-                      </p>
-                      {post.media && post.media.length > 0 && (
-                        <div className="relative aspect-video mt-4 rounded-lg overflow-hidden">
-                          <img
-                            src={post.media[0].url}
-                            alt={post.title}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex justify-end space-x-4 text-sm text-gray-500 mt-2 pt-2 border-t">
-                      <div className="flex items-center space-x-1" title="추천">
-                        <Heart className="h-4 w-4 text-red-400" />
-                        <span>{post.likes}</span>
-                      </div>
-                      <div className="flex items-center space-x-1" title="댓글">
-                        <MessageCircle className="h-4 w-4 text-blue-400" />
-                        <span>{post.comments}</span>
-                      </div>
-                      <div className="flex items-center space-x-1" title="조회수">
-                        <Eye className="h-4 w-4 text-gray-400" />
-                        <span>{post.views}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
+        {renderContent()}
 
         {/* 페이지네이션 */}
-        <div>
+        {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={(page) => setCurrentPage(page)}
           />
-        </div>
+        )}
       </div>
     </div>
   );
