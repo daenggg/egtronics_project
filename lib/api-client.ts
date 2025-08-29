@@ -7,6 +7,20 @@ import {
   User
 } from './types'
 
+/**
+ * @param dateInput - 백엔드에서 받은 날짜 데이터 (배열 또는 이미 변환된 문자열)
+ * @returns ISO 8601 형식의 날짜 문자열
+ */
+function normalizeDate(dateInput: any): string {
+  if (Array.isArray(dateInput) && dateInput.length >= 6) {
+    const [year, month, day, hour, minute, second] = dateInput;
+    const pad = (num: number) => String(num).padStart(2, '0');
+    return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:${pad(second)}`;
+  }
+
+  return String(dateInput);
+}
+
 // 환경 변수에서 API 기본 URL을 가져오고, 없으면 로컬 개발용 주소로 대체합니다.
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -36,13 +50,20 @@ api.interceptors.request.use(config => {
 
 // 게시글 API
 export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
-  const { data } = await api.get<PostListResponse>('/posts', { params })
-  return data
+  const { data } = await api.get<PostListResponse>('/posts/', { params });
+  // 백엔드에서 오는 날짜 형식을 프론트엔드에서 사용 가능한 형태로 변환
+  return data.map(post => ({
+    ...post,
+    createdDate: normalizeDate(post.createdDate),
+  }));
 }
 
 export async function getPost(id: string): Promise<PostWithDetails> {
-  const { data } = await api.get<PostWithDetails>(`/posts/${id}`)
-  return data
+  const { data } = await api.get<PostWithDetails>(`/posts/${id}`);
+  if (data) {
+    data.createdDate = normalizeDate(data.createdDate);
+  }
+  return data;
 }
 
 export async function createPost(payload: FormData): Promise<PostWithDetails> {
@@ -164,12 +185,18 @@ export async function updateMyProfile(payload: FormData): Promise<string> {
 
 export async function getMyPosts(): Promise<PostWithDetails[]> {
   const { data } = await api.get<PostWithDetails[]>('/users/me/posts');
-  return data;
+  return data.map(post => ({
+    ...post,
+    createdDate: normalizeDate(post.createdDate),
+  }));
 }
 
 export async function getMyComments(): Promise<CommentWithDetails[]> {
   const { data } = await api.get<CommentWithDetails[]>('/users/me/comments');
-  return data;
+  return data.map(comment => ({
+    ...comment,
+    createdDate: normalizeDate(comment.createdDate),
+  }));
 }
 
 // 댓글 API
@@ -217,9 +244,11 @@ export async function unscrapPost(postId: string): Promise<void> {
  * @returns Scrap[]
  */
 export async function getMyScraps(): Promise<Scrap[]> {
-  // 백엔드 ScrapController의 경로가 /posts/my/scraps 이므로 수정합니다.
-  const { data } = await api.get<Scrap[]>('/users/me/scraps')
-  return data
+  const { data } = await api.get<Scrap[]>('/users/me/scraps');
+  return data.map(scrap => ({
+    ...scrap,
+    createdDate: normalizeDate(scrap.createdDate),
+  }));
 }
 
 // ===== 알림 API =====
@@ -236,7 +265,6 @@ export async function getNotifications(): Promise<Notification[]> {
  * 알림 읽음 처리
  */
 export async function markNotificationAsRead(id: number): Promise<void> {
-  // API 명세에 따라 POST에서 PUT으로 변경
   await api.put(`/notifications/${id}/read`);
 }
 
