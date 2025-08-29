@@ -59,11 +59,23 @@ export async function getPosts(params: PaginationParams = {}): Promise<PostListR
 }
 
 export async function getPost(id: string): Promise<PostWithDetails> {
-  const { data } = await api.get<PostWithDetails>(`/posts/${id}`);
-  if (data) {
-    data.createdDate = normalizeDate(data.createdDate);
+  // The backend sends a flat object, but the frontend expects a nested structure.
+  // We use <any> to accept the flat response and then transform it.
+  const { data } = await api.get<any>(`/posts/${id}`);
+  if (!data) {
+    throw new Error('Post not found');
   }
-  return data;
+
+  // Transform the flat structure to the nested structure expected by `PostWithDetails`
+  return {
+    ...data,
+    createdDate: normalizeDate(data.createdDate),
+    author: {
+      userId: data.userId, // The `Post` interface has a `userId` which we assume is the author's.
+      nickname: data.nickname,
+      profilePicture: data.profilePicture || data.authorProfilePicture || null,
+    },
+  };
 }
 
 export async function createPost(payload: FormData): Promise<PostWithDetails> {
@@ -184,35 +196,86 @@ export async function updateMyProfile(payload: FormData): Promise<string> {
 }
 
 export async function getMyPosts(): Promise<PostWithDetails[]> {
-  const { data } = await api.get<PostWithDetails[]>('/users/me/posts');
+  const { data } = await api.get<any[]>('/users/me/posts');
   return data.map(post => ({
     ...post,
     createdDate: normalizeDate(post.createdDate),
+    author: {
+      userId: post.userId,
+      nickname: post.nickname,
+      profilePicture: post.profilePicture || null,
+    },
   }));
 }
 
 export async function getMyComments(): Promise<CommentWithDetails[]> {
-  const { data } = await api.get<CommentWithDetails[]>('/users/me/comments');
+  const { data } = await api.get<any[]>('/users/me/comments');
   return data.map(comment => ({
     ...comment,
     createdDate: normalizeDate(comment.createdDate),
+    author: {
+      userId: comment.userId,
+      nickname: comment.nickname,
+      profilePicture: comment.profilePicture || null,
+    },
   }));
 }
 
 // 댓글 API
 export async function getComments(postId: string): Promise<CommentListResponse> {
-  const { data } = await api.get<CommentListResponse>(`/posts/${postId}/comments`)
-  return data
+  // The backend returns a raw array of comments, but the frontend expects an object
+  // with a `comments` property and a `totalCount`. We'll transform the data here.
+  const { data: rawComments } = await api.get<any>(`/posts/${postId}/comments`);
+
+  if (!Array.isArray(rawComments)) {
+    if (rawComments && Array.isArray(rawComments.comments)) {
+      return rawComments; // It's already in the expected format.
+    }
+    return { comments: [], totalCount: 0 };
+  }
+
+  const transformedComments = rawComments.map((comment) => ({
+    ...comment,
+    createdDate: normalizeDate(comment.createdDate),
+    author: {
+      userId: comment.userId,
+      nickname: comment.nickname,
+      profilePicture: comment.profilePicture || null,
+    },
+  }));
+
+  return {
+    comments: transformedComments,
+    totalCount: transformedComments.length,
+  };
 }
 
 export async function createComment(postId: string | number, payload: CreateCommentRequest): Promise<CommentWithDetails> {
-  const { data } = await api.post<CommentWithDetails>(`/posts/${String(postId)}/comments`, payload)
-  return data
+  const { data } = await api.post<any>(`/posts/${String(postId)}/comments`, payload);
+  return {
+    ...data,
+    createdDate: normalizeDate(data.createdDate),
+    author: {
+      userId: data.userId,
+      nickname: data.nickname,
+      profilePicture: data.profilePicture || null,
+    },
+  };
 }
 
 export async function updateComment(postId: string, commentId: string, payload: UpdateCommentRequest): Promise<CommentWithDetails> {
-  const { data } = await api.put<CommentWithDetails>(`/posts/${postId}/comments/${commentId}`, payload)
-  return data
+  // The backend controller uses @PatchMapping, so we should use api.patch.
+  const { data } = await api.patch<any>(`/posts/${postId}/comments/${commentId}`, payload);
+  // The backend returns a flat response, so we transform it.
+  return {
+    ...data,
+    createdDate: normalizeDate(data.createdDate),
+    author: {
+      userId: data.userId,
+      nickname: data.nickname,
+      profilePicture: data.profilePicture || null,
+    },
+  };
 }
 
 export async function deleteComment(postId: string, commentId: string): Promise<void> {
