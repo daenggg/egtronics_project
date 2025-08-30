@@ -18,7 +18,7 @@ export function useMyScraps() {
   })
 }
 
-// 게시글 스크랩 Hook
+// 게시글 스크랩 Hook임
 export function useScrapPost() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
