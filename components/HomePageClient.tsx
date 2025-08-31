@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState, useMemo, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Eye, Heart } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Eye, Heart, Image as ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { categories as allCategories } from "@/components/category-filter";
@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/select";
 
 function HomePageClientContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const selectedCategoryId = searchParams.get("category");
   const [searchQuery, setSearchQuery] = useState("");
@@ -137,16 +136,18 @@ function HomePageClientContent() {
               href={`/posts/${post.postId}`}
               className="block"
             >
-              <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl">
-                {post.photo && (
-                  <div className="aspect-video w-full overflow-hidden rounded-t-xl">
+              <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl overflow-hidden rounded-xl">
+                <div className="aspect-video w-full bg-gray-100 flex items-center justify-center">
+                  {post.photo ? (
                     <img
                       src={post.photo}
                       alt={post.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
-                  </div>
-                )}
+                  ) : (
+                    <ImageIcon className="h-16 w-16 text-gray-300" />
+                  )}
+                </div>
                 <CardHeader className="pb-2 px-4 pt-4">
                   <Badge
                     variant="secondary"
