@@ -192,11 +192,6 @@ export default function PostDetailPage() {
     toggleScrap(String(post.postId), post.isBookmarked);
   };
 
-  // ✅ 신고 완료 상태 업데이트
-  const handlePostReported = () => {
-    // ReportDialog 컴포넌트가 내부적으로 쿼리 무효화를 처리하여 데이터가 갱신됩니다.
-  };
-
   const handleDeletePost = () => {
     if (!post) return;
     // 사용자에게 확인을 구하는 로직을 추가할 수 있습니다.
@@ -246,7 +241,6 @@ export default function PostDetailPage() {
                 type="post"
                 targetId={String(post.postId)}
                 alreadyReported={post.reportedByCurrentUser}
-                onReported={handlePostReported}
               />
             </div>
           </div>

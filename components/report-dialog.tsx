@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -14,13 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { PostWithDetails } from "@/lib/types";
 import { Flag, AlertTriangle } from "lucide-react";
 
 interface ReportDialogProps {
   type: "post" | "comment";
   targetId: string;
   alreadyReported?: boolean;
-  onReported?: () => void;
   children?: React.ReactNode;
 }
 
@@ -37,13 +38,13 @@ export function ReportDialog({
   type,
   targetId,
   alreadyReported = false,
-  onReported, // ✅ props로 추가
   children,
 }: ReportDialogProps) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,13 +78,18 @@ export function ReportDialog({
         ),
         duration: 2000,
       });
-      if (onReported) onReported();
+
+      // 신고가 성공하면, react-query 캐시를 직접 업데이트하여
+      // UI가 즉시 '신고 완료' 상태로 바뀌도록 합니다. (낙관적 업데이트)
+      if (type === 'post') {
+        queryClient.setQueryData<PostWithDetails>(['post', targetId], (oldData) => 
+          oldData ? { ...oldData, reportedByCurrentUser: true } : oldData
+        );
+      }
+
       setOpen(false);
       setReason("");
       setDescription("");
-
-      // ✅ 이미 신고한 상태로 업데이트 (상위 컴포넌트에서 상태 관리 필요)
-      // 예: onReported && onReported();
     } catch (error) {
       toast({
         title: "신고 실패",
