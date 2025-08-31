@@ -20,6 +20,7 @@ interface AuthContextType {
   logout: () => void
   updateUserInfo: (userData: FormData) => Promise<void>
   loading: boolean
+  refreshCsrfToken: () => Promise<void>
   isSidebarOpen: boolean
   toggleSidebar: () => void
 }
@@ -31,16 +32,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
+  const refreshCsrfToken = async () => {
+    try {
+      // 이 API 호출의 주 목적은 백엔드로부터 새로운 CSRF 토큰을 받는 것입니다.
+      await checkIdAvailability('__warmup__');
+    } catch (error) {
+      // 네트워크 오류 등으로 실패할 수 있지만, 이것만으로 로그아웃 처리하지는 않습니다.
+      // 디버깅을 위해 콘솔에 에러를 기록할 수 있습니다.
+      console.error("CSRF token refresh failed:", error);
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // [CSRF 해결]
-        // 애플리케이션 시작 시, 인증이 필요 없는 API를 먼저 호출하여
-        // 백엔드로부터 CSRF 토큰 (XSRF-TOKEN)을 쿠키로 받아옵니다.
-        // 이 "warm-up" 호출이 없으면, 로그인/회원가입 등 첫 POST 요청이 403 오류를 반환합니다.
-        await checkIdAvailability('__warmup__');
+        await refreshCsrfToken();
 
-        // 이제 CSRF 토큰이 있으므로, 안전하게 프로필 정보를 요청합니다.
         const userProfile = await getMyProfile();
         setUser(userProfile);
         userStorage.setUser(userProfile);
@@ -133,6 +140,7 @@ const login = async (userId: string, password: string) => {
         logout,
         updateUserInfo,
         loading,
+        refreshCsrfToken,
         isSidebarOpen,
         toggleSidebar,
       }}

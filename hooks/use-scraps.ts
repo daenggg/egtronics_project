@@ -7,6 +7,7 @@ import {
 } from '@/lib/api-client'
 import { Scrap, PostWithDetails } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/contexts/auth-context'
 
 // 내 스크랩 목록 조회 Hook
 export function useMyScraps() {
@@ -22,6 +23,7 @@ export function useMyScraps() {
 export function useScrapPost() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const { refreshCsrfToken } = useAuth()
   
   return useMutation<any, Error, string, { previousPost: PostWithDetails | undefined }>({
     mutationFn: (postId: string) => scrapPost(postId),
@@ -52,6 +54,7 @@ export function useScrapPost() {
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       if (!error) {
         toast({ title: "성공", description: "게시글을 스크랩했습니다." });
+        refreshCsrfToken();
       }
     }
   })
@@ -61,6 +64,7 @@ export function useScrapPost() {
 export function useUnscrapPost() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const { refreshCsrfToken } = useAuth()
   
   return useMutation<void, Error, string, { previousPost: PostWithDetails | undefined }>({
     mutationFn: (postId: string) => unscrapPost(postId),
@@ -91,6 +95,7 @@ export function useUnscrapPost() {
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       if (!error) {
         toast({ title: "성공", description: "스크랩을 취소했습니다." });
+        refreshCsrfToken();
       }
     }
   })

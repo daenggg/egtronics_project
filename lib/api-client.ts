@@ -92,14 +92,12 @@ export async function deletePost(id: string): Promise<void> {
   await api.delete(`/posts/${id}`)
 }
 
-export async function likePost(id: string): Promise<LikeResponse> {
-  const { data } = await api.post<LikeResponse>(`/posts/${id}/like`)
-  return data
+export async function likePost(id: string): Promise<void> {
+  await api.post(`/posts/${id}/like`)
 }
 
-export async function unlikePost(id: string): Promise<LikeResponse> {
-  const { data } = await api.delete<LikeResponse>(`/posts/${id}/like`)
-  return data
+export async function unlikePost(id: string): Promise<void> {
+  await api.delete(`/posts/${id}/like`)
 }
 
 /**
@@ -282,14 +280,12 @@ export async function deleteComment(postId: string, commentId: string): Promise<
   await api.delete(`/posts/${postId}/comments/${commentId}`)
 }
 
-export async function likeComment(postId: string, commentId: string): Promise<LikeResponse> {
-  const { data } = await api.post<LikeResponse>(`/posts/${postId}/comments/${commentId}/likes`)
-  return data
+export async function likeComment(postId: string, commentId: string): Promise<void> {
+  await api.post(`/posts/${postId}/comments/${commentId}/likes`)
 }
 
-export async function unlikeComment(postId: string, commentId: string): Promise<LikeResponse> {
-  const { data } = await api.delete<LikeResponse>(`/posts/${postId}/comments/${commentId}/likes`)
-  return data
+export async function unlikeComment(postId: string, commentId:string): Promise<void> {
+  await api.delete(`/posts/${postId}/comments/${commentId}/likes`)
 }
 
 // ===== 스크랩 API =====

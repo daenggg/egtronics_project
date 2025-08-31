@@ -10,6 +10,7 @@ import {
 } from "@/lib/api-client";
 import { CommentListResponse, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, LikeResponse } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/auth-context";
 
 // 댓글 목록 조회 Hook
 export function useComments(postId: string | number) {
@@ -124,8 +125,9 @@ export function useDeleteComment() {
 export function useLikeComment() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const { refreshCsrfToken } = useAuth();
   
-  return useMutation<LikeResponse, Error, { postId: string | number; commentId: string | number }, { previousComments: CommentListResponse | undefined }>({
+  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousComments: CommentListResponse | undefined }>({
     mutationFn: ({ postId, commentId }: { postId: string | number; commentId: string | number }) => 
       likeComment(String(postId), String(commentId)),
     onMutate: async ({ postId, commentId }) => {
@@ -158,7 +160,11 @@ export function useLikeComment() {
       });
     },
     onSettled: (data, error, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
+      if (!error) {
+        // 성공 시에는 낙관적 업데이트를 신뢰하고, 서버 데이터 재요청을 하지 않아
+        // 경합 조건을 피합니다.
+        refreshCsrfToken();
+      }
     },
   })
 }
@@ -167,8 +173,9 @@ export function useLikeComment() {
 export function useUnlikeComment() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const { refreshCsrfToken } = useAuth();
   
-  return useMutation<LikeResponse, Error, { postId: string | number; commentId: string | number }, { previousComments: CommentListResponse | undefined }>({
+  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousComments: CommentListResponse | undefined }>({
     mutationFn: ({ postId, commentId }) => 
       unlikeComment(String(postId), String(commentId)),
     onMutate: async ({ postId, commentId }) => {
@@ -201,7 +208,11 @@ export function useUnlikeComment() {
       });
     },
     onSettled: (data, error, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
+      if (!error) {
+        // 성공 시에는 낙관적 업데이트를 신뢰하고, 서버 데이터 재요청을 하지 않아
+        // 경합 조건을 피합니다.
+        refreshCsrfToken();
+      }
     },
   })
 }
