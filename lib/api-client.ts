@@ -294,8 +294,9 @@ export async function scrapPost(postId: string): Promise<any> {
   return data
 }
 
-export async function unscrapPost(postId: string): Promise<void> {
-  await api.delete(`/posts/${postId}/scrap`)
+export async function unscrapPost(postId: string): Promise<any> {
+  const { data } = await api.delete(`/posts/${postId}/scrap`)
+  return data
 }
 
 /**

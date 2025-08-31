@@ -51,8 +51,10 @@ export function useScrapPost() {
       })
     },
     onSettled: (data, error, postId) => {
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      if (!error) {
+      if (error) {
+        // 오류 발생 시에만 서버 데이터와 강제로 동기화합니다.
+        queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      } else {
         toast({ title: "성공", description: "게시글을 스크랩했습니다." });
         refreshCsrfToken();
       }
@@ -66,7 +68,7 @@ export function useUnscrapPost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<void, Error, string, { previousPost: PostWithDetails | undefined }>({
+  return useMutation<any, Error, string, { previousPost: PostWithDetails | undefined }>({
     mutationFn: (postId: string) => unscrapPost(postId),
     onMutate: async (postId) => {
       await queryClient.cancelQueries({ queryKey: ['post', postId] });
@@ -92,8 +94,10 @@ export function useUnscrapPost() {
       })
     },
     onSettled: (data, error, postId) => {
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      if (!error) {
+      if (error) {
+        // 오류 발생 시에만 서버 데이터와 강제로 동기화합니다.
+        queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      } else {
         toast({ title: "성공", description: "스크랩을 취소했습니다." });
         refreshCsrfToken();
       }

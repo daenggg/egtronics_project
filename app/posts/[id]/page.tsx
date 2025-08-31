@@ -26,6 +26,8 @@ import { useToggleScrap } from "@/hooks/use-scraps";
 import {
   useComments,
   useCreateComment,
+  useUpdateComment,
+  useDeleteComment,
   useToggleCommentLike,
 } from "@/hooks/use-comments";
 import { PostWithDetails, CommentWithDetails } from "@/lib/types";
@@ -46,10 +48,14 @@ export default function PostDetailPage() {
   const { toggleLike } = useToggleLike();
   const { toggleScrap } = useToggleScrap();
   const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
+  const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
+  const { mutate: deleteComment } = useDeleteComment();
   const { toggleCommentLike } = useToggleCommentLike();
   const { mutate: deletePost } = useDeletePost();
 
   const [newComment, setNewComment] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editingCommentContent, setEditingCommentContent] = useState("");
 
   const sortedComments = useMemo(() => {
     if (!comments || comments.length === 0) {
@@ -134,6 +140,32 @@ export default function PostDetailPage() {
     if (!comment || !post) return;
 
     toggleCommentLike({ postId: post.postId, commentId: comment.commentId, isLiked: comment.isLiked });
+  };
+
+  const handleEditComment = (comment: CommentWithDetails) => {
+    setEditingCommentId(comment.commentId);
+    setEditingCommentContent(comment.content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCommentId(null);
+    setEditingCommentContent("");
+  };
+
+  const handleUpdateComment = () => {
+    if (!post || editingCommentId === null || !editingCommentContent.trim()) return;
+    updateComment({
+      postId: post.postId,
+      commentId: editingCommentId,
+      data: { content: editingCommentContent.trim() }
+    }, {
+      onSuccess: () => handleCancelEdit(),
+    });
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    if (!post || !window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) return;
+    deleteComment({ postId: post.postId, commentId });
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
@@ -319,6 +351,7 @@ export default function PostDetailPage() {
                   variant="outline"
                   size="sm"
                   className="hover:bg-blue-50 hover:text-blue-600"
+                  onClick={() => router.push(`/posts/${post.postId}/edit`)}
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   수정
@@ -380,6 +413,8 @@ export default function PostDetailPage() {
       <div className="space-y-3">
         <h3 className="text-lg font-semibold">댓글 {commentData?.totalCount || 0}개</h3>
         {sortedComments.map((comment, index) => {
+          const isAuthor = user && user.userId === comment.author.userId;
+          const isEditing = editingCommentId === comment.commentId;
           // 댓글이 10개 이상이고, 상위 3개 댓글의 좋아요가 5개 이상인 경우 베스트 댓글로 표시
           const isTopComment =
             (commentData?.totalCount || 0) >= 10 && index < 3 && comment.likeCount >= 5;
@@ -420,29 +455,55 @@ export default function PostDetailPage() {
                             BEST
                           </Badge>
                         )}
+                        {isAuthor && !isEditing && (
+                          <div className="flex items-center ml-auto">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditComment(comment)}>
+                              <Edit className="h-4 w-4 text-gray-500" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteComment(comment.commentId)}>
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    <p className="text-sm mb-4 text-gray-700 leading-relaxed">
-                      {comment.content}
-                    </p>
-                    <Button
-                      variant={comment.isLiked ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleLikeComment(comment.commentId)}
-                      className={`flex items-center space-x-2 transition-all ${
-                        comment.isLiked
-                          ? "bg-gradient-to-r from-red-500 to-pink-500 text-white"
-                          : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"
-                      }`}
-                    >
-                      <Heart
-                        className={`h-3 w-3 ${
-                          comment.isLiked ? "fill-current" : ""
-                        }`}
-                      />
-                      <span>{comment.likeCount}</span>
-                    </Button>
+                    {isEditing ? (
+                      <div className="space-y-2 mt-2">
+                        <Textarea
+                          value={editingCommentContent}
+                          onChange={(e) => setEditingCommentContent(e.target.value)}
+                          className="min-h-[80px]"
+                        />
+                        <div className="flex justify-end space-x-2">
+                          <Button variant="ghost" size="sm" onClick={handleCancelEdit}>취소</Button>
+                          <Button size="sm" onClick={handleUpdateComment} disabled={isUpdatingComment}>
+                            {isUpdatingComment ? '저장 중...' : '저장'}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm mb-4 text-gray-700 leading-relaxed">
+                          {comment.content}
+                        </p>
+                        <Button
+                          variant={comment.isLiked ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleLikeComment(comment.commentId)}
+                          className={`flex items-center space-x-2 transition-all ${
+                            comment.isLiked
+                              ? "bg-gradient-to-r from-red-500 to-pink-500 text-white"
+                              : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"
+                          }`}
+                        >
+                          <Heart
+                            className={`h-3 w-3 ${comment.isLiked ? "fill-current" : ""}`}
+                          />
+                          <span>{comment.likeCount}</span>
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </div>
               </CardContent>
