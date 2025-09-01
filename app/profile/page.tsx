@@ -81,29 +81,14 @@ export default function ProfilePage() {
   const validate = () => {
     const newErrors: Record<string, string | undefined> = {};
 
-    if (!name.trim()) {
-      newErrors.name = "이름을 입력해주세요.";
-    } else if (!koreanRegex.test(name) && !englishRegex.test(name)) {
+    if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
+    else if (!koreanRegex.test(name) && !englishRegex.test(name)) {
       newErrors.name = "이름은 한글 또는 영어로만 입력 가능합니다.";
     }
-
-    if (!nickname.trim()) {
-      newErrors.nickname = "닉네임을 입력해주세요.";
-    }
-
-    if (!phoneRegex.test(phoneNumber)) {
-      newErrors.phoneNumber =
-        "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
-    }
-
-    if (newPassword && !passwordRegex.test(newPassword)) {
-      newErrors.newPassword =
-        "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
-    }
-
-    if (newPassword && newPassword !== confirmPassword) {
-      newErrors.confirmPassword = "새 비밀번호가 일치하지 않습니다.";
-    }
+    if (!nickname.trim()) newErrors.nickname = "닉네임을 입력해주세요.";
+    if (!phoneRegex.test(phoneNumber)) newErrors.phoneNumber = "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+    if (newPassword && !passwordRegex.test(newPassword)) newErrors.newPassword = "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
+    if (newPassword && newPassword !== confirmPassword) newErrors.confirmPassword = "새 비밀번호가 일치하지 않습니다.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -126,12 +111,8 @@ export default function ProfilePage() {
       formData.append("name", name);
       formData.append("nickname", nickname);
       formData.append("phoneNumber", phoneNumber);
-      if (newPassword) {
-        formData.append("password", newPassword);
-      }
-      if (avatarFile) {
-        formData.append("profilePicture", avatarFile);
-      }
+      if (newPassword) formData.append("password", newPassword);
+      if (avatarFile) formData.append("profilePicture", avatarFile);
 
       await updateUserInfo(formData);
 
@@ -155,6 +136,14 @@ export default function ProfilePage() {
       setIsSaving(false);
     }
   };
+  
+  // 프로필 정보 항목을 위한 컴포넌트
+  const ProfileInfoItem = ({ label, value }: { label: string; value: string }) => (
+    <div className="space-y-1 text-left">
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+      <p className="text-base text-slate-800">{value}</p>
+    </div>
+  );
 
   if (!user) {
     return (
@@ -227,43 +216,18 @@ export default function ProfilePage() {
                   </>
                 )}
               </div>
-              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 w-full">
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full">
                 {isEditing ? (
                   <>
+                    {/* 편집 모드 UI (기존과 유사하게 유지) */}
                     <div className="space-y-2 text-left">
                       <Label htmlFor="nickname">닉네임</Label>
-                      <Input
-                        id="nickname"
-                        value={nickname}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setNickname(value);
-                          if (!value.trim()) {
-                            setErrors((prev) => ({ ...prev, nickname: "닉네임을 입력해주세요." }));
-                          } else {
-                            setErrors((prev) => ({ ...prev, nickname: undefined }));
-                          }
-                        }}
-                      />
+                      <Input id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} />
                       {errors.nickname && <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>}
                     </div>
                     <div className="space-y-2 text-left">
                       <Label htmlFor="name">이름</Label>
-                      <Input
-                        id="name"
-                        value={name}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setName(value);
-                          if (!value.trim()) {
-                            setErrors((prev) => ({ ...prev, name: "이름을 입력해주세요." }));
-                          } else if (!koreanRegex.test(value) && !englishRegex.test(value)) {
-                            setErrors((prev) => ({ ...prev, name: "이름은 한글 또는 영어로만 입력 가능합니다." }));
-                          } else {
-                            setErrors((prev) => ({ ...prev, name: undefined }));
-                          }
-                        }}
-                      />
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
                       {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
                     </div>
                     <div className="space-y-2 text-left">
@@ -276,91 +240,29 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2 text-left">
                       <Label htmlFor="phoneNumber">전화번호</Label>
-                      <Input
-                        id="phoneNumber"
-                        value={phoneNumber}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setPhoneNumber(value);
-                          if (!phoneRegex.test(value)) {
-                            setErrors((prev) => ({ ...prev, phoneNumber: "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)" }));
-                          } else {
-                            setErrors((prev) => ({ ...prev, phoneNumber: undefined }));
-                          }
-                        }}
-                      />
+                      <Input id="phoneNumber" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
                       {errors.phoneNumber && <p className="text-red-600 text-sm mt-1">{errors.phoneNumber}</p>}
                     </div>
                     <div className="space-y-2 text-left">
                       <Label htmlFor="newPassword">새 비밀번호</Label>
-                      <Input
-                        id="newPassword"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setNewPassword(value);
-                          if (value && !passwordRegex.test(value)) {
-                            setErrors((prev) => ({ ...prev, newPassword: "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다." }));
-                          } else {
-                            setErrors((prev) => ({ ...prev, newPassword: undefined }));
-                          }
-                          if (confirmPassword && value !== confirmPassword) {
-                            setErrors((prev) => ({ ...prev, confirmPassword: "새 비밀번호가 일치하지 않습니다." }));
-                          } else {
-                            setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
-                          }
-                        }}
-                        placeholder="변경 시에만 입력"
-                      />
+                      <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="변경 시에만 입력" />
                       {errors.newPassword && <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>}
                     </div>
                     <div className="space-y-2 text-left md:col-span-2">
                       <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-                      <Input
-                        id="confirmPassword"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setConfirmPassword(value);
-                          if (newPassword && value !== newPassword) {
-                            setErrors((prev) => ({ ...prev, confirmPassword: "새 비밀번호가 일치하지 않습니다." }));
-                          } else {
-                            setErrors((prev) => ({ ...prev, confirmPassword: undefined }));
-                          }
-                        }}
-                        placeholder="새 비밀번호 확인"
-                      />
+                      <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="새 비밀번호 확인" />
                       {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="space-y-1 text-left">
-                      <Label>닉네임</Label>
-                      <p className="font-semibold text-lg">{nickname}</p>
-                    </div>
-                    <div className="space-y-1 text-left">
-                      <Label>이름</Label>
-                      <p className="text-muted-foreground">{name}</p>
-                    </div>
-                    <div className="space-y-1 text-left">
-                      <Label>이메일</Label>
-                      <p className="text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div className="space-y-1 text-left">
-                      <Label>아이디</Label>
-                      <p className="text-muted-foreground">{user.userId}</p>
-                    </div>
-                    <div className="space-y-1 text-left">
-                      <Label>전화번호</Label>
-                      <p className="text-muted-foreground">{phoneNumber}</p>
-                    </div>
-                    <div className="space-y-1 text-left">
-                      <Label>비밀번호</Label>
-                      <p className="text-muted-foreground">********</p>
-                    </div>
+                    {/* 표시 모드 UI (개선된 디자인 적용) */}
+                    <ProfileInfoItem label="닉네임" value={nickname} />
+                    <ProfileInfoItem label="이름" value={name} />
+                    <ProfileInfoItem label="이메일" value={user.email} />
+                    <ProfileInfoItem label="아이디" value={user.userId} />
+                    <ProfileInfoItem label="전화번호" value={phoneNumber} />
+                    <ProfileInfoItem label="비밀번호" value="********" />
                   </>
                 )}
               </div>
@@ -368,25 +270,23 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="posts" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-200/60">
-            <TabsTrigger value="posts"><FileText className="h-4 w-4 mr-2" />내 게시글</TabsTrigger>
-            <TabsTrigger value="comments"><MessageSquare className="h-4 w-4 mr-2" />내 댓글</TabsTrigger>
+        <Tabs defaultValue="posts">
+          <TabsList className="grid w-full grid-cols-2 bg-slate-200/60 p-1 rounded-lg h-auto">
+            <TabsTrigger value="posts" className="py-2"><FileText className="h-4 w-4 mr-2" />내 게시글</TabsTrigger>
+            <TabsTrigger value="comments" className="py-2"><MessageSquare className="h-4 w-4 mr-2" />내 댓글</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="posts">
+          <TabsContent value="posts" className="mt-6">
             <div className="space-y-5">
               {isLoadingPosts ? (
-                [...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-32 w-full rounded-lg" />
-                ))
+                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-xl" />)
               ) : myPosts && myPosts.length > 0 ? (
                 myPosts.map((post) => (
                   <Link href={`/posts/${post.postId}`} key={post.postId}>
-                    <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-white hover:border-blue-300">
-                     <CardContent className="p-0 flex h-32">
+                    <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-white hover:border-blue-300 rounded-xl">
+                      <CardContent className="p-0 flex h-32">
                         {post.photo ? (
-                        <div className="w-32 flex-shrink-0 relative">
+                          <div className="w-32 flex-shrink-0 relative">
                             <img src={`${API_BASE}${post.photo}`} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
                           </div>
                         ) : (
@@ -395,10 +295,10 @@ export default function ProfilePage() {
                           </div>
                         )}
                         <div className="p-4 flex flex-col justify-between flex-1 min-w-0 group-hover:bg-slate-50/50 transition-colors">
-                          <div>
+                          <div className="flex-1 flex flex-col justify-center">
                             <p className="text-xs text-blue-500 font-semibold">{post.categoryName}</p>
-                            <h4 className="font-bold text-base truncate mt-1 group-hover:text-blue-600 transition-colors">{post.title}</h4>
-                            <p className="text-sm text-gray-500 mt-1.5 line-clamp-2">
+                            <h4 className="font-semibold text-lg truncate mt-1 group-hover:text-blue-600 transition-colors">{post.title}</h4>
+                            <p className="text-sm text-gray-500 mt-1.5 line-clamp-1">
                               {post.content}
                             </p>
                           </div>
@@ -416,7 +316,7 @@ export default function ProfilePage() {
                   </Link>
                 ))
               ) : (
-                <Card className="border-dashed">
+                 <Card className="border-dashed rounded-xl">
                   <CardContent className="p-10 text-center flex flex-col items-center">
                     <div className="p-4 bg-slate-100 rounded-full mb-4">
                       <Pencil className="h-8 w-8 text-slate-400" />
@@ -433,22 +333,20 @@ export default function ProfilePage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="comments">
+          <TabsContent value="comments" className="mt-6">
             <div className="space-y-5">
               {isLoadingComments ? (
-                [...Array(3)].map((_, i) => (
-                  <Skeleton key={i} className="h-28 w-full rounded-lg" />
-                ))
+                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-28 w-full rounded-xl" />)
               ) : myComments && myComments.length > 0 ? (
                 myComments.map((comment) => (
                   <Link href={`/posts/${comment.postId}#comment-${comment.commentId}`} key={comment.commentId}>
-                    <Card className="transition-all duration-300 ease-in-out hover:shadow-lg hover:border-blue-400 group">
+                    <Card className="transition-all duration-300 ease-in-out hover:shadow-lg hover:border-blue-400 group bg-white rounded-xl">
                       <CardContent className="p-5">
                         <div className="flex items-start gap-3">
-                            <Quote className="h-5 w-5 text-slate-300 flex-shrink-0 mt-1" />
-                            <p className="text-slate-800 text-base line-clamp-2">
-                              {comment.content}
-                            </p>
+                          <Quote className="h-5 w-5 text-slate-300 flex-shrink-0 mt-1" />
+                          <p className="text-slate-800 text-base line-clamp-2">
+                            {comment.content}
+                          </p>
                         </div>
                         <div className="border-t pt-3 mt-4 flex flex-wrap items-center justify-between gap-y-2 text-sm">
                           <p className="text-gray-500 truncate text-xs">
@@ -469,7 +367,7 @@ export default function ProfilePage() {
                   </Link>
                 ))
               ) : (
-                <Card className="border-dashed">
+                <Card className="border-dashed rounded-xl">
                   <CardContent className="p-10 text-center flex flex-col items-center">
                     <div className="p-4 bg-slate-100 rounded-full mb-4">
                       <MessageSquare className="h-8 w-8 text-slate-400" />

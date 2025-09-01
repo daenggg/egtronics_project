@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useNotifications, useMarkNotificationAsRead } from "@/hooks/use-notifications";
+import {
+  useNotifications, useMarkNotificationAsRead
+} from "@/hooks/use-notifications";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BellRing, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDynamicDate } from "@/lib/utils";
 import { Notification } from "@/lib/types";
 
 export default function NotificationsPage() {
@@ -82,7 +84,7 @@ export default function NotificationsPage() {
             <div className="flex-grow">
               <p>{notification.message}</p>
               <p className="text-xs text-gray-400 mt-1">
-                {new Date(notification.createdDate).toLocaleString()}
+                {formatDynamicDate(notification.createdDate)}
               </p>
             </div>
           </li>

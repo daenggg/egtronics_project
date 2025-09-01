@@ -98,9 +98,9 @@ function HomePageClientContent() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-80 w-full rounded-lg" />
+            <Skeleton key={i} className="h-[400px] w-full rounded-xl" />
           ))}
         </div>
       );
@@ -133,67 +133,58 @@ function HomePageClientContent() {
     }
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
         {currentPosts.map((post) => {
           const categoryInfo = getCategoryInfo(post.categoryName);
           return (
-            <Link
-              key={post.postId}
-              href={`/posts/${post.postId}`}
-              className="block"
-            >
-              <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl overflow-hidden rounded-xl">
-                <div className="aspect-video w-full bg-gray-100 flex items-center justify-center">
-                  {post.photo ? (
-                    <img
-                      src={`${API_BASE}${post.photo}`}
-                      alt={post.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <ImageIcon className="h-16 w-16 text-gray-300" />
-                  )}
+            <Link key={post.postId} href={`/posts/${post.postId}`} className="block">
+              <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl overflow-hidden rounded-xl">
+                <div className="aspect-video w-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={post.photo ? `${API_BASE}${post.photo}` : '/sample.jpg'}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
-                <CardHeader className="pb-2 px-4 pt-4">
-                  <Badge
-                    variant="secondary"
-                    className="mb-2 font-medium self-start"
-                  >
-                    <span className="mr-1.5">{categoryInfo.icon}</span>
-                    {categoryInfo.name}
-                  </Badge>
-                  <CardTitle className="text-lg font-bold pt-2 truncate group-hover:text-blue-600 transition-colors">
-                    {post.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow flex flex-col justify-between p-4">
-                  <p className="text-sm text-gray-600 h-10 overflow-hidden text-ellipsis">
+                <div className="p-5 flex-grow flex flex-col">
+                  <div>
+                    <Badge variant="secondary" className="mb-3 font-medium self-start">
+                      <span className="mr-1.5">{categoryInfo.icon}</span>
+                      {categoryInfo.name}
+                    </Badge>
+                    <CardTitle className="text-xl font-bold line-clamp-2 group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </CardTitle>
+                  </div>
+                  
+                  <p className="text-base text-gray-600 mt-3 flex-grow line-clamp-3">
                     {post.content}
                   </p>
-                  <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
+                  
+                  <div className="border-t mt-4 pt-4 flex items-center justify-between text-sm text-gray-500">
                     <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
+                      <Avatar className="h-8 w-8">
                         <AvatarImage src={post.authorProfilePicture ? `${API_BASE}${post.authorProfilePicture}` : "/placeholder.svg"} alt={post.nickname} />
                         <AvatarFallback>{post.nickname.charAt(0)}</AvatarFallback>
                       </Avatar>
                       <div>
-                        <span className="font-medium text-gray-800">{post.nickname}</span>
-                        <p className="text-gray-400">{formatDynamicDate(post.createdDate)}</p>
+                        <span className="font-semibold text-gray-800">{post.nickname}</span>
+                        <p className="text-xs text-gray-400">{formatDynamicDate(post.createdDate)}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1">
-                        <Heart className="h-3 w-3" /> {post.likeCount}
+                    <div className="flex items-center gap-4">
+                      <span className="flex items-center gap-1.5" title="좋아요">
+                        <Heart className="h-4 w-4" /> {post.likeCount}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="h-3 w-3" /> {post.viewCount}
+                      <span className="flex items-center gap-1.5" title="조회수">
+                        <Eye className="h-4 w-4" /> {post.viewCount}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <MessageCircle className="h-3 w-3" /> {post.commentCount ?? 0}
+                      <span className="flex items-center gap-1.5" title="댓글">
+                        <MessageCircle className="h-4 w-4" /> {post.commentCount ?? 0}
                       </span>
                     </div>
                   </div>
-                </CardContent>
+                </div>
               </Card>
             </Link>
           );
@@ -203,14 +194,14 @@ function HomePageClientContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-4">
-      <div className="space-y-6 min-w-0">
+    <div className="container mx-auto px-4 py-8">
+      <div className="space-y-8 min-w-0">
         {/* 헤더 */}
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-3">
             egtronics 오늘의 게시판
           </h1>
-          <p className="text-gray-600">다양한 주제로 소통하고 정보를 나누는 공간입니다</p>
+          <p className="text-lg text-gray-600">다양한 주제로 소통하고 정보를 나누는 공간입니다</p>
         </div>
 
         {/* 검색 & 정렬 */}
@@ -222,6 +213,7 @@ function HomePageClientContent() {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
+            className="h-12 text-base"
           />
           <Select
             value={sortOption}
@@ -230,7 +222,7 @@ function HomePageClientContent() {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-full sm:w-40">
+            <SelectTrigger className="w-full sm:w-40 h-12 text-base">
               <SelectValue placeholder="정렬" />
             </SelectTrigger>
             <SelectContent>
@@ -257,8 +249,6 @@ function HomePageClientContent() {
   );
 }
 
-// This is the exported component. It wraps the main content in a Suspense boundary
-// to prevent errors during static rendering.
 export default function HomePageClient() {
   return (
     <Suspense

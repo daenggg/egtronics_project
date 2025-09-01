@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+"use client";
+
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  getNotifications,
-  markNotificationAsRead,
+  getNotifications, markNotificationAsRead,
   getUnreadNotificationCount,
-  handleApiError
-} from '@/lib/api-client';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/auth-context';
-import type { Notification } from '@/lib/types';
+  handleApiError,
+} from "@/lib/api-client";
+import { Notification, UnreadCountResponse } from "@/lib/types";
+import { useToast } from "@/hooks/use-toast";
 
 // 알림 목록 조회 Hook
 export function useNotifications() {
@@ -18,49 +18,42 @@ export function useNotifications() {
   });
 }
 
-// 알림 읽음 처리 Hook
+// 단일 알림 읽음 처리 Hook
 export function useMarkNotificationAsRead() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
 
   return useMutation<void, Error, number>({
-    mutationFn: (notificationId: number) => markNotificationAsRead(notificationId),
+    mutationFn: markNotificationAsRead,
     onSuccess: (_, notificationId) => {
-      // Optimistic update: 목록에서 해당 알림을 즉시 읽음 상태로 변경
+      // Optimistic update: 해당 알림만 'read: true'로 변경
       queryClient.setQueryData<Notification[]>(['notifications'], (oldData) =>
         oldData
-          ? oldData.map((n) =>
-              n.notificationId === notificationId ? { ...n, read: true } : n
+          ? oldData.map((notification) =>
+              notification.notificationId === notificationId
+                ? { ...notification, read: true }
+                : notification
             )
-          : []
+          : oldData
       );
-      // 읽지 않은 알림 개수 쿼리를 무효화하여 다시 불러오게 함
-      queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] });
+      // 읽지 않은 알림 개수 쿼리도 무효화하여 헤더의 뱃지를 업데이트합니다.
+      queryClient.invalidateQueries({ queryKey: ['unread-notification-count'] });
     },
-    onError: (error) => {
-      toast({
-        title: '오류',
-        description: handleApiError(error),
-        variant: 'destructive',
-      });
-    },
+    onSettled: (data, error, notificationId) => {
+      // 최종적으로 서버 데이터와 동기화
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    }
   });
 }
 
 // 읽지 않은 알림 개수 조회 Hook
 export function useUnreadNotificationCount() {
-  const { user } = useAuth(); // Auth 컨텍스트에서 사용자 정보를 가져옵니다.
-
-  return useQuery<number, Error>({
-    queryKey: ['notifications', 'unread-count'],
-    queryFn: async () => {
-      const data = await getUnreadNotificationCount();
-      return data.unreadCount;
-    },
-    // 사용자가 로그인 상태일 때(user 객체가 존재할 때)만 쿼리를 활성화합니다.
-    // 로그아웃 상태에서는 이 API 요청을 보내지 않아 403 오류를 방지합니다.
-    enabled: !!user,
+  // useQuery의 세 번째 제네릭 인자로 select 함수의 반환 타입을 지정합니다.
+  return useQuery<UnreadCountResponse, Error, number>({
+    queryKey: ['unread-notification-count'],
+    queryFn: getUnreadNotificationCount,
     staleTime: 1 * 60 * 1000, // 1분
-    refetchInterval: 5 * 60 * 1000, // 5분마다 자동 갱신
+    refetchOnWindowFocus: true,
+    // select 옵션을 사용하여 데이터가 반환될 때 unreadCount 속성만 추출합니다.
+    select: (data) => data.unreadCount,
   });
 }

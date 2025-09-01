@@ -148,6 +148,9 @@ export function useLikePost() {
       // 4. 롤백을 위한 컨텍스트 반환
       return { previousPost };
     },
+    onSuccess: () => {
+      toast({ title: "성공", description: "게시글을 추천했습니다." });
+    },
     onError: (error, postId, context) => {
       // 5. 오류 발생 시 롤백
       if (context?.previousPost) {
@@ -160,14 +163,9 @@ export function useLikePost() {
       });
     },
     onSettled: (data, error, postId) => {
-      if (error) {
-        // 오류 발생 시에만 서버 데이터와 강제로 동기화합니다.
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['posts'] });
-      } else {
-        toast({ title: "성공", description: "게시글을 추천했습니다." });
-        refreshCsrfToken();
-      }
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     }
   })
 }
@@ -195,6 +193,9 @@ export function useUnlikePost() {
 
       return { previousPost };
     },
+    onSuccess: () => {
+      toast({ title: "성공", description: "게시글 추천을 취소했습니다." });
+    },
     onError: (error, postId, context) => {
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
@@ -206,14 +207,9 @@ export function useUnlikePost() {
       });
     },
     onSettled: (data, error, postId) => {
-      if (error) {
-        // 오류 발생 시에만 서버 데이터와 강제로 동기화합니다.
-        queryClient.invalidateQueries({ queryKey: ['post', postId] });
-        queryClient.invalidateQueries({ queryKey: ['posts'] });
-      } else {
-        toast({ title: "성공", description: "게시글 추천을 취소했습니다." });
-        refreshCsrfToken();
-      }
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     }
   })
 }

@@ -146,10 +146,10 @@ export interface Notification {
   userId: string;
   // 알림 종류에 따라 postId, commentId 등이 있을 수 있습니다.
   // 백엔드 응답에 따라 optional (?) 처리하거나 타입을 확장해야 합니다.
-  postId: number;
-  commentId: number;
-  postLikeId: number;
-  commentLikeId: number;
+  postId?: number | null;
+  commentId?: number | null;
+  postLikeId?: number | null;
+  commentLikeId?: number | null;
   message: string;
   read: boolean;
   createdDate: string;

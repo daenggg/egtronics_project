@@ -56,34 +56,55 @@ export function useUpdateComment() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   
-  return useMutation({
-    mutationFn: ({ postId, commentId, data }: { 
-      postId: string | number; 
-      commentId: string | number; 
-      data: UpdateCommentRequest 
-    }) => updateComment(String(postId), String(commentId), data),
-    onSuccess: (updatedComment, { postId }) => {
+  return useMutation<
+    CommentWithDetails,
+    Error,
+    { postId: string | number; commentId: string | number; data: UpdateCommentRequest },
+    { previousComments: CommentListResponse | undefined }
+  >({
+    mutationFn: ({ postId, commentId, data }) => 
+      updateComment(String(postId), String(commentId), data),
+    
+    onMutate: async ({ postId, commentId, data }) => {
+      const queryKey = ['comments', String(postId)];
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousComments = queryClient.getQueryData<CommentListResponse>(queryKey);
+
+      if (previousComments) {
+        queryClient.setQueryData<CommentListResponse>(queryKey, {
+          ...previousComments,
+          comments: previousComments.comments.map((comment) =>
+            comment.commentId === Number(commentId)
+              ? { ...comment, ...data }
+              : comment
+          ),
+        });
+      }
+      
+      return { previousComments };
+    },
+    
+    onSuccess: () => {
       toast({
         title: "성공",
         description: "댓글이 수정되었습니다.",
       })
-      // 댓글 목록 캐시 업데이트
-      queryClient.setQueryData(['comments', String(postId)], (old: CommentListResponse | undefined) => {
-        if (!old?.comments) return old
-        return {
-          ...old,
-          comments: old.comments.map((comment: CommentWithDetails) => 
-            comment.commentId === updatedComment.commentId ? updatedComment : comment
-          )
-        }
-      })
     },
-    onError: (error) => {
+
+    onError: (error, { postId }, context) => {
+      if (context?.previousComments) {
+        queryClient.setQueryData(['comments', String(postId)], context.previousComments);
+      }
       toast({
         title: "오류",
         description: handleApiError(error),
         variant: "destructive",
       })
+    },
+
+    onSettled: (data, error, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
     },
   })
 }
@@ -93,30 +114,53 @@ export function useDeleteComment() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   
-  return useMutation({
+  return useMutation<
+    void,
+    Error,
+    { postId: string | number; commentId: string | number },
+    { previousComments: CommentListResponse | undefined }
+  >({
     mutationFn: ({ postId, commentId }: { postId: string | number; commentId: string | number }) => 
       deleteComment(String(postId), String(commentId)),
-    onSuccess: (_, { postId, commentId }) => {
+    
+    onMutate: async ({ postId, commentId }) => {
+      const queryKey = ['comments', String(postId)];
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousComments = queryClient.getQueryData<CommentListResponse>(queryKey);
+
+      if (previousComments) {
+        queryClient.setQueryData<CommentListResponse>(queryKey, {
+          ...previousComments,
+          comments: previousComments.comments.filter((comment) => comment.commentId !== Number(commentId)),
+          totalCount: (previousComments.totalCount || 1) - 1
+        });
+      }
+      
+      return { previousComments };
+    },
+
+    onSuccess: () => {
       toast({
         title: "성공",
         description: "댓글이 삭제되었습니다.",
       })
-      // 댓글 목록 캐시 업데이트
-      queryClient.setQueryData(['comments', String(postId)], (old: CommentListResponse | undefined) => {
-        if (!old?.comments) return old
-        return {
-          ...old,
-          comments: old.comments.filter((comment: CommentWithDetails) => comment.commentId !== Number(commentId)),
-          totalCount: (old.totalCount || 1) - 1
-        }
-      })
     },
-    onError: (error) => {
+
+    onError: (error, { postId }, context) => {
+      if (context?.previousComments) {
+        queryClient.setQueryData(['comments', String(postId)], context.previousComments);
+      }
       toast({
         title: "오류",
         description: handleApiError(error),
         variant: "destructive",
       })
+    },
+    
+    onSettled: (data, error, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
+      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] }); // 게시글의 댓글 수 업데이트
     },
   })
 }
@@ -149,6 +193,9 @@ export function useLikeComment() {
       
       return { previousComments };
     },
+    onSuccess: () => {
+      // 댓글 좋아요는 토스트를 띄우지 않아 UX를 깔끔하게 유지합니다.
+    },
     onError: (error, { postId }, context) => {
       if (context?.previousComments) {
         queryClient.setQueryData(['comments', String(postId)], context.previousComments);
@@ -160,11 +207,8 @@ export function useLikeComment() {
       });
     },
     onSettled: (data, error, { postId }) => {
-      if (!error) {
-        // 성공 시에는 낙관적 업데이트를 신뢰하고, 서버 데이터 재요청을 하지 않아
-        // 경합 조건을 피합니다.
-        refreshCsrfToken();
-      }
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
     },
   })
 }
@@ -197,6 +241,9 @@ export function useUnlikeComment() {
       
       return { previousComments };
     },
+    onSuccess: () => {
+      // 댓글 좋아요 취소는 토스트를 띄우지 않아 UX를 깔끔하게 유지합니다.
+    },
     onError: (error, { postId }, context) => {
       if (context?.previousComments) {
         queryClient.setQueryData(['comments', String(postId)], context.previousComments);
@@ -208,11 +255,8 @@ export function useUnlikeComment() {
       });
     },
     onSettled: (data, error, { postId }) => {
-      if (!error) {
-        // 성공 시에는 낙관적 업데이트를 신뢰하고, 서버 데이터 재요청을 하지 않아
-        // 경합 조건을 피합니다.
-        refreshCsrfToken();
-      }
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
     },
   })
 }
