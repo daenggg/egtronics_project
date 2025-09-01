@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUnreadNotificationCount } from "@/hooks/use-notifications";
+import { API_BASE } from "@/lib/api-client";
 import { User, LogOut, Bookmark, Bell } from "lucide-react";
 
 // 홈으로 링크와 동일한 그라데이션을 적용한 메뉴 아이콘
@@ -91,7 +92,7 @@ export function Header() {
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={user.profilePicture || "/placeholder.svg"}
+                        src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/placeholder.svg"}
                         alt={user.name}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">

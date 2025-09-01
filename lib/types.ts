@@ -87,6 +87,7 @@ export interface PostPreview {
   categoryName: string;
   photo: string | null;
   commentCount?: number;
+  authorProfilePicture?: string | null; // 작성자 프로필 사진
 }
 
 export interface CommentWithDetails extends Comment {

@@ -65,6 +65,7 @@ export async function getPosts(params: PaginationParams = {}): Promise<PostListR
   // 백엔드에서 오는 날짜 형식을 변환하고, photoUrl을 photo 필드로 매핑합니다.
   return data.map(post => ({
     ...post,
+    authorProfilePicture: post.authorProfilePictureUrl || null, // 작성자 프로필 사진 URL 매핑
     photo: post.photoUrl || null, // photoUrl을 photo로 매핑
     createdDate: normalizeDate(post.createdDate),
   }));
@@ -88,7 +89,7 @@ export async function getPost(id: string): Promise<PostWithDetails> {
         author: {
           userId: comment.userId,
           nickname: comment.nickname,
-          profilePicture: comment.profilePicture || comment.authorProfilePictureUrl || null,
+          profilePicture: comment.profilePictureUrl || null, // DTO의 profilePictureUrl 필드를 사용하도록 수정
         },
       }))
     : [];
@@ -220,6 +221,7 @@ export async function getMyProfile(): Promise<User> {
   const { data } = await api.get<any>('/users/me');
   return {
     ...data,
+    profilePicture: data.profilePictureUrl || null, // 백엔드 DTO의 profilePictureUrl을 매핑
     createdDate: normalizeDate(data.createdDate),
   };
 }
@@ -244,6 +246,7 @@ export async function getMyPosts(): Promise<PostPreview[]> {
     categoryName: post.categoryName,
     photo: post.photoUrl || null,
     commentCount: post.commentCount,
+    authorProfilePicture: post.authorProfilePictureUrl || null, // 작성자 프로필 사진 URL 매핑
   }));
 }
 

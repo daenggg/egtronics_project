@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, useMemo, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, Heart, Image as ImageIcon, MessageCircle } from "lucide-react";
@@ -166,10 +167,16 @@ function HomePageClientContent() {
                   <p className="text-sm text-gray-600 h-10 overflow-hidden text-ellipsis">
                     {post.content}
                   </p>
-                  <div className="flex items-end justify-between mt-4 text-xs text-gray-500">
-                    <div>
-                      <span className="font-medium">{post.nickname}</span>
-                      <p className="text-gray-400">{formatDynamicDate(post.createdDate)}</p>
+                  <div className="flex items-center justify-between mt-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={post.authorProfilePicture ? `${API_BASE}${post.authorProfilePicture}` : "/placeholder.svg"} alt={post.nickname} />
+                        <AvatarFallback>{post.nickname.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <span className="font-medium text-gray-800">{post.nickname}</span>
+                        <p className="text-gray-400">{formatDynamicDate(post.createdDate)}</p>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1">
