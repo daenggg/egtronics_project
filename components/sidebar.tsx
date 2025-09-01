@@ -40,7 +40,7 @@ export function Sidebar() {
           fixed top-0 left-0 h-full z-40 w-64 bg-white/95 backdrop-blur-sm shadow-2xl
           transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          overflow-y-auto pt-20
+          overflow-y-auto pt-32
         `}
       >
         <div className="space-y-6 px-4 w-64">

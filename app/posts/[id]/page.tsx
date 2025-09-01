@@ -341,7 +341,7 @@ export default function PostDetailPage() {
                 <span>{post.comments?.length || 0}개 댓글</span>
               </div>
             </div>
-            {user && post.author && user.userId === post.author.userId && (
+            {user && post.author && String(user.userId) === String(post.author.userId) && (
               <div className="flex space-x-2">
                 <Button
                   variant="outline"

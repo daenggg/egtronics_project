@@ -194,8 +194,8 @@ function HomePageClientContent() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="space-y-8 min-w-0">
+<div className="container mx-auto px-4 pt-4 pb-8">
+  <div className="space-y-8 min-w-0">
         {/* 헤더 */}
         <div>
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-3">
