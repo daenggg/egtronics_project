@@ -68,6 +68,7 @@ export interface PostWithDetails extends Post {
   // 현재 로그인한 사용자의 좋아요/스크랩 여부 (서버에서 계산)
   isLiked?: boolean;
   isBookmarked?: boolean;
+  reportCount?: number; // 신고 횟수
   reportedByCurrentUser?: boolean; // 신고 여부
 }
 
@@ -88,6 +89,7 @@ export interface PostPreview {
   photo: string | null;
   commentCount?: number;
   authorProfilePicture?: string | null; // 작성자 프로필 사진
+  reportCount?: number; // 신고 횟수
 }
 
 export interface CommentWithDetails extends Comment {
@@ -131,6 +133,11 @@ export interface CommentListResponse {
   totalCount: number;
 }
 
+export interface ReportPostRequest {
+  reportReason: string;
+  reportText?: string;
+}
+
 /**
  * 알림 (Notification 테이블)
  */
@@ -150,10 +157,13 @@ export interface Notification {
 
 export interface Scrap {
   scrapId: number;
-  userId: string;
   postId: number;
-  createdDate: string;
-  postTitle: string; // 백엔드 DTO와 일치하도록 수정
+  postTitle: string;
+  postContent: string | null;
+  postCreatedDate: string;
+  authorNickname: string;
+  postPhoto: string | null;
+  authorProfilePicture: string | null;
 }
 
 /**

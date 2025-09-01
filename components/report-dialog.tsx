@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -15,8 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-import { PostWithDetails } from "@/lib/types";
 import { Flag, AlertTriangle } from "lucide-react";
+import { useReportPost } from "@/hooks/use-reports";
 
 interface ReportDialogProps {
   type: "post" | "comment";
@@ -41,16 +40,15 @@ export function ReportDialog({
   children,
 }: ReportDialogProps) {
   const [open, setOpen] = useState(false);
-  const [reason, setReason] = useState("");
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-  const queryClient = useQueryClient();
+  const [reportReason, setReportReason] = useState("");
+  const [reportText, setReportText] = useState("");
   const { toast } = useToast();
+  const { mutate: reportPost, isPending: isLoading } = useReportPost(targetId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!reason) {
+    
+    if (!reportReason) {
       toast({
         title: "신고 사유 선택",
         description: "신고 사유를 선택해주세요.",
@@ -60,45 +58,20 @@ export function ReportDialog({
       return;
     }
 
-    setLoading(true);
-
-    try {
-      // 실제 구현에서는 API 호출
-      // 예: await api.reportPost(targetId, reason, description);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast({
-        title: "신고 완료",
-        description: (
-          <>
-            신고가 접수되었습니다.
-            <br />
-            다량의 신고 접수 시, 게시물은 숨김 처리됩니다.
-          </>
-        ),
-        duration: 2000,
-      });
-
-      // 신고가 성공하면, react-query 캐시를 직접 업데이트하여
-      // UI가 즉시 '신고 완료' 상태로 바뀌도록 합니다. (낙관적 업데이트)
-      if (type === 'post') {
-        queryClient.setQueryData<PostWithDetails>(['post', targetId], (oldData) => 
-          oldData ? { ...oldData, reportedByCurrentUser: true } : oldData
-        );
-      }
-
-      setOpen(false);
-      setReason("");
-      setDescription("");
-    } catch (error) {
-      toast({
-        title: "신고 실패",
-        description: "다시 시도해주세요.",
-        variant: "destructive",
-        duration: 2000,
-      });
-    } finally {
-      setLoading(false);
+    if (type === "post") {
+      reportPost(
+        { reportReason, reportText },
+        {
+          onSuccess: () => {
+            setOpen(false);
+            setReportReason("");
+            setReportText("");
+          },
+        }
+      );
+    } else {
+      // 댓글 신고 기능은 현재 지원하지 않음
+      toast({ title: "알림", description: "댓글 신고 기능은 아직 지원되지 않습니다." });
     }
   };
 
@@ -135,7 +108,7 @@ export function ReportDialog({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-3">
               <Label>신고 사유</Label>
-              <RadioGroup value={reason} onValueChange={setReason}>
+              <RadioGroup value={reportReason} onValueChange={setReportReason}>
                 {Reasons.map((item) => (
                   <div key={item.value} className="flex items-center space-x-2">
                     <RadioGroupItem value={item.value} id={item.value} />
@@ -151,8 +124,8 @@ export function ReportDialog({
               <Label htmlFor="description">상세 설명 (선택사항)</Label>
               <Textarea
                 id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={reportText}
+                onChange={(e) => setReportText(e.target.value)}
                 placeholder="추가 설명이 있다면 입력해주세요..."
                 className="min-h-[80px]"
               />
@@ -163,18 +136,19 @@ export function ReportDialog({
                 type="button"
                 variant="outline"
                 onClick={() => setOpen(false)}
+                disabled={isLoading}
               >
                 취소
               </Button>
               <Button
-                disabled={alreadyReported}
+                disabled={isLoading || alreadyReported}
                 className={
                   alreadyReported
                     ? "text-gray-400 cursor-not-allowed"
                     : "bg-red-500 hover:bg-red-600 text-white"
                 }
               >
-                {alreadyReported ? "신고 완료" : "신고"}
+                {isLoading ? "신고 중..." : (alreadyReported ? "신고 완료" : "신고")}
               </Button>
             </div>
           </form>

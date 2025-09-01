@@ -55,6 +55,9 @@ function HomePageClientContent() {
     if (!posts) return [];
     let data: PostPreview[] = [...posts];
 
+    // 5회 이상 신고된 게시물은 목록에서 숨깁니다.
+    data = data.filter(post => (post.reportCount ?? 0) < 5);
+
     if (selectedCategoryId) {
       const category = allCategories.find((c) => c.id === selectedCategoryId);
       if (category) {

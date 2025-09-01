@@ -2,7 +2,7 @@ import axios from 'axios'
 import { tokenStorage } from './auth-storage'
 import {
   PostWithDetails, CreatePostRequest, UpdatePostRequest, PostListResponse, PostPreview, MyComment,
-  Comment, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, LikeResponse, PaginationParams,
+  Comment, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, LikeResponse, PaginationParams, ReportPostRequest,
   Scrap, Notification, UnreadCountResponse,
   User
 } from './types'
@@ -352,12 +352,15 @@ export async function getMyScraps(): Promise<Scrap[]> {
     return []; // 오류 발생 시 빈 배열 반환
   }
 
-  return data.map(item => ({
+  return data.map((item) => ({
     scrapId: item.scrapId,
-    userId: item.userId,
     postId: item.postId,
     postTitle: item.postTitle,
-    createdDate: normalizeDate(item.createdDate),
+    postContent: item.postContent,
+    postCreatedDate: normalizeDate(item.postCreatedDate),
+    authorNickname: item.authorNickname,
+    postPhoto: item.postPhotoUrl || null,
+    authorProfilePicture: item.authorProfilePictureUrl || null,
   }));
 }
 
@@ -389,6 +392,16 @@ export async function getUnreadNotificationCount(): Promise<UnreadCountResponse>
   // 프론트엔드의 UnreadCountResponse ({ unreadCount: number }) 형식에 맞게 변환합니다.
   const { data } = await api.get<{ count: number }>('/notifications/unread-count');
   return { unreadCount: data.count };
+}
+
+// ===== 신고 API =====
+
+/**
+ * 게시물을 신고합니다.
+ */
+export async function reportPost(postId: string, payload: ReportPostRequest): Promise<any> {
+  const { data } = await api.post(`/reports/posts/${postId}`, payload);
+  return data;
 }
 
 export function handleApiError(error: any): string {

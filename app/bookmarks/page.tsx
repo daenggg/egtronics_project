@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMyScraps } from "@/hooks/use-scraps";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Bookmark, Clock, Home } from "lucide-react";
+import { Bookmark, Clock, Home, Image as ImageIcon } from "lucide-react";
 import { formatDynamicDate } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { API_BASE } from "@/lib/api-client";
 
 export default function BookmarksPage() {
   const { data: scraps, isLoading, isError, error } = useMyScraps();
@@ -17,9 +19,9 @@ export default function BookmarksPage() {
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-20 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-80 w-full rounded-xl" />
           ))}
         </div>
       );
@@ -38,66 +40,80 @@ export default function BookmarksPage() {
 
     if (!scraps || scraps.length === 0) {
       return (
-        <div className="text-center py-16">
-          <Bookmark className="mx-auto h-16 w-16 text-gray-300" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
+        <div className="text-center py-20 col-span-full bg-white rounded-xl shadow-md">
+          <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
+            <Bookmark className="h-12 w-12 text-blue-500" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800">
             스크랩한 게시글이 없습니다.
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            관심 있는 게시글을 스크랩하여 나중에 다시 보세요.
+          <p className="text-gray-500 mt-2 mb-6 max-w-md mx-auto">
+            관심 있는 게시글의 북마크 아이콘을 클릭하여 나중에 다시 볼 수 있도록 저장해보세요.
           </p>
           <Button
             onClick={() => router.push('/')}
-            className="mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
           >
             <Home className="mr-2 h-4 w-4" />
-            게시글 보러가기
+            홈으로 돌아가기
           </Button>
         </div>
       );
     }
 
     return (
-      <ul className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {scraps.map((scrap) => (
-          <li key={scrap.scrapId}>
-            <Link
-              href={`/posts/${scrap.postId}`}
-              className="block p-4 border rounded-lg hover:bg-gray-50/50 hover:shadow-md transition-all duration-200"
-            >
-              <div className="flex items-start space-x-4">
-                <div className="flex-shrink-0 pt-1">
-                  <Bookmark className="h-5 w-5 text-blue-500" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-semibold text-lg text-gray-800 hover:text-blue-600 transition-colors">
-                    {scrap.postTitle}
-                  </h4>
-                  <div className="text-xs text-gray-500 mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
-                    <div className="flex items-center">
-                      <Clock className="h-3 w-3 mr-1.5" />
-                      <span>
-                        {formatDynamicDate(scrap.createdDate)}
-                      </span>
-                    </div>
-                  </div>
+          <Link href={`/posts/${scrap.postId}`} key={scrap.scrapId}>
+            <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform hover:scale-[1.02] hover:shadow-xl overflow-hidden rounded-xl">
+              <div className="aspect-video w-full bg-gray-100 flex items-center justify-center relative">
+                {scrap.postPhoto ? (
+                  <img src={`${API_BASE}${scrap.postPhoto}`} alt={scrap.postTitle} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                ) : (
+                  <ImageIcon className="h-16 w-16 text-gray-300" />
+                )}
+                <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1.5 backdrop-blur-sm">
+                  <Bookmark className="h-3 w-3" />
+                  <span>스크랩</span>
                 </div>
               </div>
-            </Link>
-          </li>
+              <CardContent className="flex-grow flex flex-col justify-between p-4">
+                <div>
+                  <h4 className="font-bold text-lg truncate group-hover:text-blue-600 transition-colors mb-2">
+                    {scrap.postTitle}
+                  </h4>
+                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={scrap.authorProfilePicture ? `${API_BASE}${scrap.authorProfilePicture}` : "/placeholder.svg"} alt={scrap.authorNickname} />
+                      <AvatarFallback>{scrap.authorNickname.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <span className="font-medium text-gray-800">{scrap.authorNickname}</span>
+                  </div>
+                </div>
+                <div className="text-xs text-gray-400 border-t pt-3 mt-auto flex justify-end items-center">
+                  <span title={`게시일: ${formatDynamicDate(scrap.postCreatedDate)}`}>
+                    <Clock className="h-3 w-3 inline-block mr-1" />
+                    {formatDynamicDate(scrap.postCreatedDate)}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
-      </ul>
+      </div>
     );
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card className="max-w-4xl mx-auto glass-effect border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">내 스크랩</CardTitle>
-        </CardHeader>
-        <CardContent>{renderContent()}</CardContent>
-      </Card>
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <Bookmark className="h-8 w-8 text-yellow-500" />
+          내 스크랩
+        </h1>
+        <p className="text-gray-500">{!isLoading && scraps ? `${scraps.length}개` : ''}</p>
+      </div>
+      {renderContent()}
     </div>
   );
 }
