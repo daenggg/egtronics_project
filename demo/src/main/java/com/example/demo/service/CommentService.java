@@ -101,10 +101,15 @@ public class CommentService {
     
     //댓글 삭제
     @Transactional
-    public void deleteComment(Long commentId, String username) {
+    public void deleteComment(Long postId, Long commentId, String username) {
         Comment comment = commentRepository.findByCommentId(commentId)
             .orElseThrow(() -> new IllegalArgumentException("Comment not found: " + commentId));
     
+        // [추가] 해당 게시글의 댓글이 맞는지 확인
+        if (!comment.getPost().getPostId().equals(postId)) {
+            throw new IllegalArgumentException("Comment does not belong to the specified post.");
+        }
+
         if (!comment.getUser().getUserId().equals(username)) {
             throw new SecurityException("삭제 권한이 없습니다.");
         }
@@ -164,12 +169,17 @@ public class CommentService {
         return comments.stream().map(comment -> {
             CommentResponse dto = new CommentResponse(comment);
             
-            // 3. 현재 사용자와 댓글 작성자가 같은지 확인하여 isMine 필드를 설정합니다.
-            // 로그인하지 않은 사용자(currentUserId가 null)는 모든 isMine이 false가 됩니다.
-            if (currentUserId != null && currentUserId.equals(comment.getUser().getUserId())) {
-                dto.setMine(true);
+            if (currentUserId != null) {
+                // 3. 현재 사용자와 댓글 작성자가 같은지 확인하여 isMine 필드를 설정합니다.
+                dto.setMine(currentUserId.equals(comment.getUser().getUserId()));
+                // 4. [추가] 현재 사용자가 이 댓글을 좋아했는지 확인하여 isLiked 필드를 설정합니다.
+                boolean likedByCurrentUser = comment.getLikes().stream()
+                        .anyMatch(like -> like.getUser().getUserId().equals(currentUserId));
+                dto.setLiked(likedByCurrentUser);
             } else {
+                // 로그인하지 않은 사용자는 '내 댓글'도, '좋아요한 댓글'도 없습니다.
                 dto.setMine(false);
+                dto.setLiked(false);
             }
             return dto;
         }).toList();

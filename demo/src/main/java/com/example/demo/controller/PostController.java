@@ -48,8 +48,18 @@ public class PostController {
         // 댓글 목록을 변환할 때, 현재 로그인한 사용자의 ID를 전달하여 isMine 필드를 설정합니다.
         List<CommentResponse> commentResponses = post.getComments().stream().map(comment -> {
             CommentResponse dto = new CommentResponse(comment);
-            // 현재 사용자와 댓글 작성자가 같은지 확인
-            dto.setMine(username != null && username.equals(comment.getUser().getUserId()));
+            if (username != null) {
+                // 현재 사용자와 댓글 작성자가 같은지 확인
+                dto.setMine(username.equals(comment.getUser().getUserId()));
+                // [추가] 현재 사용자가 이 댓글을 좋아했는지 확인
+                boolean likedByCurrentUser = comment.getLikes().stream()
+                        .anyMatch(like -> like.getUser().getUserId().equals(username));
+                dto.setLiked(likedByCurrentUser);
+            } else {
+                // 로그인하지 않은 사용자는 '내 댓글'도, '좋아요한 댓글'도 없습니다.
+                dto.setMine(false);
+                dto.setLiked(false);
+            }
             return dto;
         }).toList();
 

@@ -21,6 +21,8 @@ public class CommentResponse {
     private String userId;
     @JsonProperty("isMine") // Jackson이 JSON으로 변환 시 "isMine" 필드명을 사용하도록 강제
     private boolean isMine;
+    @JsonProperty("isLiked") // isLiked 필드 추가
+    private boolean isLiked;
     
     public CommentResponse(Comment comment) {
         this.commentId = comment.getCommentId();

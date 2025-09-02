@@ -31,4 +31,7 @@ public class PostDetailResponse {
     private boolean isMine;
     // [추가] 프론트엔드에서 작성자 ID를 사용하기 위한 필드
     private String userId;
+    // [추가] 현재 사용자의 스크랩 여부
+    @JsonProperty("isBookmarked")
+    private boolean isBookmarked;
 }

@@ -90,9 +90,10 @@ public class CommentController {
 
     //댓글 삭제
     @DeleteMapping("/{postId}/comments/{commentId}")
-    public ResponseEntity<Void> deleteComment(@PathVariable Long commentId, Authentication authentication) {
+    public ResponseEntity<Void> deleteComment(@PathVariable Long postId, @PathVariable Long commentId, Authentication authentication) {
         String username = authentication.getName();
-        commentService.deleteComment(commentId, username);
+        // postId도 함께 전달하여 더 정확한 검증을 수행합니다.
+        commentService.deleteComment(postId, commentId, username);
         return ResponseEntity.noContent().build();
     }
 
