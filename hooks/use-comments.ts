@@ -8,7 +8,7 @@ import {
   unlikeComment,
   handleApiError,
 } from "@/lib/api-client";
-import { CommentListResponse, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, LikeResponse } from "@/lib/types";
+import { PostWithDetails, CommentListResponse, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, LikeResponse } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
 
@@ -60,29 +60,29 @@ export function useUpdateComment() {
     CommentWithDetails,
     Error,
     { postId: string | number; commentId: string | number; data: UpdateCommentRequest },
-    { previousComments: CommentListResponse | undefined }
+    { previousPost: PostWithDetails | undefined } // Optimistic Update를 위해 이전 Post 데이터를 저장
   >({
     mutationFn: ({ postId, commentId, data }) => 
       updateComment(String(postId), String(commentId), data),
     
     onMutate: async ({ postId, commentId, data }) => {
-      const queryKey = ['comments', String(postId)];
+      const queryKey = ['post', String(postId)]; // Post 쿼리를 직접 수정
       await queryClient.cancelQueries({ queryKey });
 
-      const previousComments = queryClient.getQueryData<CommentListResponse>(queryKey);
+      const previousPost = queryClient.getQueryData<PostWithDetails>(queryKey);
 
-      if (previousComments) {
-        queryClient.setQueryData<CommentListResponse>(queryKey, {
-          ...previousComments,
-          comments: previousComments.comments.map((comment) =>
+      if (previousPost?.comments) {
+        queryClient.setQueryData<PostWithDetails>(queryKey, {
+          ...previousPost,
+          comments: previousPost.comments.map((comment) =>
             comment.commentId === Number(commentId)
-              ? { ...comment, ...data }
+              ? { ...comment, content: data.content } // 내용만 즉시 업데이트
               : comment
           ),
         });
       }
       
-      return { previousComments };
+      return { previousPost };
     },
     
     onSuccess: () => {
@@ -92,9 +92,9 @@ export function useUpdateComment() {
       })
     },
 
-    onError: (error, { postId }, context) => {
-      if (context?.previousComments) {
-        queryClient.setQueryData(['comments', String(postId)], context.previousComments);
+    onError: (error, { postId }, context) => { // 에러 발생 시 롤백
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', String(postId)], context.previousPost);
       }
       toast({
         title: "오류",
@@ -103,8 +103,8 @@ export function useUpdateComment() {
       })
     },
 
-    onSettled: (data, error, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
+    onSettled: (data, error, { postId }) => { // 성공/실패 여부와 관계없이 최종적으로 서버 데이터와 동기화
+      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] });
     },
   })
 }
@@ -118,26 +118,25 @@ export function useDeleteComment() {
     void,
     Error,
     { postId: string | number; commentId: string | number },
-    { previousComments: CommentListResponse | undefined }
+    { previousPost: PostWithDetails | undefined }
   >({
     mutationFn: ({ postId, commentId }: { postId: string | number; commentId: string | number }) => 
-      deleteComment(String(postId), String(commentId)),
+      deleteComment(String(postId), String(commentId)), // API 클라이언트 함수는 이미 postId를 받도록 되어 있습니다.
     
     onMutate: async ({ postId, commentId }) => {
-      const queryKey = ['comments', String(postId)];
+      const queryKey = ['post', String(postId)];
       await queryClient.cancelQueries({ queryKey });
 
-      const previousComments = queryClient.getQueryData<CommentListResponse>(queryKey);
+      const previousPost = queryClient.getQueryData<PostWithDetails>(queryKey);
 
-      if (previousComments) {
-        queryClient.setQueryData<CommentListResponse>(queryKey, {
-          ...previousComments,
-          comments: previousComments.comments.filter((comment) => comment.commentId !== Number(commentId)),
-          totalCount: (previousComments.totalCount || 1) - 1
+      if (previousPost?.comments) {
+        queryClient.setQueryData<PostWithDetails>(queryKey, {
+          ...previousPost,
+          comments: previousPost.comments.filter((comment) => comment.commentId !== Number(commentId)),
         });
       }
       
-      return { previousComments };
+      return { previousPost };
     },
 
     onSuccess: () => {
@@ -148,8 +147,8 @@ export function useDeleteComment() {
     },
 
     onError: (error, { postId }, context) => {
-      if (context?.previousComments) {
-        queryClient.setQueryData(['comments', String(postId)], context.previousComments);
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', String(postId)], context.previousPost);
       }
       toast({
         title: "오류",
@@ -159,8 +158,7 @@ export function useDeleteComment() {
     },
     
     onSettled: (data, error, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
-      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] }); // 게시글의 댓글 수 업데이트
+      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] });
     },
   })
 }
@@ -171,19 +169,19 @@ export function useLikeComment() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth();
   
-  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousComments: CommentListResponse | undefined }>({
+  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousPost: PostWithDetails | undefined }>({
     mutationFn: ({ postId, commentId }: { postId: string | number; commentId: string | number }) => 
       likeComment(String(postId), String(commentId)),
     onMutate: async ({ postId, commentId }) => {
-      const queryKey = ['comments', String(postId)];
+      const queryKey = ['post', String(postId)];
       await queryClient.cancelQueries({ queryKey });
 
-      const previousComments = queryClient.getQueryData<CommentListResponse>(queryKey);
+      const previousPost = queryClient.getQueryData<PostWithDetails>(queryKey);
 
-      if (previousComments) {
-        queryClient.setQueryData<CommentListResponse>(queryKey, {
-          ...previousComments,
-          comments: previousComments.comments.map(comment => 
+      if (previousPost?.comments) {
+        queryClient.setQueryData<PostWithDetails>(queryKey, {
+          ...previousPost,
+          comments: previousPost.comments.map(comment => 
             comment.commentId === Number(commentId)
               ? { ...comment, isLiked: true, likeCount: comment.likeCount + 1 }
               : comment
@@ -191,14 +189,14 @@ export function useLikeComment() {
         });
       }
       
-      return { previousComments };
+      return { previousPost };
     },
     onSuccess: () => {
       // 댓글 좋아요는 토스트를 띄우지 않아 UX를 깔끔하게 유지합니다.
     },
     onError: (error, { postId }, context) => {
-      if (context?.previousComments) {
-        queryClient.setQueryData(['comments', String(postId)], context.previousComments);
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', String(postId)], context.previousPost);
       }
       toast({
         title: "오류",
@@ -208,7 +206,7 @@ export function useLikeComment() {
     },
     onSettled: (data, error, { postId }) => {
       refreshCsrfToken();
-      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
+      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] });
     },
   })
 }
@@ -219,19 +217,19 @@ export function useUnlikeComment() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth();
   
-  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousComments: CommentListResponse | undefined }>({
+  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousPost: PostWithDetails | undefined }>({
     mutationFn: ({ postId, commentId }) => 
       unlikeComment(String(postId), String(commentId)),
     onMutate: async ({ postId, commentId }) => {
-      const queryKey = ['comments', String(postId)];
+      const queryKey = ['post', String(postId)];
       await queryClient.cancelQueries({ queryKey });
 
-      const previousComments = queryClient.getQueryData<CommentListResponse>(queryKey);
+      const previousPost = queryClient.getQueryData<PostWithDetails>(queryKey);
 
-      if (previousComments) {
-        queryClient.setQueryData<CommentListResponse>(queryKey, {
-          ...previousComments,
-          comments: previousComments.comments.map(comment => 
+      if (previousPost?.comments) {
+        queryClient.setQueryData<PostWithDetails>(queryKey, {
+          ...previousPost,
+          comments: previousPost.comments.map(comment => 
             comment.commentId === Number(commentId)
               ? { ...comment, isLiked: false, likeCount: Math.max(0, comment.likeCount - 1) }
               : comment
@@ -239,14 +237,14 @@ export function useUnlikeComment() {
         });
       }
       
-      return { previousComments };
+      return { previousPost };
     },
     onSuccess: () => {
       // 댓글 좋아요 취소는 토스트를 띄우지 않아 UX를 깔끔하게 유지합니다.
     },
     onError: (error, { postId }, context) => {
-      if (context?.previousComments) {
-        queryClient.setQueryData(['comments', String(postId)], context.previousComments);
+      if (context?.previousPost) {
+        queryClient.setQueryData(['post', String(postId)], context.previousPost);
       }
       toast({
         title: "오류",
@@ -256,7 +254,7 @@ export function useUnlikeComment() {
     },
     onSettled: (data, error, { postId }) => {
       refreshCsrfToken();
-      queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] });
+      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] });
     },
   })
 }

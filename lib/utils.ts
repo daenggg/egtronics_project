@@ -31,7 +31,6 @@ export function formatDate(dateString: string | null | undefined, fallbackText =
 }
 
 /**
- * 날짜를 동적으로 포맷합니다.
  * - 1분 미만: "방금 전"
  * - 1시간 미만: "n분 전"
  * - 24시간 미만: "n시간 전"

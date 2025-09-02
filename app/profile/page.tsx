@@ -308,9 +308,9 @@ export default function ProfilePage() {
                             <span>{formatDynamicDate(post.createdDate)}</span>
                             <div className="flex items-center gap-3">
                               {/* --- 🎨 변경점: 아이콘에 색상 추가 --- */}
-                              <span className="flex items-center gap-1.5" title="좋아요"><Heart className="h-4 w-4 text-red-400" /> {post.likeCount}</span>
-                              <span className="flex items-center gap-1.5" title="조회수"><Eye className="h-4 w-4 text-blue-400" /> {post.viewCount}</span>
-                              <span className="flex items-center gap-1.5" title="댓글"><MessageSquare className="h-4 w-4 text-green-500" /> {post.commentCount ?? 0}</span>
+                              <span className="flex items-center gap-1.5" title="좋아요"><Heart className="h-4 w-4 text-gray-600" /> {post.likeCount}</span>
+                              <span className="flex items-center gap-1.5" title="조회수"><Eye className="h-4 w-4 text-gray-600" /> {post.viewCount}</span>
+                              <span className="flex items-center gap-1.5" title="댓글"><MessageSquare className="h-4 w-4 text-gray-600" /> {post.commentCount ?? 0}</span>
                             </div>
                           </div>
                         </div>

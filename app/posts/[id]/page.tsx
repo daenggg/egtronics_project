@@ -234,6 +234,9 @@ export default function PostDetailPage() {
       },
     });
   };
+  //
+  // [추가] 프론트엔드에서 직접 '내 게시물' 여부를 판단합니다.
+  const isMyPost = user?.userId === post?.author?.userId;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -252,6 +255,7 @@ export default function PostDetailPage() {
                 </AvatarFallback>
               </Avatar>
               <div>
+                // 혹시 김민쿄팀 파국으로 간ㄱ더 보셔ㅆ나요  짐승녀랑 
                 <p className="font-semibold text-gray-900">
                   {post.author.nickname}
                 </p>
@@ -265,11 +269,14 @@ export default function PostDetailPage() {
                 <Eye className="h-4 w-4" />
                 <span>{post.viewCount}</span>
               </div>
-              <ReportDialog
-                type="post"
-                targetId={String(post.postId)}
-                alreadyReported={post.reportedByCurrentUser}
-              />
+              {/* isMine 플래그 대신 직접 계산한 isMyPost 값을 사용합니다. */}
+              <div className={isMyPost ? "pointer-events-none opacity-50" : ""}>
+                <ReportDialog
+                  type="post"
+                  targetId={String(post.postId)}
+                  alreadyReported={post.reportedByCurrentUser}
+                />
+              </div>
             </div>
           </div>
           <Badge
@@ -341,7 +348,7 @@ export default function PostDetailPage() {
                 <span>{post.comments?.length || 0}개 댓글</span>
               </div>
             </div>
-            {user && post.author && String(user.userId) === String(post.author.userId) && (
+            {isMyPost && (
               <div className="flex space-x-2">
                 <Button
                   variant="outline"
@@ -409,7 +416,6 @@ export default function PostDetailPage() {
       <div className="space-y-3">
         <h3 className="text-lg font-semibold">댓글 {post.comments?.length || 0}개</h3>
         {sortedComments.map((comment, index) => {
-          const isAuthor = user && comment.author && user.userId === comment.author.userId;
           const isEditing = editingCommentId === comment.commentId;
           // 댓글이 10개 이상이고, 상위 3개 댓글의 좋아요가 5개 이상인 경우 베스트 댓글로 표시
           const isTopComment =
@@ -448,7 +454,7 @@ export default function PostDetailPage() {
                             BEST
                           </Badge>
                         )}
-                        {isAuthor && !isEditing && (
+                        {comment.isMine && !isEditing && (
                           <div className="flex items-center ml-auto">
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditComment(comment)}>
                               <Edit className="h-4 w-4 text-gray-500" />

@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categories } from "@/components/category-filter";
+import { categories } from "@/components/category-filter"; // This is correct
 import { MediaUpload, MediaFile } from "@/components/media-upload";
-import { uploadFile } from "@/lib/api-client";
+import { API_BASE } from "@/lib/api-client"; // Use API_BASE for image URLs
 
 interface FormValues {
   title: string;
@@ -53,26 +53,9 @@ export default function EditPostPage() {
     formData.append("content", data.content);
     formData.append("categoryId", data.categoryId);
 
-    // 새 파일이 업로드된 경우, 서버에 업로드 후 form-data에 추가
+    // 새 파일이 업로드된 경우에만 form-data에 추가
     if (mediaFiles.length > 0) {
-      const fileToUpload = mediaFiles[0].file;
-      try {
-        // 백엔드 API가 파일 업로드를 지원하지 않으므로, 이 부분은 주석 처리합니다.
-        // 실제 구현 시 주석을 해제하고 사용하세요.
-        // const photoUrl = await uploadFile(fileToUpload);
-        // formData.append("photo", photoUrl);
-        toast({
-          title: "알림",
-          description: "현재 버전에서는 사진 변경을 지원하지 않습니다.",
-        });
-      } catch (error) {
-        toast({
-          title: "파일 업로드 실패",
-          description: "이미지 업로드 중 오류가 발생했습니다.",
-          variant: "destructive",
-        });
-        return;
-      }
+      formData.append("photo", mediaFiles[0].file);
     }
 
     updatePost({ id: postId, data: formData }, {
@@ -111,7 +94,7 @@ export default function EditPostPage() {
             <div>
               <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">카테고리</label>
               <Controller name="categoryId" control={control} rules={{ required: "카테고리를 선택해주세요." }} render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
                     <SelectContent>
                       {categories.map(cat => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}
@@ -127,6 +110,20 @@ export default function EditPostPage() {
               {errors.content && <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>}
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-gray-700">사진</label>
+              {post.photo && mediaFiles.length === 0 && (
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500 mb-2">현재 사진:</p>
+                  <img src={`${API_BASE}${post.photo}`} alt="Current post media" className="max-w-xs rounded-md shadow-md" />
+                </div>
+              )}
+              <div className="mt-4">
+                <p className="text-xs text-gray-500 mb-2">{post.photo ? '사진 변경하기:' : '사진 추가하기:'}</p>
+                <MediaUpload onFilesChange={setMediaFiles} maxFiles={1} />
+              </div>
+            </div>
+
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => router.back()}>취소</Button>
               <Button type="submit" disabled={isUpdating}>
@@ -139,4 +136,3 @@ export default function EditPostPage() {
     </div>
   );
 }
-

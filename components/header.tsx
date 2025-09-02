@@ -42,12 +42,12 @@ export function Header() {
 
   return (
     <header className="glass-effect sticky top-0 z-50 border-b backdrop-blur-md">
-      <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-2">
+      <div className="w-full px-6 py-3 flex justify-between items-center">
+        <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             onClick={toggleSidebar}
-            className="h-16 w-16 p-1" // 버튼 크기를 더 키우고 패딩을 조정합니다.
+            className="h-12 w-12 p-2"
           >
             <GradientMenuIcon />
           </Button>

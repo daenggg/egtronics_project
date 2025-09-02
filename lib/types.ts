@@ -70,6 +70,7 @@ export interface PostWithDetails extends Post {
   isBookmarked?: boolean;
   reportCount?: number; // 신고 횟수
   reportedByCurrentUser?: boolean; // 신고 여부
+  isMine?: boolean; // 내가 쓴 게시물인지 여부
 }
 
 /**
@@ -100,6 +101,7 @@ export interface CommentWithDetails extends Comment {
   };
   // 현재 로그인한 사용자의 좋아요 여부 (서버에서 계산)
   isLiked?: boolean;
+  isMine?: boolean; // 내가 쓴 댓글인지 여부
 }
 
 // --- API 요청/응답 타입 ---

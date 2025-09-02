@@ -79,30 +79,35 @@ export async function getPost(id: string): Promise<PostWithDetails> {
     throw new Error('Post not found');
   }
 
+  // 백엔드에서 오는 댓글 목록은 이미 isMine 필드가 계산되어 있습니다.
+  // 날짜 형식만 프론트엔드에 맞게 변환해줍니다.
   // The backend response for a single post includes its comments.
   // We need to normalize the dates for these comments as well.
   const normalizedComments = (data.comments && Array.isArray(data.comments))
-    ? data.comments.map((comment: any) => ({
-        ...comment,
-        createdDate: normalizeDate(comment.createdDate),
-        // The comment object from the backend is flat, so we create the nested author object.
-        author: {
-          userId: comment.userId,
-          nickname: comment.nickname,
-          profilePicture: comment.profilePictureUrl || null, // DTO의 profilePictureUrl 필드를 사용하도록 수정
-        },
-      }))
+    ? data.comments.map((comment: any) => {
+        // 백엔드 CommentResponse DTO는 이미 필요한 대부분의 필드를 가지고 있습니다.
+        // author 객체를 프론트엔드 타입에 맞게 구성합니다.
+        return {
+          ...comment,
+          createdDate: normalizeDate(comment.createdDate),
+          author: {
+            userId: comment.userId,
+            nickname: comment.nickname,
+            profilePicture: comment.profilePictureUrl || null,
+          },
+        };
+      })
     : [];
 
-  // Transform the flat structure to the nested structure expected by `PostWithDetails`
+  // 백엔드 응답(PostDetailResponse)을 프론트엔드 타입(PostWithDetails)으로 변환합니다.
   return {
     ...data,
     photo: data.photoUrl || null, // photoUrl을 photo로 매핑
     createdDate: normalizeDate(data.createdDate),
     comments: normalizedComments,
     author: {
-      userId: data.userId, // 백엔드에서 보내주는 작성자 ID
-      nickname: data.nickname,
+      userId: data.userId, // [수정] 백엔드에서 DTO 최상단에 포함해준 작성자 ID
+      nickname: data.nickname, // 백엔드 DTO에 이미 포함된 닉네임
       profilePicture: data.authorProfilePictureUrl || null, // authorProfilePictureUrl을 profilePicture로 매핑
     },
   };
