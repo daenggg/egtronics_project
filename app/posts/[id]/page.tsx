@@ -255,7 +255,6 @@ export default function PostDetailPage() {
                 </AvatarFallback>
               </Avatar>
               <div>
-                // 혹시 김민쿄팀 파국으로 간ㄱ더 보셔ㅆ나요  짐승녀랑 
                 <p className="font-semibold text-gray-900">
                   {post.author.nickname}
                 </p>
