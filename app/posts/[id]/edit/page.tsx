@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { categories } from "@/components/category-filter"; // This is correct
 import { MediaUpload, MediaFile } from "@/components/media-upload";
+import { PostWithDetails } from "@/lib/types";
 import { API_BASE } from "@/lib/api-client"; // Use API_BASE for image URLs
 
 interface FormValues {
@@ -28,7 +29,7 @@ export default function EditPostPage() {
   const { user, loading: isAuthLoading } = useAuth();
   const { toast } = useToast();
 
-  const { data: post, isLoading: isPostLoading, error: postError } = usePost(postId);
+  const { data: post, isLoading: isPostLoading, error: postError } = usePost(postId) as { data: PostWithDetails | undefined, isLoading: boolean, error: Error | null };
   const { mutate: updatePost, isPending: isUpdating } = useUpdatePost();
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<FormValues>();
@@ -40,7 +41,7 @@ export default function EditPostPage() {
       reset({
         title: post.title,
         content: post.content || "",
-        // 백엔드 API 응답에 포함된 categoryId를 직접 사용합니다.
+        // 백엔드 API 응답에 포함된 categoryId를 문자열로 변환하여 사용합니다.
         categoryId: String(post.categoryId),
       });
     }
@@ -95,8 +96,8 @@ export default function EditPostPage() {
             <div>
               <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">카테고리</label>
               <Controller name="categoryId" control={control} rules={{ required: "카테고리를 선택해주세요." }} render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger><SelectValue placeholder="카테고리22 선택" /></SelectTrigger>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={String(post?.categoryId)}>
+                    <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
                     <SelectContent>
                       {categories.map(cat => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}
                     </SelectContent>

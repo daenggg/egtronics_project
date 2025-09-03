@@ -56,8 +56,10 @@ export function useScrapPost() {
       queryClient.invalidateQueries({ queryKey: ['my-scraps'] });
       return { previousPost, previousPosts };
     },
-    onSuccess: () => {
-      // toast({ title: "성공", description: "게시글을 스크랩했습니다." });
+    onSuccess: (data, postId) => {
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error, postId, context) => {
       if (context?.previousPost) {
@@ -72,11 +74,7 @@ export function useScrapPost() {
         variant: "destructive",
       })
     },
-    onSettled: (data, error, postId) => {
-      refreshCsrfToken();
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    }
+    onSettled: () => {}
   })
 }
 
@@ -117,8 +115,10 @@ export function useUnscrapPost() {
       queryClient.invalidateQueries({ queryKey: ['my-scraps'] });
       return { previousPost, previousPosts };
     },
-    onSuccess: () => {
-      // toast({ title: "성공", description: "스크랩을 취소했습니다." });
+    onSuccess: (data, postId) => {
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error, postId, context) => {
       if (context?.previousPost) {
@@ -133,11 +133,7 @@ export function useUnscrapPost() {
         variant: "destructive",
       })
     },
-    onSettled: (data, error, postId) => {
-      refreshCsrfToken();
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    }
+    onSettled: () => {}
   })
 }
 

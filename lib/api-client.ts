@@ -60,15 +60,17 @@ api.interceptors.request.use(config => {
 
 // 게시글 API
 export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
-  // 백엔드 응답은 photoUrl을 포함하므로 any[]로 받고, 프론트엔드 타입인 PostPreview로 매핑합니다.
-  const { data } = await api.get<any[]>('/posts/', { params });
-  // 백엔드에서 오는 날짜 형식을 변환하고, photoUrl을 photo 필드로 매핑합니다.
-  return data.map(post => ({
+  // 백엔드 응답은 PostPageResponse 형태({ posts: [], totalPostCount: 0 })로 옵니다.
+  const { data } = await api.get<any>('/posts/', { params });
+
+  // PostPreview[] 형태로 변환하여 반환합니다.
+  const posts = data.posts.map((post: any) => ({
     ...post,
-    authorProfilePicture: post.authorProfilePictureUrl || null, // 작성자 프로필 사진 URL 매핑
-    photo: post.photoUrl || null, // photoUrl을 photo로 매핑
+    photo: post.photoUrl || null, // photoUrl -> photo
+    authorProfilePicture: post.authorProfilePictureUrl || null, // authorProfilePictureUrl -> authorProfilePicture
     createdDate: normalizeDate(post.createdDate),
   }));
+  return { posts, totalPostCount: data.totalPostCount };
 }
 
 export async function getPost(id: string): Promise<PostWithDetails> {
@@ -90,9 +92,10 @@ export async function getPost(id: string): Promise<PostWithDetails> {
         return {
           ...comment,
           createdDate: normalizeDate(comment.createdDate),
+          // [수정] 백엔드 CommentResponse의 최상위 필드를 사용하여 author 객체를 구성합니다.
           author: {
-            userId: comment.userId,
-            nickname: comment.nickname,
+            userId: comment.userId, // comment.author.userId -> comment.userId
+            nickname: comment.nickname, // comment.author.nickname -> comment.nickname
             profilePicture: comment.profilePictureUrl || null,
           },
         };
@@ -241,17 +244,12 @@ export async function updateMyProfile(payload: FormData): Promise<string> {
 export async function getMyPosts(): Promise<PostPreview[]> {
   const { data } = await api.get<any[]>('/users/me/posts');
   return data.map(post => ({
-    postId: post.postId,
-    title: post.title,
-    content: post.content,
-    nickname: post.nickname,
+    ...post,
     createdDate: normalizeDate(post.createdDate),
-    likeCount: post.likeCount,
-    viewCount: post.viewCount,
-    categoryName: post.categoryName,
-    photo: post.photoUrl || null,
-    commentCount: post.commentCount,
-    authorProfilePicture: post.authorProfilePictureUrl || null, // 작성자 프로필 사진 URL 매핑
+    // 백엔드 응답 필드명(photoUrl, authorProfilePictureUrl)을
+    // 프론트엔드 타입 필드명(photo, authorProfilePicture)으로 매핑합니다.
+    photo: post.photoUrl || null, 
+    authorProfilePicture: post.authorProfilePictureUrl || null,
   }));
 }
 

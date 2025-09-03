@@ -40,14 +40,20 @@ export default function PostDetailPage() {
   const postId = params.id as string;
 
   // 데이터 페칭 (React Query Hooks 사용)
-  const { data: post, isLoading: isPostLoading, error: postError } = usePost(postId);
+  const {
+    data: post,
+    isLoading: isPostLoading,
+    error: postError,
+  } = usePost(postId);
   const comments: CommentWithDetails[] = post?.comments || [];
 
   // 뮤테이션 (데이터 변경) Hooks
   const { toggleLike } = useToggleLike();
   const { toggleScrap } = useToggleScrap();
-  const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
-  const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
+  const { mutate: createComment, isPending: isCreatingComment } =
+    useCreateComment();
+  const { mutate: updateComment, isPending: isUpdatingComment } =
+    useUpdateComment();
   const { mutate: deleteComment } = useDeleteComment();
   const { toggleCommentLike } = useToggleCommentLike();
   const { mutate: deletePost } = useDeletePost();
@@ -67,7 +73,8 @@ export default function PostDetailPage() {
     if (!isBestCommentFeatureActive) {
       // 베스트 댓글 기능 비활성화 시, 모든 댓글을 생성일 오름차순(오래된 순)으로 정렬
       return [...post.comments].sort(
-        (a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
+        (a, b) =>
+          new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
       );
     }
 
@@ -75,7 +82,8 @@ export default function PostDetailPage() {
     const potentialBest = post.comments.filter((c) => c.likeCount >= 5);
     potentialBest.sort((a, b) => {
       if (a.likeCount !== b.likeCount) return b.likeCount - a.likeCount; // 좋아요 많은 순
-      const dateDiff = new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(); // 최신순
+      const dateDiff =
+        new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime(); // 최신순
       if (dateDiff !== 0) return dateDiff;
       return a.commentId - b.commentId; // 고유 ID로 최종 정렬
     });
@@ -83,11 +91,14 @@ export default function PostDetailPage() {
     const bestComments = potentialBest.slice(0, 3);
     const bestCommentIds = new Set(bestComments.map((c) => c.commentId));
 
-    const otherComments = post.comments.filter((c) => !bestCommentIds.has(c.commentId));
+    const otherComments = post.comments.filter(
+      (c) => !bestCommentIds.has(c.commentId)
+    );
 
     // 나머지 댓글은 생성일 오름차순(오래된 순)으로 정렬
     otherComments.sort(
-      (a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
+      (a, b) =>
+        new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
     );
 
     return [...bestComments, ...otherComments];
@@ -103,7 +114,11 @@ export default function PostDetailPage() {
         const element = document.getElementById(elementId);
         if (element) {
           element.scrollIntoView({ behavior: "smooth", block: "center" });
-          element.classList.add("bg-blue-100", "transition-all", "duration-500");
+          element.classList.add(
+            "bg-blue-100",
+            "transition-all",
+            "duration-500"
+          );
           setTimeout(() => element.classList.remove("bg-blue-100"), 2500); // 2.5초 후 강조 효과 제거
         }
       }
@@ -138,7 +153,11 @@ export default function PostDetailPage() {
     const comment = comments.find((c) => c.commentId === commentId);
     if (!comment || !post) return;
 
-    toggleCommentLike({ postId: post.postId, commentId: comment.commentId, isLiked: comment.isLiked });
+    toggleCommentLike({
+      postId: post.postId,
+      commentId: comment.commentId,
+      isLiked: comment.isLiked,
+    });
   };
 
   const handleEditComment = (comment: CommentWithDetails) => {
@@ -152,14 +171,18 @@ export default function PostDetailPage() {
   };
 
   const handleUpdateComment = () => {
-    if (!post || editingCommentId === null || !editingCommentContent.trim()) return;
-    updateComment({
-      postId: post.postId,
-      commentId: editingCommentId,
-      data: { content: editingCommentContent.trim() }
-    }, {
-      onSuccess: () => handleCancelEdit(),
-    });
+    if (!post || editingCommentId === null || !editingCommentContent.trim())
+      return;
+    updateComment(
+      {
+        postId: post.postId,
+        commentId: editingCommentId,
+        data: { content: editingCommentContent.trim() },
+      },
+      {
+        onSuccess: () => handleCancelEdit(),
+      }
+    );
   };
 
   const handleDeleteComment = (commentId: number) => {
@@ -206,7 +229,9 @@ export default function PostDetailPage() {
     );
 
   const getCategoryInfo = (categoryId: number) => {
-    return categories.find((cat) => cat.id === String(categoryId)) || categories[0];
+    return (
+      categories.find((cat) => cat.id === String(categoryId)) || categories[0]
+    );
   };
 
   const handleBookmark = () => {
@@ -241,12 +266,19 @@ export default function PostDetailPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 게시글 */}
-      <Card className="mb-8 glass-effect border-0 shadow-2xl">
+      <Card className="mb-8 glass-effect border-0 shadow-2xl overflow-hidden">
         <CardHeader className="rounded-t-lg p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-12 w-12 ring-2 ring-blue-200">
-                  <AvatarImage src={post.author.profilePicture ? `${API_BASE}${post.author.profilePicture}` : "/images.png"} alt={post.author.nickname} />
+                <AvatarImage
+                  src={
+                    post.author.profilePicture
+                      ? `${API_BASE}${post.author.profilePicture}`
+                      : "/images.png"
+                  }
+                  alt={post.author.nickname}
+                />
                 <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   {post.author.nickname.charAt(0)}
                 </AvatarFallback>
@@ -276,27 +308,33 @@ export default function PostDetailPage() {
             </div>
           </div>
           <Badge
-            className={`${
-              getCategoryInfo(post.categoryId).color
-            } border-0 font-medium mb-8 text-sm px-3 py-1`}
+            className="border border-slate-200 font-medium mb-4 text-sm px-3 py-1"
           >
-            <span className="mr-2">{getCategoryInfo(post.categoryId).icon}</span>
+            <span className="mr-2">
+              {getCategoryInfo(post.categoryId).icon}
+            </span>
             {getCategoryInfo(post.categoryId).name}
           </Badge>
-          <h1 className="text-3xl font-bold mb-1 text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
             {post.title}
           </h1>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6">
-          <div className="prose max-w-none mb-4 text-gray-800 leading-relaxed">
-            <p className="whitespace-pre-wrap text-medium">{post.content}</p>
+        <CardContent className="p-4 pt-2 sm:p-6 sm:pt-2">
+          <div className="prose max-w-none mb-8 text-gray-800 leading-relaxed">
+            <p className="whitespace-pre-wrap text-base">{post.content}</p>
           </div>
           {post.photo && (
             <div className="mb-8">
               <div className="grid grid-cols-1 gap-4">
                 <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                   {/* Assuming photo is always an image for now */}
-                  <img src={post.photo ? `${API_BASE}${post.photo}` : "/images.png"} alt="Post media" className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
+                  <img
+                    src={
+                      post.photo ? `${API_BASE}${post.photo}` : "/images.png"
+                    }
+                    alt="Post media"
+                    className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                  />
                 </div>
               </div>
             </div>
@@ -373,7 +411,14 @@ export default function PostDetailPage() {
             <form onSubmit={handleSubmitComment} className="space-y-4">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-10 w-10 ring-2 ring-blue-100">
-                  <AvatarImage src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"} alt={user.nickname} />
+                  <AvatarImage
+                    src={
+                      user.profilePicture
+                        ? `${API_BASE}${user.profilePicture}`
+                        : "/images.png"
+                    }
+                    alt={user.nickname}
+                  />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm">
                     {user.nickname.charAt(0)}
                   </AvatarFallback>
@@ -403,12 +448,16 @@ export default function PostDetailPage() {
 
       {/* 댓글 목록 */}
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold">댓글 {post.comments?.length || 0}개</h3>
+        <h3 className="text-lg font-semibold">
+          댓글 {post.comments?.length || 0}개
+        </h3>
         {sortedComments.map((comment, index) => {
           const isEditing = editingCommentId === comment.commentId;
           // 댓글이 10개 이상이고, 상위 3개 댓글의 좋아요가 5개 이상인 경우 베스트 댓글로 표시
           const isTopComment =
-            (post.comments?.length || 0) >= 10 && index < 3 && comment.likeCount >= 5;
+            (post.comments?.length || 0) >= 10 &&
+            index < 3 &&
+            comment.likeCount >= 5;
           return (
             <Card
               key={comment.commentId}
@@ -421,7 +470,14 @@ export default function PostDetailPage() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-start space-x-6">
                   <Avatar className="h-10 w-10 ring-2 ring-gray-100">
-                    <AvatarImage src={comment.author.profilePicture ? `${API_BASE}${comment.author.profilePicture}` : "/images.png"} alt={comment.author.nickname} />
+                    <AvatarImage
+                      src={
+                        comment.author.profilePicture
+                          ? `${API_BASE}${comment.author.profilePicture}`
+                          : "/images.png"
+                      }
+                      alt={comment.author.nickname}
+                    />
                     <AvatarFallback className="bg-gradient-to-r from-green-400 to-blue-500 text-white text-sm">
                       {comment.author.nickname.charAt(0)}
                     </AvatarFallback>
@@ -442,10 +498,22 @@ export default function PostDetailPage() {
                         )}
                         {comment.isMine && !isEditing && (
                           <div className="flex items-center ml-auto">
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditComment(comment)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleEditComment(comment)}
+                            >
                               <Edit className="h-4 w-4 text-gray-500" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDeleteComment(comment.commentId)}>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() =>
+                                handleDeleteComment(comment.commentId)
+                              }
+                            >
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
@@ -457,13 +525,25 @@ export default function PostDetailPage() {
                       <div className="space-y-2 mt-2">
                         <Textarea
                           value={editingCommentContent}
-                          onChange={(e) => setEditingCommentContent(e.target.value)}
+                          onChange={(e) =>
+                            setEditingCommentContent(e.target.value)
+                          }
                           className="min-h-[80px]"
                         />
                         <div className="flex justify-end space-x-2">
-                          <Button variant="ghost" size="sm" onClick={handleCancelEdit}>취소</Button>
-                          <Button size="sm" onClick={handleUpdateComment} disabled={isUpdatingComment}>
-                            {isUpdatingComment ? '저장 중...' : '저장'}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleCancelEdit}
+                          >
+                            취소
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleUpdateComment}
+                            disabled={isUpdatingComment}
+                          >
+                            {isUpdatingComment ? "저장 중..." : "저장"}
                           </Button>
                         </div>
                       </div>
@@ -483,7 +563,9 @@ export default function PostDetailPage() {
                           }`}
                         >
                           <Heart
-                            className={`h-3 w-3 ${comment.isLiked ? "fill-current" : ""}`}
+                            className={`h-3 w-3 ${
+                              comment.isLiked ? "fill-current" : ""
+                            }`}
                           />
                           <span>{comment.likeCount}</span>
                         </Button>

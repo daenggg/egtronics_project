@@ -27,17 +27,31 @@ import {
 function HomePageClientContent() {
   const searchParams = useSearchParams();
   const selectedCategoryId = searchParams.get("category");
+  const q = searchParams.get("q");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOption, setSortOption] = useState("latest");
+  const [sortOption, setSortOption] = useState("0"); // 'latest' -> '0'
   const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 12;
 
-  // 실제 API를 통해 데이터를 가져옵니다.
-  const { data: posts, isLoading, isError, error } = usePosts();
+  const sortCodeMapping: { [key: string]: number } = {
+    latest: 0,
+    likes: 1,
+    views: 2,
+  };
 
-  // 카테고리가 URL로 바뀌면 페이지 초기화
+  // API를 통해 데이터를 가져옵니다.
+  const { data, isLoading, isError, error } = usePosts({
+    page: currentPage,
+    size: postsPerPage,
+    sortCode: sortCodeMapping[sortOption] ?? 0,
+    category: selectedCategoryId ?? undefined,
+    q: q ?? undefined,
+  });
+
+  // 카테고리나 검색어가 바뀌면 페이지를 1로 초기화
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, q]);
 
   const getCategoryInfo = (categoryName: string) => {
     return (
@@ -48,52 +62,13 @@ function HomePageClientContent() {
       }
     );
   };
-  const postsPerPage = 12;
 
-  // 필터 + 정렬된 데이터
-  const filteredPosts = useMemo(() => {
-    if (!posts) return [];
-    let data: PostPreview[] = [...posts];
+  const currentPosts = data?.posts || [];
+  const totalPosts = data?.totalPostCount || 0;
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
 
-    // 5회 이상 신고된 게시물은 목록에서 숨깁니다.
-    data = data.filter((post) => (post.reportCount ?? 0) < 5);
-
-    if (selectedCategoryId) {
-      const category = allCategories.find((c) => c.id === selectedCategoryId);
-      if (category) {
-        data = data.filter((post) => post.categoryName === category.name);
-      }
-    }
-
-    if (searchQuery.trim()) {
-      const lowercasedQuery = searchQuery.toLowerCase();
-      data = data.filter(
-        (post) =>
-          post.title.toLowerCase().includes(lowercasedQuery) ||
-          (post.content && post.content.toLowerCase().includes(lowercasedQuery))
-      );
-    }
-
-    if (sortOption === "latest") {
-      data.sort(
-        (a, b) =>
-          new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
-      );
-    } else if (sortOption === "views") {
-      data.sort((a, b) => b.viewCount - a.viewCount);
-    } else if (sortOption === "likes") {
-      data.sort((a, b) => b.likeCount - a.likeCount);
-    }
-
-    return data;
-  }, [posts, searchQuery, sortOption, selectedCategoryId]);
-
-  // 현재 페이지 데이터
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
-  const currentPosts = filteredPosts.slice(
-    (currentPage - 1) * postsPerPage,
-    currentPage * postsPerPage
-  );
+  // 검색창 입력을 위한 상태 동기화
+  useEffect(() => setSearchQuery(q || ""), [q]);
 
   const renderContent = () => {
     if (isLoading) {
@@ -142,25 +117,55 @@ function HomePageClientContent() {
               href={`/posts/${post.postId}`}
               className="block"
             >
-              <Card className="group h-full flex flex-col glass-effect border-0 shadow-lg cursor-pointer transition-transform duration-300 hover:-translate-y-2 hover:shadow-2xl overflow-hidden rounded-xl">
-                <div className="aspect-video w-full bg-gray-100 flex items-center justify-center overflow-hidden">
+              {/* --- ✅ 수정점: hover 시 그림자를 보라색에서 진한 회색으로 변경 --- */}
+              <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl">
+                {/* --- ✅ 수정점: 작성자 정보를 카드 상단으로 이동 --- */}
+               <div className="p-2 flex items-center gap-3 border-b border-slate-100">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src={
+                        post.authorProfilePicture
+                          ? `${API_BASE}${post.authorProfilePicture}`
+                          : "/placeholder.svg"
+                      }
+                      alt={post.nickname}
+                    />
+                    <AvatarFallback>
+                      {post.nickname.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <span className="font-semibold text-sm text-gray-800">
+                      {post.nickname}
+                    </span>
+                    <p className="text-xs text-gray-400">
+                      {formatDynamicDate(post.createdDate)}
+                    </p>
+                  </div>
+                </div>
+                {/* --- ✅ 수정점: 카테고리 배지를 사진 위로 이동 --- */}
+                <div className="px-4 pt-2">
+                  <Badge
+                    variant="secondary"
+                    className="font-medium text-sm"
+                  >
+                    <span className="mr-1.5">{categoryInfo.icon}</span>
+                    {categoryInfo.name}
+                  </Badge>
+                </div>
+                {/* --- ✅ 수정점: 사진을 감싸는 div에 패딩(p-4) 추가 --- */}
+                <div className="aspect-video w-full bg-gray-100 flex items-center justify-center overflow-hidden px-4 pt-3 pb-2">
                   <img
                     src={
                       post.photo ? `${API_BASE}${post.photo}` : "/sample.jpg"
                     }
                     alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    // --- ✅ 수정점: 이미지에 둥근 모서리(rounded-lg) 추가 ---
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 rounded-lg"
                   />
                 </div>
-                <div className="p-5 flex-grow flex flex-col">
+                <div className="p-5 pt-3 flex-grow flex flex-col">
                   <div>
-                    <Badge
-                      variant="secondary"
-                      className="mb-3 font-medium self-start"
-                    >
-                      <span className="mr-1.5">{categoryInfo.icon}</span>
-                      {categoryInfo.name}
-                    </Badge>
                     <CardTitle className="text-xl font-bold line-clamp-2 group-hover:text-blue-600 transition-colors">
                       {post.title}
                     </CardTitle>
@@ -170,30 +175,8 @@ function HomePageClientContent() {
                     {post.content}
                   </p>
 
-                  <div className="border-t mt-4 pt-4 flex items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage
-                          src={
-                            post.authorProfilePicture
-                              ? `${API_BASE}${post.authorProfilePicture}`
-                              : "/placeholder.svg"
-                          }
-                          alt={post.nickname}
-                        />
-                        <AvatarFallback>
-                          {post.nickname.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <span className="font-semibold text-gray-800">
-                          {post.nickname}
-                        </span>
-                        <p className="text-xs text-gray-400">
-                          {formatDynamicDate(post.createdDate)}
-                        </p>
-                      </div>
-                    </div>
+                  {/* --- ✅ 수정점: 게시물 통계 정보를 하단으로 이동 --- */}
+                  <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-gray-500">
                     <div className="flex items-center gap-4">
                       <span
                         className="flex items-center gap-1.5"
@@ -256,9 +239,9 @@ function HomePageClientContent() {
               <SelectValue placeholder="정렬" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="latest">최신순</SelectItem>
-              <SelectItem value="views">조회순</SelectItem>
-              <SelectItem value="likes">추천순</SelectItem>
+              <SelectItem value="0">최신순</SelectItem> {/* 'latest'에 해당 */}
+              <SelectItem value="2">조회순</SelectItem> {/* 'views'에 해당 */}
+              <SelectItem value="1">추천순</SelectItem> {/* 'likes'에 해당 */}
             </SelectContent>
           </Select>
         </div>

@@ -124,6 +124,11 @@ export default function ProfilePage() {
         title: "성공",
         description: "프로필이 성공적으로 업데이트되었습니다.",
       });
+
+      // --- ✅ 수정점: 페이지 새로고침 ---
+      // 1초 후에 페이지를 새로고침하여 변경사항이 완전히 반영되도록 합니다.
+      setTimeout(() => window.location.reload(), 1000);
+
     } catch (error) {
       toast({
         title: "업데이트 실패",
@@ -304,8 +309,8 @@ export default function ProfilePage() {
                             <span>{formatDynamicDate(post.createdDate)}</span>
                             <div className="flex items-center gap-3">
                               <span className="flex items-center gap-1.5" title="좋아요"><Heart className="h-4 w-4 text-red-400" /> {post.likeCount}</span>
-                              <span className="flex items-center gap-1.5" title="조회수"><Eye className="h-4 w-4 text-blue-400" /> {post.viewCount}</span>
-                              <span className="flex items-center gap-1.5" title="댓글"><MessageSquare className="h-4 w-4 text-green-500" /> {post.commentCount ?? 0}</span>
+                              <span className="flex items-center gap-1.5" title="조회수"><Eye className="h-4 w-4 text-gray-600" /> {post.viewCount}</span>
+                              <span className="flex items-center gap-1.5" title="댓글"><MessageSquare className="h-4 w-4 text-gray-600" /> {post.commentCount ?? 0}</span>
                             </div>
                           </div>
                         </div>

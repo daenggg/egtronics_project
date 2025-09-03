@@ -127,7 +127,7 @@ export function useLikePost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
+  return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPostsList?: Map<string, any> }>({
     mutationFn: (postId: string) => likePost(postId),
     onMutate: async (postId) => {
       // 1. 관련 쿼리 취소 (덮어쓰기 방지)
@@ -136,7 +136,9 @@ export function useLikePost() {
 
       // 2. 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
+      // 'posts'로 시작하는 모든 쿼리를 가져옵니다.
+      const postQueries = queryClient.getQueriesData<any>({ queryKey: ['posts'] });
+      const previousPostsList = new Map<string, any>();
 
       // 3. UI 낙관적 업데이트
       if (previousPost) {
@@ -146,39 +148,43 @@ export function useLikePost() {
           likeCount: previousPost.likeCount + 1,
         });
       }
-      // 목록 페이지 캐시 업데이트
-      if (previousPosts) {
-        const updatedPosts = previousPosts.map(p =>
-          p.postId === Number(postId) ? { ...p, isLiked: true, likeCount: p.likeCount + 1 } : p
-        );
-        queryClient.setQueryData(['posts'], updatedPosts);
-      }
+      // 모든 'posts' 쿼리 캐시를 순회하며 업데이트합니다.
+      postQueries.forEach(([queryKey, data]) => {
+        if (data && data.posts) {
+          previousPostsList.set(JSON.stringify(queryKey), data); // 롤백을 위해 이전 데이터 저장
+          const updatedData = {
+            ...data,
+            posts: data.posts.map((p: PostPreview) =>
+              p.postId === Number(postId) ? { ...p, isLiked: true, likeCount: p.likeCount + 1 } : p
+            ),
+          };
+          queryClient.setQueryData(queryKey, updatedData);
+        }
+      });
 
       // 4. 롤백을 위한 컨텍스트 반환
-      return { previousPost, previousPosts };
+      return { previousPost, previousPostsList };
     },
-    onSuccess: () => {
-      // toast({ title: "성공", description: "게시글을 추천했습니다." });
+    onSuccess: (data, postId) => {
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error, postId, context) => {
       // 5. 오류 발생 시 롤백
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
       }
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
-      }
+      context?.previousPostsList?.forEach((data, queryKey) => {
+        queryClient.setQueryData(JSON.parse(queryKey), data);
+      });
       toast({
         title: "오류",
         description: handleApiError(error),
         variant: "destructive",
       });
     },
-    onSettled: (data, error, postId) => {
-      refreshCsrfToken();
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    }
+    onSettled: () => {}
   })
 }
 
@@ -188,14 +194,15 @@ export function useUnlikePost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
+  return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPostsList?: Map<string, any> }>({
     mutationFn: (postId: string) => unlikePost(postId),
     onMutate: async (postId) => {
       await queryClient.cancelQueries({ queryKey: ['post', postId] });
       await queryClient.cancelQueries({ queryKey: ['posts'] });
 
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
+      const postQueries = queryClient.getQueriesData<any>({ queryKey: ['posts'] });
+      const previousPostsList = new Map<string, any>();
 
       if (previousPost) {
         queryClient.setQueryData<PostWithDetails>(['post', postId], {
@@ -204,36 +211,40 @@ export function useUnlikePost() {
           likeCount: Math.max(0, previousPost.likeCount - 1),
         });
       }
-      if (previousPosts) {
-        const updatedPosts = previousPosts.map(p =>
-          p.postId === Number(postId) ? { ...p, isLiked: false, likeCount: Math.max(0, p.likeCount - 1) } : p
-        );
-        queryClient.setQueryData(['posts'], updatedPosts);
-      }
+      postQueries.forEach(([queryKey, data]) => {
+        if (data && data.posts) {
+          previousPostsList.set(JSON.stringify(queryKey), data);
+          const updatedData = {
+            ...data,
+            posts: data.posts.map((p: PostPreview) =>
+              p.postId === Number(postId) ? { ...p, isLiked: false, likeCount: Math.max(0, p.likeCount - 1) } : p
+            ),
+          };
+          queryClient.setQueryData(queryKey, updatedData);
+        }
+      });
 
-      return { previousPost, previousPosts };
+      return { previousPost, previousPostsList };
     },
-    onSuccess: () => {
-      // toast({ title: "성공", description: "게시글 추천을 취소했습니다." });
+    onSuccess: (data, postId) => {
+      refreshCsrfToken();
+      queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error, postId, context) => {
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
       }
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
-      }
+      context?.previousPostsList?.forEach((data, queryKey) => {
+        queryClient.setQueryData(JSON.parse(queryKey), data);
+      });
       toast({
         title: "오류",
         description: handleApiError(error),
         variant: "destructive",
       });
     },
-    onSettled: (data, error, postId) => {
-      refreshCsrfToken();
-      queryClient.invalidateQueries({ queryKey: ['post', postId] });
-      queryClient.invalidateQueries({ queryKey: ['posts'] });
-    }
+    onSettled: () => {}
   })
 }
 

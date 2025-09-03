@@ -124,7 +124,10 @@ export interface UpdatePostRequest {
   photo?: string | null;
 }
 
-export type PostListResponse = PostPreview[];
+export interface PostListResponse {
+  posts: PostPreview[];
+  totalPostCount: number;
+}
 
 export interface CreateCommentRequest {
   content: string;
@@ -186,10 +189,10 @@ export interface MyComment {
 
 export interface PaginationParams {
   page?: number;
-  limit?: number;
-  search?: string;
+  size?: number;
   category?: string;
-  sortBy?: 'latest' | 'popular' | 'views';
+  sortCode?: number; // 'latest', 'popular', 'views' 대신 sortCode 사용
+  q?: string; // 검색 쿼리
 }
 
 export interface LikeResponse {
