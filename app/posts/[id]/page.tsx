@@ -246,10 +246,7 @@ export default function PostDetailPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-12 w-12 ring-2 ring-blue-200">
-                <AvatarImage
-                  src={post.author.profilePicture ? `${API_BASE}${post.author.profilePicture}` : "/placeholder.svg"}
-                  alt={post.author.nickname}
-                />
+                  <AvatarImage src={post.author.profilePicture ? `${API_BASE}${post.author.profilePicture}` : "/images.png"} alt={post.author.nickname} />
                 <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   {post.author.nickname.charAt(0)}
                 </AvatarFallback>
@@ -299,11 +296,7 @@ export default function PostDetailPage() {
               <div className="grid grid-cols-1 gap-4">
                 <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                   {/* Assuming photo is always an image for now */}
-                  <img
-                    src={post.photo ? `${API_BASE}${post.photo}` : "/placeholder.svg"}
-                        alt="Post media"
-                        className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      />
+                  <img src={post.photo ? `${API_BASE}${post.photo}` : "/images.png"} alt="Post media" className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
                 </div>
               </div>
             </div>
@@ -380,10 +373,7 @@ export default function PostDetailPage() {
             <form onSubmit={handleSubmitComment} className="space-y-4">
               <div className="flex items-start space-x-4">
                 <Avatar className="h-10 w-10 ring-2 ring-blue-100">
-                  <AvatarImage 
-                    src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/placeholder.svg"} 
-                    alt={user.nickname} 
-                  />
+                  <AvatarImage src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"} alt={user.nickname} />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm">
                     {user.nickname.charAt(0)}
                   </AvatarFallback>
@@ -431,10 +421,7 @@ export default function PostDetailPage() {
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-start space-x-6">
                   <Avatar className="h-10 w-10 ring-2 ring-gray-100">
-                    <AvatarImage
-                      src={comment.author.profilePicture ? `${API_BASE}${comment.author.profilePicture}` : "/placeholder.svg"}
-                      alt={comment.author.nickname}
-                    />
+                    <AvatarImage src={comment.author.profilePicture ? `${API_BASE}${comment.author.profilePicture}` : "/images.png"} alt={comment.author.nickname} />
                     <AvatarFallback className="bg-gradient-to-r from-green-400 to-blue-500 text-white text-sm">
                       {comment.author.nickname.charAt(0)}
                     </AvatarFallback>

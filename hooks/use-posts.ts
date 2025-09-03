@@ -10,7 +10,7 @@ import {
   unlikePost,
   handleApiError
 } from '@/lib/api-client'
-import { PostWithDetails, UpdatePostRequest, PaginationParams, LikeResponse } from '@/lib/types'
+import { PostWithDetails, UpdatePostRequest, PaginationParams, LikeResponse, PostPreview } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -127,14 +127,16 @@ export function useLikePost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<void, Error, string, { previousPost: PostWithDetails | undefined }>({
+  return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
     mutationFn: (postId: string) => likePost(postId),
     onMutate: async (postId) => {
       // 1. 관련 쿼리 취소 (덮어쓰기 방지)
       await queryClient.cancelQueries({ queryKey: ['post', postId] });
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
 
       // 2. 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
+      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
 
       // 3. UI 낙관적 업데이트
       if (previousPost) {
@@ -144,17 +146,27 @@ export function useLikePost() {
           likeCount: previousPost.likeCount + 1,
         });
       }
+      // 목록 페이지 캐시 업데이트
+      if (previousPosts) {
+        const updatedPosts = previousPosts.map(p =>
+          p.postId === Number(postId) ? { ...p, isLiked: true, likeCount: p.likeCount + 1 } : p
+        );
+        queryClient.setQueryData(['posts'], updatedPosts);
+      }
 
       // 4. 롤백을 위한 컨텍스트 반환
-      return { previousPost };
+      return { previousPost, previousPosts };
     },
     onSuccess: () => {
-      toast({ title: "성공", description: "게시글을 추천했습니다." });
+      // toast({ title: "성공", description: "게시글을 추천했습니다." });
     },
     onError: (error, postId, context) => {
       // 5. 오류 발생 시 롤백
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
+      }
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['posts'], context.previousPosts);
       }
       toast({
         title: "오류",
@@ -176,12 +188,14 @@ export function useUnlikePost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<void, Error, string, { previousPost: PostWithDetails | undefined }>({
+  return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
     mutationFn: (postId: string) => unlikePost(postId),
     onMutate: async (postId) => {
       await queryClient.cancelQueries({ queryKey: ['post', postId] });
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
 
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
+      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
 
       if (previousPost) {
         queryClient.setQueryData<PostWithDetails>(['post', postId], {
@@ -190,15 +204,24 @@ export function useUnlikePost() {
           likeCount: Math.max(0, previousPost.likeCount - 1),
         });
       }
+      if (previousPosts) {
+        const updatedPosts = previousPosts.map(p =>
+          p.postId === Number(postId) ? { ...p, isLiked: false, likeCount: Math.max(0, p.likeCount - 1) } : p
+        );
+        queryClient.setQueryData(['posts'], updatedPosts);
+      }
 
-      return { previousPost };
+      return { previousPost, previousPosts };
     },
     onSuccess: () => {
-      toast({ title: "성공", description: "게시글 추천을 취소했습니다." });
+      // toast({ title: "성공", description: "게시글 추천을 취소했습니다." });
     },
     onError: (error, postId, context) => {
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
+      }
+      if (context?.previousPosts) {
+        queryClient.setQueryData(['posts'], context.previousPosts);
       }
       toast({
         title: "오류",

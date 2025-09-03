@@ -96,7 +96,7 @@ export default function EditPostPage() {
               <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700">카테고리</label>
               <Controller name="categoryId" control={control} rules={{ required: "카테고리를 선택해주세요." }} render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger><SelectValue placeholder="카테고리 선택" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="카테고리22 선택" /></SelectTrigger>
                     <SelectContent>
                       {categories.map(cat => (<SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>))}
                     </SelectContent>

@@ -193,7 +193,7 @@ export default function ProfilePage() {
               <div className="relative group">
                 <Avatar className="h-24 w-24 cursor-pointer border-2 border-white shadow-lg">
                   <AvatarImage
-                    src={profilePicture?.startsWith('blob:') ? profilePicture : (profilePicture ? `${API_BASE}${profilePicture}` : "/placeholder.svg")}
+                    src={profilePicture ? (profilePicture.startsWith('blob:') ? profilePicture : `${API_BASE}${profilePicture}`) : "/images.png"}
                     alt={user.name}
                   />
                   <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-400 to-purple-500 text-white">
@@ -272,69 +272,6 @@ export default function ProfilePage() {
             <TabsTrigger value="posts" className="py-2"><FileText className="h-4 w-4 mr-2" />내 게시글</TabsTrigger>
             <TabsTrigger value="comments" className="py-2"><MessageSquare className="h-4 w-4 mr-2" />내 댓글</TabsTrigger>
           </TabsList>
-
-          <TabsContent value="posts" className="mt-6">
-            {/* --- 🎨 변경점: 카드 간격 넓힘 (space-y-5 -> space-y-6) --- */}
-            <div className="flex flex-col gap-6">
-              {isLoadingPosts ? (
-                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-36 w-full rounded-xl" />)
-              ) : myPosts && myPosts.length > 0 ? (
-                myPosts.map((post) => (
-                  <Link href={`/posts/${post.postId}`} key={post.postId}>
-                    <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-white hover:border-blue-300 rounded-xl">
-                      {/* --- 🎨 변경점: h-32 -> h-36으로 높이 살짝 늘림 --- */}
-                      <CardContent className="p-0 flex h-36">
-                        <div className="w-36 flex-shrink-0 relative">
-                            {post.photo ? (
-                                <img src={`${API_BASE}${post.photo}`} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                            ) : (
-                                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                                    <ImageIcon className="h-10 w-10 text-slate-400" />
-                                </div>
-                            )}
-                        </div>
-                        {/* --- 🎨 변경점: p-5로 패딩 통일 및 레이아웃 구조 개선 --- */}
-                        <div className="p-5 flex flex-col flex-1 min-w-0 group-hover:bg-slate-50/50 transition-colors">
-                          <div>
-                            <p className="text-xs text-blue-500 font-semibold">{post.categoryName}</p>
-                            <h4 className="font-semibold text-lg truncate mt-1 group-hover:text-blue-600 transition-colors">{post.title}</h4>
-                            {/* --- 🎨 변경점: line-clamp-1 -> line-clamp-2로 변경하여 내용 두 줄 표시 --- */}
-                            <p className="text-sm text-gray-500 mt-1.5 line-clamp-2">
-                              {post.content}
-                            </p>
-                          </div>
-                          {/* --- 🎨 변경점: mt-auto로 하단에 붙이고, 경계선(border-t) 추가 --- */}
-                          <div className="text-xs text-gray-500 flex items-center justify-between mt-auto pt-3 border-t border-slate-200">
-                            <span>{formatDynamicDate(post.createdDate)}</span>
-                            <div className="flex items-center gap-3">
-                              {/* --- 🎨 변경점: 아이콘에 색상 추가 --- */}
-                              <span className="flex items-center gap-1.5" title="좋아요"><Heart className="h-4 w-4 text-gray-600" /> {post.likeCount}</span>
-                              <span className="flex items-center gap-1.5" title="조회수"><Eye className="h-4 w-4 text-gray-600" /> {post.viewCount}</span>
-                              <span className="flex items-center gap-1.5" title="댓글"><MessageSquare className="h-4 w-4 text-gray-600" /> {post.commentCount ?? 0}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))
-              ) : (
-                  <Card className="border-dashed rounded-xl">
-                    <CardContent className="p-10 text-center flex flex-col items-center">
-                      <div className="p-4 bg-slate-100 rounded-full mb-4">
-                        <Pencil className="h-8 w-8 text-slate-400" />
-                      </div>
-                      <h3 className="font-bold text-lg">아직 작성한 게시글이 없어요</h3>
-                      <p className="text-gray-500 mt-1">첫 게시글을 작성하고 사람들과 소통해보세요!</p>
-                      <Button onClick={() => router.push('/posts/create')} className="mt-6">
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        게시글 작성하기
-                      </Button>
-                    </CardContent>
-                  </Card>
-              )}
-            </div>
-          </TabsContent>
 
           <TabsContent value="posts" className="mt-6">
             {/* --- ✅ 수정점: space-y-6 대신 flex flex-col gap-6 사용 --- */}

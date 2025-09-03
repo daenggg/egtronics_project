@@ -5,7 +5,7 @@ import {
   unscrapPost,
   handleApiError
 } from '@/lib/api-client'
-import { Scrap, PostWithDetails } from '@/lib/types'
+import { Scrap, PostWithDetails, PostPreview } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -25,7 +25,7 @@ export function useScrapPost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostWithDetails[] }>({
+  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
     mutationFn: (postId: string) => scrapPost(postId),
     onMutate: async (postId) => {
       // 모든 관련 쿼리를 취소하여 충돌 방지
@@ -34,7 +34,7 @@ export function useScrapPost() {
 
       // 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      const previousPosts = queryClient.getQueryData<PostWithDetails[]>(['posts']);
+      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
 
       // 상세 페이지 캐시 낙관적 업데이트
       if (previousPost) {
@@ -57,7 +57,7 @@ export function useScrapPost() {
       return { previousPost, previousPosts };
     },
     onSuccess: () => {
-      toast({ title: "성공", description: "게시글을 스크랩했습니다." });
+      // toast({ title: "성공", description: "게시글을 스크랩했습니다." });
     },
     onError: (error, postId, context) => {
       if (context?.previousPost) {
@@ -86,7 +86,7 @@ export function useUnscrapPost() {
   const { toast } = useToast()
   const { refreshCsrfToken } = useAuth()
   
-  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostWithDetails[] }>({
+  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
     mutationFn: (postId: string) => unscrapPost(postId),
     onMutate: async (postId) => {
       // 모든 관련 쿼리를 취소하여 충돌 방지
@@ -95,7 +95,7 @@ export function useUnscrapPost() {
 
       // 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      const previousPosts = queryClient.getQueryData<PostWithDetails[]>(['posts']);
+      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
 
       // 상세 페이지 캐시 낙관적 업데이트
       if (previousPost) {
@@ -118,7 +118,7 @@ export function useUnscrapPost() {
       return { previousPost, previousPosts };
     },
     onSuccess: () => {
-      toast({ title: "성공", description: "스크랩을 취소했습니다." });
+      // toast({ title: "성공", description: "스크랩을 취소했습니다." });
     },
     onError: (error, postId, context) => {
       if (context?.previousPost) {

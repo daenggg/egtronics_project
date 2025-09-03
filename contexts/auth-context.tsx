@@ -1,14 +1,16 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { userStorage, tokenStorage } from '@/lib/auth-storage' // tokenStorage는 로그아웃 시 정리 용도로 사용됩니다.
 import {
   login as apiLogin,
   signUp as apiRegister,
   logout as apiLogout,
-  updateMyProfile,
+  updateMyProfile as apiUpdateMyProfile,
   checkIdAvailability,
-  getMyProfile,
+  getMyProfile as apiGetMyProfile,
+  handleApiError,
 } from '@/lib/api-client'
 import { User } from '@/lib/types' // 올바른 User 타입을 lib/types.ts에서 가져옵니다.
 
@@ -31,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const queryClient = useQueryClient();
 
   const refreshCsrfToken = async () => {
     try {
@@ -47,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const initializeAuth = async () => {
       try {
         await refreshCsrfToken();
-
-        const userProfile = await getMyProfile();
+        
+        const userProfile = await apiGetMyProfile();
         setUser(userProfile);
         userStorage.setUser(userProfile);
       } catch (error) {
@@ -73,7 +76,7 @@ const login = async (userId: string, password: string) => {
 
       // 2. 이제 쿠키가 설정되었으므로, 로컬 스토리지에 토큰을 저장할 필요가 없습니다.
       //    대신, 내 정보를 바로 가져와서 상태를 업데이트합니다.
-      const userProfile = await getMyProfile();
+      const userProfile = await apiGetMyProfile();
       
       setUser(userProfile);
       userStorage.setUser(userProfile); // 사용자 정보는 계속 로컬 스토리지에 저장
@@ -111,20 +114,24 @@ const login = async (userId: string, password: string) => {
     }
   }
 
-  const updateUserInfo = async (userData: FormData) => {
+  const updateUserInfo = useCallback(async (userData: FormData) => {
     try {
-      // 1. 프로필 업데이트 API를 호출합니다. 이 API는 User 객체를 반환하지 않습니다.
-      await updateMyProfile(userData)
-      // 2. 업데이트가 성공했으므로, getMyProfile()을 호출하여 최신 사용자 정보를 다시 가져옵니다.
-      const updatedUser = await getMyProfile()
-      // 3. 가져온 최신 정보로 상태와 로컬 스토리지를 업데이트합니다.
-      setUser(updatedUser)
-      userStorage.setUser(updatedUser)
+      // 1. 프로필 업데이트 API 호출
+      await apiUpdateMyProfile(userData);
+      
+      // 2. 성공 시, 최신 사용자 정보를 다시 가져옴
+      const updatedUser = await apiGetMyProfile();
+      
+      // 3. 전역 상태와 로컬 스토리지 업데이트
+      setUser(updatedUser);
+      userStorage.setUser(updatedUser);
+
+      // 4. 관련 React Query 캐시 무효화 (다른 컴포넌트의 데이터 동기화를 위해)
+      queryClient.invalidateQueries({ queryKey: ['my-profile'] });
     } catch (error: any) {
-      console.error('정보 수정 오류:', error.response?.data || error.message)
-      throw new Error(error.response?.data?.message || '정보 수정에 실패했습니다.')
+      throw new Error(handleApiError(error));
     }
-  }
+  }, [queryClient]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev)

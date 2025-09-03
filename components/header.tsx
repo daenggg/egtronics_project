@@ -51,12 +51,12 @@ export function Header() {
           >
             <GradientMenuIcon />
           </Button>
-          <Link
+          <a
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
             홈으로
-          </Link>
+          </a>
         </div>
 
         <nav className="flex items-center space-x-2 sm:space-x-4">
@@ -92,7 +92,7 @@ export function Header() {
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/placeholder.svg"}
+                        src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
                         alt={user.name}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">

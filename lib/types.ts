@@ -91,6 +91,10 @@ export interface PostPreview {
   commentCount?: number;
   authorProfilePicture?: string | null; // 작성자 프로필 사진
   reportCount?: number; // 신고 횟수
+
+  // 낙관적 업데이트를 위한 속성 추가
+  isLiked?: boolean;
+  isBookmarked?: boolean;
 }
 
 export interface CommentWithDetails extends Comment {
