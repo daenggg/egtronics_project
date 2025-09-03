@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import HomePageClient from '@/components/HomePageClient'; // 게시물 목록 컴포넌트 (파일 경로는 실제 위치에 맞게 수정)
+import HomePageClient from '@/components/HomePageClient';
 
 // 로딩 중에 보여줄 간단한 UI
 const HomePageSkeleton = () => {

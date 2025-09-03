@@ -297,8 +297,8 @@ export default function PostDetailPage() {
                 <Eye className="h-4 w-4" />
                 <span>{post.viewCount}</span>
               </div>
-              {/* isMine 플래그 대신 직접 계산한 isMyPost 값을 사용합니다. */}
-              <div className={isMyPost ? "pointer-events-none opacity-50" : ""}>
+              {/* 로그인하지 않았거나 내 게시물인 경우 비활성화 */}
+              <div className={!user || isMyPost ? "pointer-events-none opacity-50" : ""}>
                 <ReportDialog
                   type="post"
                   targetId={String(post.postId)}

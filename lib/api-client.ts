@@ -157,6 +157,12 @@ export async function uploadFile(file: File): Promise<string> {
   return response.data.url; 
 }
 
+export async function searchPosts(params: PaginationParams & { keyword: string }): Promise<PostListResponse> {
+  // '/posts/search' 엔드포인트를 사용합니다.
+  const response = await api.get('/posts/search', { params });
+  return response.data;
+}
+
 
 // ===== 회원관리 API =====
 

@@ -193,6 +193,7 @@ export interface PaginationParams {
   category?: string;
   sortCode?: number; // 'latest', 'popular', 'views' 대신 sortCode 사용
   q?: string; // 검색 쿼리
+  keyword?: string;
 }
 
 export interface LikeResponse {

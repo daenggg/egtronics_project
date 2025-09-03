@@ -1,7 +1,8 @@
 import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
-  getPosts, 
+  getPosts,
+  searchPosts, // 검색 함수를 api-client에서 가져와야 합니다.
   getPost, 
   createPost, 
   updatePost, 
@@ -14,13 +15,33 @@ import { PostWithDetails, UpdatePostRequest, PaginationParams, LikeResponse, Pos
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/contexts/auth-context'
 
-// 게시글 목록 조회 Hook
+// 게시글 목록 조회 Hook (수정된 최종 버전)
 export function usePosts(params: PaginationParams = {}) {
-  const { toast } = useToast()
-  
+  // 값이 undefined, null, 또는 빈 문자열인 파라미터는 제외합니다.
+  const cleanedParams = Object.entries(params).reduce((acc, [key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      // @ts-ignore
+      acc[key] = value;
+    }
+    return acc;
+  }, {} as PaginationParams);
+
+  // keyword 유무를 확인합니다.
+  const hasKeyword = !!cleanedParams.keyword;
+
   return useQuery({
-    queryKey: ['posts', params],
-    queryFn: () => getPosts(params),
+    // queryKey에는 원본 params를 사용하여 캐시를 관리합니다.
+    queryKey: ['posts', params], 
+    
+    // 핵심 변경: keyword 유무에 따라 다른 함수를 호출합니다.
+    queryFn: () => {
+      if (hasKeyword) {
+        // cleanedParams에 keyword가 있으므로 타입 단언
+        return searchPosts(cleanedParams as PaginationParams & { keyword: string });
+      }
+      return getPosts(cleanedParams);
+    },
+    
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
   })
@@ -44,16 +65,12 @@ export function useCreatePost() {
   const { toast } = useToast()
   
   return useMutation<PostWithDetails, Error, FormData>({
-    // `createPost` API 함수는 `FormData`를 인자로 받으므로,
-    // `mutationFn`의 타입도 `FormData`로 수정합니다.
-    // 타입이 일치하므로 `api-client`의 `createPost` 함수를 직접 전달할 수 있습니다.
     mutationFn: createPost,
     onSuccess: () => {
       toast({
         title: "성공",
         description: "게시글이 작성되었습니다.",
       })
-      // 게시글 목록 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['posts'] })
     },
     onError: (error) => {
@@ -72,15 +89,12 @@ export function useUpdatePost() {
   const { toast } = useToast()
   
   return useMutation<PostWithDetails, Error, { id: string; data: FormData }>({
-    // `updatePost` API 함수는 이제 FormData를 받으므로,
-    // `mutationFn`의 타입도 FormData로 수정합니다.
     mutationFn: ({ id, data }) => updatePost(id, data),
     onSuccess: (updatedPost) => {
       toast({
         title: "성공",
         description: "게시글이 수정되었습니다.",
       })
-      // 관련 캐시 업데이트
       queryClient.invalidateQueries({ queryKey: ['posts'] })
       queryClient.setQueryData(['post', String(updatedPost.postId)], updatedPost)
     },
@@ -106,9 +120,7 @@ export function useDeletePost() {
         title: "성공",
         description: "게시글이 삭제되었습니다.",
       })
-      // 관련 캐시 무효화
       queryClient.invalidateQueries({ queryKey: ['posts'] })
-      // 상세 페이지 캐시도 제거하여 오래된 데이터가 보이지 않도록 합니다.
       queryClient.removeQueries({ queryKey: ['post', postId] })
     },
     onError: (error) => {
@@ -130,17 +142,13 @@ export function useLikePost() {
   return useMutation<void, Error, string, { previousPost?: PostWithDetails, previousPostsList?: Map<string, any> }>({
     mutationFn: (postId: string) => likePost(postId),
     onMutate: async (postId) => {
-      // 1. 관련 쿼리 취소 (덮어쓰기 방지)
       await queryClient.cancelQueries({ queryKey: ['post', postId] });
       await queryClient.cancelQueries({ queryKey: ['posts'] });
 
-      // 2. 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      // 'posts'로 시작하는 모든 쿼리를 가져옵니다.
       const postQueries = queryClient.getQueriesData<any>({ queryKey: ['posts'] });
       const previousPostsList = new Map<string, any>();
 
-      // 3. UI 낙관적 업데이트
       if (previousPost) {
         queryClient.setQueryData<PostWithDetails>(['post', postId], {
           ...previousPost,
@@ -148,10 +156,9 @@ export function useLikePost() {
           likeCount: previousPost.likeCount + 1,
         });
       }
-      // 모든 'posts' 쿼리 캐시를 순회하며 업데이트합니다.
       postQueries.forEach(([queryKey, data]) => {
         if (data && data.posts) {
-          previousPostsList.set(JSON.stringify(queryKey), data); // 롤백을 위해 이전 데이터 저장
+          previousPostsList.set(JSON.stringify(queryKey), data);
           const updatedData = {
             ...data,
             posts: data.posts.map((p: PostPreview) =>
@@ -162,7 +169,6 @@ export function useLikePost() {
         }
       });
 
-      // 4. 롤백을 위한 컨텍스트 반환
       return { previousPost, previousPostsList };
     },
     onSuccess: (data, postId) => {
@@ -171,7 +177,6 @@ export function useLikePost() {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
     onError: (error, postId, context) => {
-      // 5. 오류 발생 시 롤백
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
       }
