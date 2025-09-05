@@ -165,7 +165,14 @@ export async function uploadFile(file: File): Promise<string> {
 export async function searchPosts(params: PaginationParams & { keyword: string }): Promise<PostListResponse> {
   // '/posts/search' 엔드포인트를 사용합니다.
   const response = await api.get('/posts/search', { params });
-  return response.data;
+  // getPosts와 동일하게 데이터를 변환합니다.
+  const posts = response.data.posts.map((post: any) => ({
+    ...post,
+    photo: post.photoUrl || null, // photoUrl -> photo
+    authorProfilePicture: post.authorProfilePictureUrl || null, // authorProfilePictureUrl -> authorProfilePicture
+    createdDate: normalizeDate(post.createdDate),
+  }));
+  return { posts, totalPostCount: response.data.totalPostCount };
 }
 
 

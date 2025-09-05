@@ -215,7 +215,7 @@ function HomePageClientContent() {
         {/* 헤더 */}
         <div>
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-3">
-            egtronics 오늘의 게시판2
+            egtronics 오늘의 게시판
           </h1>
           <p className="text-lg text-gray-600">
             다양한 주제로 소통하고 정보를 나누는 공간입니다
@@ -234,7 +234,7 @@ function HomePageClientContent() {
                   handleSearch();
                 }
               }}
-              className="h-12 text-base pr-12"
+              className="force-h-12 text-base pr-12"
             />
             <Button
               type="button"
@@ -247,7 +247,7 @@ function HomePageClientContent() {
             value={sortCode}
             onValueChange={handleSortChange}
           >
-            <SelectTrigger className="w-full sm:w-40 h-12 text-base">
+            <SelectTrigger className="w-full sm:w-40 force-h-12 text-base flex items-center px-3">
               <SelectValue placeholder="정렬" />
             </SelectTrigger>
             <SelectContent>
