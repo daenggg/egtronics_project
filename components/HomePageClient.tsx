@@ -40,8 +40,8 @@ function HomePageClientContent() {
   const { data, isLoading, isError, error } = usePosts({
     page: Number(page),
     size: 12,
-    sortCode: Number(sortCode),
-    // category: category,
+    sortCode: Number(sortCode), // prettier-ignore
+    category: category ?? undefined,
     keyword: keyword,
   });
 

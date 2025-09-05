@@ -8,9 +8,11 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
 import { Sidebar } from "@/components/sidebar";
 import { ThemeProvider } from "next-themes";
+import { useSSE } from "@/hooks/use-sse";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
   const { isSidebarOpen } = useAuth();
+  useSSE(); // SSE 연결을 설정하는 훅 호출
 
   return (
     <>
