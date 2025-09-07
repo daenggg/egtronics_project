@@ -1,16 +1,30 @@
-// c:\Users\dywjd\Desktop\egtronics_project-YJ-25\lib\token-storage.ts
-
+const ACCESS_TOKEN_KEY = 'accessToken';
 const REFRESH_TOKEN_KEY = 'refreshToken';
 
 export class TokenStorage {
-  // Refresh Token 저장
+  // Access Token 저장
+  setAccessToken(token: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ACCESS_TOKEN_KEY, token);
+    }
+  }
+
+  // Access Token 가져오기
+  getAccessToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(ACCESS_TOKEN_KEY);
+    }
+    return null;
+  }
+
+  // Refresh Token 저장 (기존 코드)
   setRefreshToken(token: string): void {
     if (typeof window !== 'undefined') {
       localStorage.setItem(REFRESH_TOKEN_KEY, token);
     }
   }
 
-  // Refresh Token 가져오기
+  // Refresh Token 가져오기 (기존 코드)
   getRefreshToken(): string | null {
     if (typeof window !== 'undefined') {
       return localStorage.getItem(REFRESH_TOKEN_KEY);
@@ -18,9 +32,10 @@ export class TokenStorage {
     return null;
   }
 
-  // Refresh Token 삭제
-  removeRefreshToken(): void {
+  // 모든 토큰 삭제 (로그아웃 시 사용)
+  clearTokens(): void {
     if (typeof window !== 'undefined') {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
     }
   }

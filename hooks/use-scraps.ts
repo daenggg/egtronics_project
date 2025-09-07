@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   getMyScraps, 
@@ -7,51 +8,50 @@ import {
 } from '@/lib/api-client'
 import { Scrap, PostWithDetails, PostPreview } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
-import { useAuth } from '@/contexts/auth-context'
 
-// 내 스크랩 목록 조회 Hook
+// useMyScraps hook (no changes needed here)
 export function useMyScraps() {
   return useQuery<Scrap[]>({
-    // 백엔드 API가 페이지네이션을 지원하지 않으므로 파라미터 제거
     queryKey: ['my-scraps'],
     queryFn: getMyScraps,
-    staleTime: 2 * 60 * 1000, // 2분
+    staleTime: 2 * 60 * 1000,
   })
 }
 
-// 게시글 스크랩 Hook임
+// Post Scrap Hook
 export function useScrapPost() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   
-  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
+  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: { queryKey: any[], data: any }[] }>({
     mutationFn: (postId: string) => scrapPost(postId),
     onMutate: async (postId) => {
-      // 모든 관련 쿼리를 취소하여 충돌 방지
-      await queryClient.cancelQueries({ queryKey: ['post', postId] })
-      await queryClient.cancelQueries({ queryKey: ['posts'] })
+      await queryClient.cancelQueries({ queryKey: ['post', postId] });
+      const postQueries = queryClient.getQueriesData<any>({ queryKey: ['posts'] });
 
-      // 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
+      
+      // 👇 [FIX] Spread `queryKey` into a new mutable array `[...queryKey]`
+      const previousPosts = postQueries.map(([queryKey, data]) => ({ queryKey: [...queryKey], data }));
 
-      // 상세 페이지 캐시 낙관적 업데이트
+      // Optimistic update for the detail page
       if (previousPost) {
         queryClient.setQueryData<PostWithDetails>(['post', postId], {
           ...previousPost,
-          isBookmarked: true,
+          isScrapped: true,
         });
       }
 
-      // 목록 페이지 캐시 낙관적 업데이트
-      if (previousPosts) {
-        const updatedPosts = previousPosts.map(p => 
-          p.postId === Number(postId) ? { ...p, isBookmarked: true } : p
-        );
-        queryClient.setQueryData(['posts'], updatedPosts);
-      }
-
-      // 내 스크랩 목록은 즉시 무효화하여 최신 데이터로 갱신
+      // Optimistic update for list pages
+      postQueries.forEach(([queryKey, data]) => {
+        if (data && Array.isArray(data.posts)) {
+          const updatedPosts = data.posts.map((p: PostPreview) => 
+            p.postId === Number(postId) ? { ...p, isScrapped: true } : p
+          );
+          queryClient.setQueryData(queryKey, { ...data, posts: updatedPosts });
+        }
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['my-scraps'] });
       return { previousPost, previousPosts };
     },
@@ -63,52 +63,52 @@ export function useScrapPost() {
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
       }
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
-      }
+      context?.previousPosts?.forEach(({ queryKey, data }) => {
+        queryClient.setQueryData(queryKey, data);
+      });
       toast({
-        title: "오류",
+        title: "Error",
         description: handleApiError(error),
         variant: "destructive",
       })
     },
-    onSettled: () => {}
   })
 }
 
-// 게시글 스크랩 취소 Hook
+// Post Un-Scrap Hook
 export function useUnscrapPost() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   
-  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: PostPreview[] }>({
+  return useMutation<any, Error, string, { previousPost?: PostWithDetails, previousPosts?: { queryKey: any[], data: any }[] }>({
     mutationFn: (postId: string) => unscrapPost(postId),
     onMutate: async (postId) => {
-      // 모든 관련 쿼리를 취소하여 충돌 방지
-      await queryClient.cancelQueries({ queryKey: ['post', postId] })
-      await queryClient.cancelQueries({ queryKey: ['posts'] })
+      await queryClient.cancelQueries({ queryKey: ['post', postId] });
+      const postQueries = queryClient.getQueriesData<any>({ queryKey: ['posts'] });
 
-      // 이전 데이터 스냅샷
       const previousPost = queryClient.getQueryData<PostWithDetails>(['post', postId]);
-      const previousPosts = queryClient.getQueryData<PostPreview[]>(['posts']);
 
-      // 상세 페이지 캐시 낙관적 업데이트
+      // 👇 [FIX] Spread `queryKey` into a new mutable array `[...queryKey]`
+      const previousPosts = postQueries.map(([queryKey, data]) => ({ queryKey: [...queryKey], data }));
+
+      // Optimistic update for the detail page
       if (previousPost) {
         queryClient.setQueryData<PostWithDetails>(['post', postId], {
           ...previousPost,
-          isBookmarked: false,
+          isScrapped: false,
         });
       }
 
-      // 목록 페이지 캐시 낙관적 업데이트
-      if (previousPosts) {
-        const updatedPosts = previousPosts.map(p => 
-          p.postId === Number(postId) ? { ...p, isBookmarked: false } : p
-        );
-        queryClient.setQueryData(['posts'], updatedPosts);
-      }
-
-      // 내 스크랩 목록은 즉시 무효화하여 최신 데이터로 갱신
+      // Optimistic update for list pages
+      postQueries.forEach(([queryKey, data]) => {
+        if (data && Array.isArray(data.posts)) {
+          const updatedPosts = data.posts.map((p: PostPreview) => 
+            p.postId === Number(postId) ? { ...p, isScrapped: false } : p
+          );
+          queryClient.setQueryData(queryKey, { ...data, posts: updatedPosts });
+        }
+      });
+      
       queryClient.invalidateQueries({ queryKey: ['my-scraps'] });
       return { previousPost, previousPosts };
     },
@@ -120,20 +120,19 @@ export function useUnscrapPost() {
       if (context?.previousPost) {
         queryClient.setQueryData(['post', postId], context.previousPost);
       }
-      if (context?.previousPosts) {
-        queryClient.setQueryData(['posts'], context.previousPosts);
-      }
+      context?.previousPosts?.forEach(({ queryKey, data }) => {
+        queryClient.setQueryData(queryKey, data);
+      });
       toast({
-        title: "오류",
+        title: "Error",
         description: handleApiError(error),
         variant: "destructive",
       })
     },
-    onSettled: () => {}
   })
 }
 
-// 스크랩 토글 Hook
+// Toggle Scrap Hook (no changes needed here)
 export function useToggleScrap() {
   const scrapMutation = useScrapPost()
   const unscrapMutation = useUnscrapPost()

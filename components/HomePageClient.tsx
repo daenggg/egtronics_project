@@ -37,13 +37,13 @@ function HomePageClientContent() {
   const [searchInputValue, setSearchInputValue] = useState(keyword);
 
   // API 호출을 위한 usePosts 훅
-  const { data, isLoading, isError, error } = usePosts({
-    page: Number(page),
-    size: 12,
-    sortCode: Number(sortCode), // prettier-ignore
-    category: category ?? undefined,
-    keyword: keyword,
-  });
+const { data, isLoading, isError, error } = usePosts({
+  page: Number(page),
+  size: 12,
+  sortCode: Number(sortCode),
+  categoryId: category ? Number(category) : undefined,
+  keyword: keyword,
+});
 
   // 검색 실행 핸들러
   const handleSearch = () => {

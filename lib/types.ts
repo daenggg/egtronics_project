@@ -3,13 +3,13 @@
  */
 export interface User {
   userId: string;
-  password?: string; // 보안상 클라이언트로 내려주지 않는 것이 일반적입니다.
+  password?: string;
   email: string;
   name: string;
   phoneNumber: string;
   nickname: string;
   authority: string;
-  createdDate: string; // ISO 8601 형식의 문자열 (e.g., "2025-08-27T14:30:00.000Z")
+  createdDate: string;
   profilePicture?: string | null;
 }
 
@@ -67,10 +67,10 @@ export interface PostWithDetails extends Post {
   comments?: CommentWithDetails[];
   // 현재 로그인한 사용자의 좋아요/스크랩 여부 (서버에서 계산)
   isLiked?: boolean;
-  isBookmarked?: boolean;
-  reportCount?: number; // 신고 횟수
-  reportedByCurrentUser?: boolean; // 신고 여부
-  isMine?: boolean; // 내가 쓴 게시물인지 여부
+  isScrapped?: boolean; // [수정] isBookmarked -> isScrapped 로 이름 통일
+  reportCount?: number;
+  reportedByCurrentUser?: boolean;
+  isAuthor?: boolean; // [수정] isMine -> isAuthor 로 이름 통일
 }
 
 /**
@@ -89,12 +89,10 @@ export interface PostPreview {
   categoryName: string;
   photo: string | null;
   commentCount?: number;
-  authorProfilePicture?: string | null; // 작성자 프로필 사진
-  reportCount?: number; // 신고 횟수
-
-  // 낙관적 업데이트를 위한 속성 추가
+  authorProfilePicture?: string | null;
+  reportCount?: number;
   isLiked?: boolean;
-  isBookmarked?: boolean;
+  isScrapped?: boolean; // [수정] isBookmarked -> isScrapped 로 이름 통일
 }
 
 export interface CommentWithDetails extends Comment {
@@ -103,9 +101,8 @@ export interface CommentWithDetails extends Comment {
     nickname: string;
     profilePicture?: string | null;
   };
-  // 현재 로그인한 사용자의 좋아요 여부 (서버에서 계산)
   isLiked?: boolean;
-  isMine?: boolean; // 내가 쓴 댓글인지 여부
+  isAuthor?: boolean; // [수정] isMine -> isAuthor 로 이름 통일
 }
 
 // --- API 요청/응답 타입 ---
@@ -153,8 +150,6 @@ export interface ReportPostRequest {
 export interface Notification {
   notificationId: number;
   userId: string;
-  // 알림 종류에 따라 postId, commentId 등이 있을 수 있습니다.
-  // 백엔드 응답에 따라 optional (?) 처리하거나 타입을 확장해야 합니다.
   postId?: number | null;
   commentId?: number | null;
   postLikeId?: number | null;
@@ -190,9 +185,8 @@ export interface MyComment {
 export interface PaginationParams {
   page?: number;
   size?: number;
-  category?: string;
-  sortCode?: number; // 'latest', 'popular', 'views' 대신 sortCode 사용
-  q?: string; // 검색 쿼리
+  categoryId?: number;
+  sortCode?: number;
   keyword?: string;
 }
 
@@ -203,4 +197,10 @@ export interface LikeResponse {
 
 export interface UnreadCountResponse {
   unreadCount: number;
+}
+
+// [추가] JWT 토큰 타입을 명시적으로 정의
+export interface JwtToken {
+  accessToken: string;
+  refreshToken: string;
 }
