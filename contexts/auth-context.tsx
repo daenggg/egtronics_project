@@ -1,25 +1,24 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { userStorage } from '@/lib/auth-storage'
-import { tokenStorage } from '@/lib/token-storage'
+// ⛔️ 더 이상 토큰을 직접 저장하지 않으므로 tokenStorage import를 제거합니다.
+// import { tokenStorage } from '@/lib/token-storage' 
 import {
   login as apiLogin,
   signUp as apiRegister,
   logout as apiLogout,
   updateMyProfile as apiUpdateMyProfile,
-  setAccessTokenInClient,
   checkIdAvailability,
   getMyProfile as apiGetMyProfile,
   handleApiError,
 } from '@/lib/api-client'
 import { User } from '@/lib/types'
 
-// Context에 제공될 값들의 타입 정의
+// Context 타입 정의는 변경 없음
 interface AuthContextType {
   user: User | null
-  setUser: React.Dispatch<React.SetStateAction<User | null>>
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   login: (userId: string, password: string) => Promise<void>
   register: (data: FormData) => Promise<void>
   logout: () => void
@@ -29,43 +28,32 @@ interface AuthContextType {
   toggleSidebar: () => void
 }
 
-// Context 생성
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Provider 컴포넌트
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const queryClient = useQueryClient();
 
+  // ★★★ 초기 인증 로직 수정
   useEffect(() => {
     const initializeAuth = async () => {
-      // 1. localStorage에서 Access Token과 Refresh Token을 확인
-      const accessToken = tokenStorage.getAccessToken();
-      const refreshToken = tokenStorage.getRefreshToken();
-
-      if (accessToken) { // Access Token이 있으면 API 클라이언트에 설정
-        setAccessTokenInClient(accessToken);
-      }
-
-      if (!refreshToken) { // Refresh Token이 없으면 비로그인으로 확정
-        setLoading(false);
-        return;
-      }
-      
-      // 4. 토큰 유효성 검증을 위해 프로필 정보를 요청
-      // (accessToken이 만료 시, api-client의 인터셉터가 refreshToken으로 재발급 시도)
       try {
+        // 1. [CSRF 해결] 앱 시작 시, 인증이 필요 없는 API를 먼저 호출하여
+        //    백엔드로부터 CSRF 토큰(XSRF-TOKEN)을 쿠키로 받아옵니다.
+        //    이 "warm-up" 호출이 없으면, 로그인/회원가입 등 첫 POST 요청이 403 오류를 반환할 수 있습니다.
+        await checkIdAvailability('__warmup__');
+
+        // 2. localStorage에서 토큰을 확인하는 대신, 바로 내 프로필 정보를 요청합니다.
+        //    이때 브라우저는 유효한 HttpOnly 세션 쿠키가 있다면 자동으로 함께 보냅니다.
         const userProfile = await apiGetMyProfile();
         setUser(userProfile);
-        userStorage.setUser(userProfile);
+        userStorage.setUser(userProfile); // UI 깜빡임 방지용 캐시는 계속 사용
       } catch (error) {
-        // 5. 유효성 검증 실패 시 (e.g., Refresh Token 만료) 모든 정보 정리
+        // 3. 쿠키가 없거나 만료되어 프로필 조회에 실패하면 (정상적인 비로그인 상태),
+        //    모든 로컬 정보를 깨끗하게 정리합니다.
         setUser(null);
         userStorage.removeUser();
-        tokenStorage.clearTokens(); // Access, Refresh 토큰 모두 삭제
-        setAccessTokenInClient(null);
       } finally {
         setLoading(false);
       }
@@ -73,30 +61,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
   }, []); // 앱 시작 시 한 번만 실행
 
+  // ★★★ 로그인 함수 수정
   const login = async (userId: string, password: string) => {
     try {
-      const receivedTokens = await apiLogin({ userId, password });
+      // 1. 로그인 API 호출. 백엔드가 응답으로 HttpOnly 쿠키를 설정해줍니다.
+      //    apiLogin 함수는 이제 토큰 대신 사용자 정보를 반환합니다. (api-client.ts 수정 내용)
+      await apiLogin({ userId, password, clientType: 0 }); // clientType: 0은 웹을 의미
 
-      // 👇 [수정] Access Token과 Refresh Token을 모두 localStorage에 저장
-      tokenStorage.setAccessToken(receivedTokens.accessToken);
-      tokenStorage.setRefreshToken(receivedTokens.refreshToken);
-      
-      // API 클라이언트의 헤더에도 Access Token을 설정
-      setAccessTokenInClient(receivedTokens.accessToken);
-
+      // 2. 쿠키가 성공적으로 설정되었으므로, 내 프로필 정보를 다시 가져와 상태를 업데이트합니다.
       const userProfile = await apiGetMyProfile();
       setUser(userProfile);
       userStorage.setUser(userProfile);
+
+      // ⛔️ 프론트엔드에서 토큰을 저장하는 코드는 모두 삭제합니다.
+      // const tokenData = await apiLogin(...);
+      // tokenStorage.setAccessToken(tokenData.accessToken);
+      // tokenStorage.setRefreshToken(tokenData.refreshToken);
+
     } catch (error: any) {
       console.error('로그인 오류:', error.response?.data || error.message);
       setUser(null);
       userStorage.removeUser();
-      tokenStorage.clearTokens();
-      setAccessTokenInClient(null);
       throw new Error(error.response?.data?.message || '로그인에 실패했습니다.');
     }
   }
 
+  // 회원가입 함수는 변경 없음
   const register = async (data: FormData) => {
     try {
       await apiRegister(data);
@@ -106,31 +96,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // ★★★ 로그아웃 함수 수정
   const logout = async () => {
     try {
+      // 1. 서버에 로그아웃을 요청하여 HttpOnly 쿠키를 무효화(삭제)하도록 합니다.
       await apiLogout();
     } catch (error: any) {
       console.error('로그아웃 오류:', error.response?.data || error.message);
     } finally {
+      // 2. 프론트엔드의 상태와 캐시를 정리합니다.
       setUser(null);
       userStorage.removeUser();
-      // 👇 [수정] 모든 토큰을 삭제하는 clearTokens() 호출
-      tokenStorage.clearTokens(); 
-      setAccessTokenInClient(null);
+      // ⛔️ tokenStorage 정리 코드는 더 이상 필요 없습니다.
+      // tokenStorage.clearTokens();
     }
   }
 
-  const updateUserInfo = useCallback(async (userData: FormData) => {
+  // 정보 수정 함수는 로직 변경 없음 (이미 인증된 세션을 기반으로 동작)
+  const updateUserInfo = async (userData: FormData) => {
     try {
       await apiUpdateMyProfile(userData);
       const updatedUser = await apiGetMyProfile();
       setUser(updatedUser);
       userStorage.setUser(updatedUser);
-      queryClient.invalidateQueries({ queryKey: ['my-profile'] });
     } catch (error: any) {
+      console.error('정보 수정 오류:', error.response?.data || error.message)
       throw new Error(handleApiError(error));
     }
-  }, [queryClient]);
+  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev)
@@ -155,7 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// Context를 사용하기 위한 커스텀 훅
+// 커스텀 훅은 변경 없음
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {

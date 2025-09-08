@@ -185,7 +185,7 @@ export interface MyComment {
 export interface PaginationParams {
   page?: number;
   size?: number;
-  categoryId?: number;
+  category?: number; // 백엔드와 일치하도록 'category'로 수정
   sortCode?: number;
   keyword?: string;
 }

@@ -69,7 +69,8 @@ function CreatePostForm() {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
-    formData.append("categoryId", String(categoryId));
+    // 백엔드에서 'category' 파라미터를 기대하므로 키 이름을 수정합니다.
+    formData.append("category", String(categoryId));
 
     // 사용자가 사진 파일을 첨부한 경우에만 'photo' 필드를 FormData에 추가합니다.
     if (media.length > 0 && media[0].file) {

@@ -1,12 +1,12 @@
 import axios, { AxiosError } from 'axios';
-import { tokenStorage } from '@/lib/token-storage';
 import {
   PostWithDetails, CreatePostRequest, UpdatePostRequest, PostListResponse, PostPreview, MyComment,
   Comment, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, CommentListResponse, LikeResponse, PaginationParams, ReportPostRequest,
   Scrap, Notification, UnreadCountResponse,
-  User
+  User,
 } from './types';
 
+// 날짜 포맷을 정규화하는 유틸리티 함수 (변경 없음)
 function normalizeDate(dateInput: any): string {
   if (dateInput === null || typeof dateInput === 'undefined') {
     return '';
@@ -19,34 +19,37 @@ function normalizeDate(dateInput: any): string {
   return String(dateInput);
 }
 
+// ★★★ CSRF 토큰을 쿠키에서 읽어오기 위한 헬퍼 함수
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
+  return null;
+}
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.172:8080';
 
-export interface JwtToken {
-  accessToken: string;
-  refreshToken: string;
-}
-
-// axios 인스턴스 생성 (쿠키 관련 옵션 모두 제거)
 const apiClient = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
 });
 
-// Access Token을 axios 기본 헤더에 설정하거나 제거하는 함수
-export function setAccessTokenInClient(token: string | null) {
-  if (token) {
-    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  } else {
-    delete apiClient.defaults.headers.common['Authorization'];
-  }
-}
-
-// 요청 인터셉터: 매 요청 시 최신 accessToken을 Authorization 헤더에 자동 삽입
+// ★★★ 요청 인터셉터 (Request Interceptor) 수정 - CSRF 403 오류 해결
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = tokenStorage.getAccessToken(); // localStorage에서 Access Token 사용
-    if (accessToken) {
-      config.headers['Authorization'] = `Bearer ${accessToken}`;
+    // 1. 쿠키에서 XSRF-TOKEN 값을 읽어옵니다.
+    const csrfToken = getCookie('XSRF-TOKEN');
+    
+    // 2. 토큰이 있고, 데이터 변경 요청(POST, PUT 등)일 경우 X-XSRF-TOKEN 헤더를 자동으로 설정합니다.
+    //    이것이 403 Forbidden 오류를 해결하는 핵심입니다.
+    if (csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method?.toUpperCase() || '')) {
+      config.headers['X-XSRF-TOKEN'] = csrfToken;
     }
+
+    // ⛔️ Authorization 헤더를 수동으로 설정하는 로직은 HttpOnly 쿠키 방식이므로 필요 없습니다.
+
+    // FormData가 아닌 경우 Content-Type 설정은 유지합니다.
     if (!(config.data instanceof FormData)) {
       config.headers['Content-Type'] = 'application/json';
     }
@@ -55,40 +58,40 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
-// 응답 인터셉터: 401 Unauthorized 시 refreshToken으로 accessToken 재발급 시도
+// ★★★ 응답 인터셉터 (Response Interceptor) - HttpOnly 쿠키 방식에 맞게 간소화
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<any>) => {
     const originalRequest: any = error.config;
+
+    // 401 에러이고, 재시도한 요청이 아닐 경우
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post<JwtToken>(`${API_BASE}/auth/refresh`, { refreshToken });
-          tokenStorage.setAccessToken(data.accessToken); // 재발급 받은 토큰을 localStorage에 저장
-          tokenStorage.setRefreshToken(data.refreshToken);
-          setAccessTokenInClient(data.accessToken);
-          originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
-          return apiClient(originalRequest);
-        } catch {
-          tokenStorage.clearTokens();
-          setAccessTokenInClient(null);
-          // MPA 방식의 페이지 이동 대신, SPA 흐름을 유지하기 위해 커스텀 이벤트를 발생시킵니다.
-          window.dispatchEvent(new Event('auth-error'));
-          return Promise.reject(error);
-        }
-      } else {
-        // Refresh Token이 없는 경우에도 동일하게 처리합니다.
+
+      try {
+        // 브라우저가 /auth/reissue 요청 시 자동으로 HttpOnly refreshToken 쿠키를 실어 보냅니다.
+        await apiClient.post(`${API_BASE}/auth/reissue`);
+
+        // 재발급 성공 시, 서버가 Set-Cookie 헤더로 새로운 토큰 쿠키들을 보내주고
+        // 브라우저가 자동으로 쿠키를 교체합니다.
+        
+        // 원래 실패했던 요청을 그대로 다시 실행합니다.
+        return apiClient(originalRequest);
+        
+      } catch (reissueError) {
+        // 재발급 실패 시 로그아웃 처리
+        console.error("Session expired, logging out.");
         window.dispatchEvent(new Event('auth-error'));
+        return Promise.reject(reissueError);
       }
     }
+
     return Promise.reject(error);
-  },
+  }
 );
 
 // ==========================
-// 기존 API 함수들 (변경 없음)
+// API 함수들 (대부분 변경 없음)
 // ==========================
 
 export async function getPosts(params: PaginationParams = {}): Promise<PostListResponse> {
@@ -203,11 +206,10 @@ export async function signUp(payload: FormData): Promise<string> {
   return data;
 }
 
-export async function login(payload: { userId: string; password: string }): Promise<JwtToken> {
-  const { data } = await apiClient.post<JwtToken>('/auth/login', payload);
-  tokenStorage.setAccessToken(data.accessToken);
-  tokenStorage.setRefreshToken(data.refreshToken);
-  setAccessTokenInClient(data.accessToken);
+// ★★★ 로그인 함수의 반환 타입 변경
+// 백엔드가 응답 본문에 토큰 대신 사용자 정보를 포함하므로, 반환 타입을 User로 변경합니다.
+export async function login(payload: { userId: string; password: string; clientType: number }): Promise<User> {
+  const { data } = await apiClient.post<User>('/auth/login', payload);
   return data;
 }
 

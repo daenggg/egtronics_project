@@ -53,7 +53,8 @@ export default function EditPostPage() {
     const formData = new FormData();
     formData.append("title", data.title);
     formData.append("content", data.content);
-    formData.append("categoryId", data.categoryId);
+    // 백엔드에서 'category' 파라미터를 기대하므로 키 이름을 수정합니다.
+    formData.append("category", data.categoryId);
 
     // 새 파일이 업로드된 경우에만 form-data에 추가
     if (mediaFiles.length > 0) {
