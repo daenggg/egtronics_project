@@ -47,21 +47,21 @@ export function Sidebar() {
           <Card className="glass-effect border-0 shadow-lg">
             <CardContent className="p-4 flex flex-col gap-4">
               {user ? (
-                  <Link href="/profile" className="flex items-center gap-4 w-full" onClick={toggleSidebar}>
-                    <Avatar className="h-12 w-12 ring-2 ring-blue-200">
-                      <AvatarImage
-                        src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
-                        alt={user.name || user.nickname}
-                      />
-                      <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                        {user.nickname.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 overflow-hidden">
-                      <p className="font-semibold text-gray-900 truncate">{user.nickname}</p>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                    </div>
-                  </Link>
+                <Link href="/profile" className="flex items-center gap-4 w-full" onClick={toggleSidebar}>
+                  <Avatar className="h-12 w-12 ring-2 ring-blue-200">
+                    <AvatarImage
+                      src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
+                      alt={user.name || user.nickname}
+                    />
+                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                      {user.nickname.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 overflow-hidden">
+                    <p className="font-semibold text-gray-900 truncate">{user.nickname}</p>
+                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                  </div>
+                </Link>
               ) : (
                 <p className="text-sm text-center text-gray-600">로그인하고 모든 기능을 이용해보세요.</p>
               )}

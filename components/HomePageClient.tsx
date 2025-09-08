@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // prettier-ignore
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Eye, Heart, MessageCircle, Search } from "lucide-react";
@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-function HomePageClientContent() {
+function HomePageClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -278,16 +278,16 @@ const { data, isLoading, isError, error } = usePosts({
   );
 }
 
-export default function HomePageClient() {
+export default function HomePageClientWrapper() {
   return (
     <Suspense
       fallback={
         <div className="container mx-auto px-4 py-8">
-          <p className="text-center">게시판을 불러오는 중입니다...</p>
+          <p className="text-center">게시판을 불러오는 중입니다...</p> {/* You can replace this with a proper Skeleton component */}
         </div>
       }
     >
-      <HomePageClientContent />
+      <HomePageClient />
     </Suspense>
   );
 }

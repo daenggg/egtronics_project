@@ -24,7 +24,7 @@ import { formatDynamicDate } from "@/lib/utils";
 import { API_BASE } from "@/lib/api-client";
 
 export default function ProfilePage() {
-  const { user, updateUserInfo } = useAuth();
+  const { user, updateUserInfo, loading: authLoading } = useAuth(); // ✅ 1. auth-context의 loading 상태 가져오기
   const { toast } = useToast();
   const router = useRouter();
 
@@ -145,7 +145,33 @@ export default function ProfilePage() {
     </div>
   );
 
-  if (!user) {
+  // ✅ 2. 인증 로딩 중일 때 스켈레톤 UI 표시
+  if (authLoading) {
+    return (
+      <div className="bg-slate-50/50 min-h-screen">
+        <div className="container mx-auto px-4 py-8 md:py-12 max-w-4xl">
+          <Skeleton className="h-10 w-48 mb-8" />
+          <Card className="mb-10 glass-effect border-0 shadow-2xl overflow-hidden">
+            <CardHeader>
+              <Skeleton className="h-8 w-32" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:gap-8">
+                <Skeleton className="h-24 w-24 rounded-full" />
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full">
+                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Skeleton className="h-12 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ 3. 로딩이 끝났는데 user가 없을 경우 비회원 UI 표시
+  if (!authLoading && !user) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50">
         <Card className="text-center p-8 glass-effect border-0 shadow-xl w-full max-w-sm">
@@ -195,10 +221,10 @@ export default function ProfilePage() {
                 <Avatar className="h-24 w-24 cursor-pointer border-2 border-white shadow-lg">
                   <AvatarImage
                     src={profilePicture ? (profilePicture.startsWith('blob:') ? profilePicture : `${API_BASE}${profilePicture}`) : "/images.png"}
-                    alt={user.name}
+                    alt={user?.name || 'User'}
                   />
                   <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-400 to-purple-500 text-white">
-                    {user.nickname.charAt(0)}
+                    {user?.nickname?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 {isEditing && (
@@ -231,11 +257,11 @@ export default function ProfilePage() {
                     </div>
                     <div className="space-y-2 text-left">
                       <Label htmlFor="email">이메일</Label>
-                      <Input id="email" value={user.email || ""} disabled />
+                      <Input id="email" value={user?.email || ""} disabled />
                     </div>
                     <div className="space-y-2 text-left">
                       <Label htmlFor="userId">아이디</Label>
-                      <Input id="userId" value={user.userId || ""} disabled />
+                      <Input id="userId" value={user?.userId || ""} disabled />
                     </div>
                     <div className="space-y-2 text-left">
                       <Label htmlFor="phoneNumber">전화번호</Label>
@@ -257,8 +283,8 @@ export default function ProfilePage() {
                   <>
                     <ProfileInfoItem label="닉네임" value={nickname} />
                     <ProfileInfoItem label="이름" value={name} />
-                    <ProfileInfoItem label="이메일" value={user.email} />
-                    <ProfileInfoItem label="아이디" value={user.userId} />
+                    <ProfileInfoItem label="이메일" value={user?.email || ''} />
+                    <ProfileInfoItem label="아이디" value={user?.userId || ''} />
                     <ProfileInfoItem label="전화번호" value={phoneNumber} />
                     <ProfileInfoItem label="비밀번호" value="********" />
                   </>
@@ -322,9 +348,11 @@ export default function ProfilePage() {
                       </div>
                       <h3 className="font-bold text-lg">아직 작성한 게시글이 없어요</h3>
                       <p className="text-gray-500 mt-1">첫 게시글을 작성하고 사람들과 소통해보세요!</p>
-                      <Button onClick={() => router.push('/posts/create')} className="mt-6">
-                        <PlusCircle className="h-4 w-4 mr-2" />
-                        게시글 작성하기
+                      <Button asChild className="mt-6">
+                        <Link href="/posts/create">
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          게시글 작성하기
+                        </Link>
                       </Button>
                     </CardContent>
                   </Card>

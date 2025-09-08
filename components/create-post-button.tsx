@@ -10,7 +10,8 @@ export function CreatePostButton() {
 
   if (!user) {
     return (
-      <Button asChild variant="outline" className="hover:bg-blue-50 border-blue-200 text-blue-600">
+      <Button asChild variant="outline" className="hover:bg-blue-50 border-blue-200 text-blue-600"
+      >
         <Link href="/login">로그인 후 글쓰기</Link>
       </Button>
     )

@@ -123,7 +123,8 @@ export function useLikePost() {
       });
       return { previousPost, previousPostsList };
     },
-    onSuccess: (_, postId) => {
+    onSuccess: (_, postId, context) => {
+      toast({ description: "게시글에 좋아요를 눌렀습니다." });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
@@ -163,7 +164,8 @@ export function useUnlikePost() {
       });
       return { previousPost, previousPostsList };
     },
-    onSuccess: (_, postId) => {
+    onSuccess: (_, postId, context) => {
+      toast({ description: "좋아요를 취소했습니다." });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },

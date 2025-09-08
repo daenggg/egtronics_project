@@ -51,19 +51,19 @@ export function Header() {
           >
             <GradientMenuIcon />
           </Button>
-          <a
+          <Link
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
             홈으로
-          </a>
+          </Link>
         </div>
 
         <nav className="flex items-center space-x-2 sm:space-x-4">
           {user ? (
             <>
               {/* 알림 */}
-              <Link href="/notifications" className="relative">
+              <Link href="/notifications" passHref legacyBehavior>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -137,13 +137,14 @@ export function Header() {
             </>
           ) : (
             <div className="flex space-x-2">
-              <Button variant="ghost" asChild className="hover:bg-blue-50">
+              <Button
+                variant="ghost"
+                asChild
+                className="hover:bg-blue-50"
+              >
                 <Link href="/login">로그인</Link>
               </Button>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
-              >
+              <Button asChild className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg">
                 <Link href="/register">회원가입</Link>
               </Button>
             </div>

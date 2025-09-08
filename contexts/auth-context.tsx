@@ -45,11 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const accessToken = tokenStorage.getAccessToken();
       const refreshToken = tokenStorage.getRefreshToken();
 
-      if (accessToken) {
-        // 2. Access Token이 있으면, 우선 로그인 상태로 간주하고 API 클라이언트에 설정
+      if (accessToken) { // Access Token이 있으면 API 클라이언트에 설정
         setAccessTokenInClient(accessToken);
-      } else if (!refreshToken) {
-        // 3. 두 토큰이 모두 없으면 비로그인으로 확정
+      }
+
+      if (!refreshToken) { // Refresh Token이 없으면 비로그인으로 확정
         setLoading(false);
         return;
       }

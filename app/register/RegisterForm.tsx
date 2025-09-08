@@ -660,8 +660,10 @@ export default function RegisterForm() {
 
               {/* 로그인 링크 */}
               <div className="mt-6 text-center text-sm">
-                <span className="text-gray-600">이미 계정이 있으신가요? </span>
-                <Link href="/login" className="text-blue-600 hover:underline">
+                <span className="text-gray-600">이미 계정이 있으신가요? </span><Link
+                  href="/login"
+                  className="text-blue-600 hover:underline"
+                >
                   로그인하기
                 </Link>
               </div>

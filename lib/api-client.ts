@@ -19,7 +19,7 @@ function normalizeDate(dateInput: any): string {
   return String(dateInput);
 }
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.172:8080';
 
 export interface JwtToken {
   accessToken: string;
@@ -43,7 +43,7 @@ export function setAccessTokenInClient(token: string | null) {
 // 요청 인터셉터: 매 요청 시 최신 accessToken을 Authorization 헤더에 자동 삽입
 apiClient.interceptors.request.use(
   (config) => {
-    const accessToken = tokenStorage.getAccessToken();
+    const accessToken = tokenStorage.getAccessToken(); // localStorage에서 Access Token 사용
     if (accessToken) {
       config.headers['Authorization'] = `Bearer ${accessToken}`;
     }
@@ -66,7 +66,7 @@ apiClient.interceptors.response.use(
       if (refreshToken) {
         try {
           const { data } = await axios.post<JwtToken>(`${API_BASE}/auth/refresh`, { refreshToken });
-          tokenStorage.setAccessToken(data.accessToken);
+          tokenStorage.setAccessToken(data.accessToken); // 재발급 받은 토큰을 localStorage에 저장
           tokenStorage.setRefreshToken(data.refreshToken);
           setAccessTokenInClient(data.accessToken);
           originalRequest.headers['Authorization'] = `Bearer ${data.accessToken}`;
@@ -74,11 +74,13 @@ apiClient.interceptors.response.use(
         } catch {
           tokenStorage.clearTokens();
           setAccessTokenInClient(null);
-          window.location.href = '/login';
+          // MPA 방식의 페이지 이동 대신, SPA 흐름을 유지하기 위해 커스텀 이벤트를 발생시킵니다.
+          window.dispatchEvent(new Event('auth-error'));
           return Promise.reject(error);
         }
       } else {
-        window.location.href = '/login';
+        // Refresh Token이 없는 경우에도 동일하게 처리합니다.
+        window.dispatchEvent(new Event('auth-error'));
       }
     }
     return Promise.reject(error);

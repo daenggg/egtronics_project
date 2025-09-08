@@ -2,7 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,8 +11,20 @@ import { ThemeProvider } from "next-themes";
 import { useSSE } from "@/hooks/use-sse";
 
 function AppLayout({ children }: { children: React.ReactNode }) {
-  const { isSidebarOpen } = useAuth();
+  const { isSidebarOpen, logout } = useAuth();
   useSSE(); // SSE 연결을 설정하는 훅 호출
+
+  useEffect(() => {
+    const handleAuthError = () => {
+      // api-client에서 발생한 인증 오류를 감지하면 로그아웃 처리
+      logout();
+    };
+
+    window.addEventListener('auth-error', handleAuthError);
+    return () => {
+      window.removeEventListener('auth-error', handleAuthError);
+    };
+  }, [logout]);
 
   return (
     <>
