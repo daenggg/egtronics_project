@@ -23,14 +23,14 @@ function normalizeDate(dateInput: any): string {
 // ⛔️ 이 상수는 더 이상 직접 사용하지 않습니다. next.config.js의 rewrites가 이 역할을 대신합니다.
 // export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.172:8080';
 // ✅ API 요청의 기본 경로를 /api로 설정하여 항상 Next.js의 rewrites 프록시를 통하도록 합니다.
-// export const API_BASE = '/api';
-export const API_BASE = 'http://192.168.0.172:8080';
+export const API_BASE = '/api';
+// export const API_BASE = 'http://192.168.0.172:8080';
 
 const apiClient = axios.create({
   baseURL: API_BASE, // '/api'
   withCredentials: true, // 요청 시 쿠키를 포함시킵니다.
-  xsrfCookieName: 'XSRF-TOKEN', // 서버가 생성해주는 CSRF 토큰 쿠키의 이름입니다.
-  xsrfHeaderName: 'X-XSRF-TOKEN', // CSRF 토큰을 전송할 때 사용할 요청 헤더의 이름입니다.
+//   xsrfCookieName: 'XSRF-TOKEN', // 서버가 생성해주는 CSRF 토큰 쿠키의 이름입니다.
+//   xsrfHeaderName: 'X-XSRF-TOKEN', // CSRF 토큰을 전송할 때 사용할 요청 헤더의 이름입니다.
 });
 
 // ★★★ 요청 인터셉터 (Request Interceptor) 수정 - CSRF 403 오류 해결

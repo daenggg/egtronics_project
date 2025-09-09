@@ -16,15 +16,15 @@ const nextConfig = {
     unoptimized: true,
   },
 
-//   // 가장 중요한 API 프록시 설정
-//   async rewrites() {
-//     return [
-//       {
-//         source: "/api/:path*",
-//         destination: 'http://192.168.0.172:8080/:path*',
-//       },
-//     ];
-//   },
+  // 가장 중요한 API 프록시 설정
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: 'http://192.168.0.172:8080/:path*',
+      },
+    ];
+  },
  };
 
 module.exports = nextConfig;
