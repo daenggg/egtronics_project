@@ -31,23 +31,28 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  // 1. userStorage에서 초기 사용자 정보를 동기적으로 가져와 상태를 초기화합니다.
+  const [user, setUser] = useState<User | null>(() => userStorage.getUser());
   const [loading, setLoading] = useState(true)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // ★★★ 초기 인증 로직 수정
 useEffect(() => {
     const initializeAuth = async () => {
+      // 2. localStorage에 사용자 정보가 있다면, 최신 정보로 업데이트를 시도합니다.
       try {
         // ⛔️ CSRF 토큰을 받기 위한 불필요한 warm-up 호출을 삭제합니다.
         // await checkIdAvailability('__warmup__');
 
         // 바로 내 프로필 정보를 요청해서 세션 유효 여부를 확인합니다.
         const userProfile = await apiGetMyProfile();
+        // 3. 성공 시, 최신 정보로 상태와 localStorage를 업데이트합니다.
         setUser(userProfile);
         userStorage.setUser(userProfile); 
       } catch (error) {
-        // 프로필 조회 실패 시 (비로그인 상태) 로컬 정보를 정리합니다.
+        // 4. 실패 시 (토큰 만료 등), 비로그인 상태로 처리하고 로컬 정보를 정리합니다.
+        //    이때, 이미 localStorage에서 읽어온 초기 user 정보가 있으므로,
+        //    사용자는 잠시 이전 정보를 보다가 비로그인 상태로 전환됩니다.
         setUser(null);
         userStorage.removeUser();
       } finally {

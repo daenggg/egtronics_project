@@ -20,10 +20,13 @@ function normalizeDate(dateInput: any): string {
 }
 
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.172:8080';
+// ⛔️ 이 상수는 더 이상 직접 사용하지 않습니다. next.config.js의 rewrites가 이 역할을 대신합니다.
+// export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://192.168.0.172:8080';
+// ✅ API 요청의 기본 경로를 /api로 설정하여 항상 Next.js의 rewrites 프록시를 통하도록 합니다.
+export const API_BASE = '/api';
 
 const apiClient = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE, // '/api'
   withCredentials: true, // 요청 시 쿠키를 포함시킵니다.
   xsrfCookieName: 'XSRF-TOKEN', // 서버가 생성해주는 CSRF 토큰 쿠키의 이름입니다.
   xsrfHeaderName: 'X-XSRF-TOKEN', // CSRF 토큰을 전송할 때 사용할 요청 헤더의 이름입니다.
@@ -52,7 +55,9 @@ apiClient.interceptors.response.use(
 
       try {
         // 브라우저가 /auth/reissue 요청 시 자동으로 HttpOnly refreshToken 쿠키를 실어 보냅니다.
-        await apiClient.post(`${API_BASE}/auth/reissue`);
+        // ⛔️ baseURL이 /api로 설정되었으므로, 전체 URL을 사용할 필요가 없습니다.
+        // await apiClient.post(`${API_BASE}/auth/reissue`);
+        await apiClient.post('/auth/reissue');
 
         // 재발급 성공 시, 서버가 Set-Cookie 헤더로 새로운 토큰 쿠키들을 보내주고
         // 브라우저가 자동으로 쿠키를 교체합니다.
