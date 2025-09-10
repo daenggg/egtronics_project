@@ -27,10 +27,10 @@ export const API_BASE = '/api';
 // export const API_BASE = 'http://192.168.0.172:8080';
 
 const apiClient = axios.create({
-  baseURL: API_BASE, // '/api'
-  withCredentials: true, // 요청 시 쿠키를 포함시킵니다.
-//   xsrfCookieName: 'XSRF-TOKEN', // 서버가 생성해주는 CSRF 토큰 쿠키의 이름입니다.
-//   xsrfHeaderName: 'X-XSRF-TOKEN', // CSRF 토큰을 전송할 때 사용할 요청 헤더의 이름입니다.
+  baseURL: API_BASE, // '/api'
+  withCredentials: true, // 요청 시 쿠키를 포함시킵니다.
+  //   xsrfCookieName: 'XSRF-TOKEN', // 서버가 생성해주는 CSRF 토큰 쿠키의 이름입니다.
+  //   xsrfHeaderName: 'X-XSRF-TOKEN', // CSRF 토큰을 전송할 때 사용할 요청 헤더의 이름입니다.
 });
 
 // ★★★ 요청 인터셉터 (Request Interceptor) 수정 - CSRF 403 오류 해결
@@ -39,7 +39,7 @@ apiClient.interceptors.request.use(
     // 1. 로컬 스토리지에서 accessToken 가져오기
     //    (실제 프로젝트의 토큰 저장 방식에 맞게 수정 필요: localStorage, sessionStorage 등)
     const token = localStorage.getItem('accessToken');
-    
+
     // 2. 토큰이 존재하면 Authorization 헤더 추가
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -69,12 +69,12 @@ apiClient.interceptors.response.use(
         // const { data } = await apiClient.post('/auth/reissue');
         // localStorage.setItem('accessToken', data.accessToken);
         // originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
-        
+
         // HttpOnly 쿠키 방식이라면 아래 코드가 맞습니다.
         await apiClient.post('/auth/reissue');
-        
+
         return apiClient(originalRequest);
-        
+
       } catch (reissueError) {
         console.error("Session expired, logging out.");
         window.dispatchEvent(new Event('auth-error'));
@@ -109,9 +109,9 @@ export async function getPost(id: string): Promise<PostWithDetails> {
   // [수정] 복잡한 변환 로직을 제거하고, 댓글의 날짜만 정규화합니다.
   const normalizedComments = (data.comments && Array.isArray(data.comments))
     ? data.comments.map((comment: any) => ({
-        ...comment,
-        createdDate: normalizeDate(comment.createdDate),
-      }))
+      ...comment,
+      createdDate: normalizeDate(comment.createdDate),
+    }))
     : [];
 
   return {
@@ -306,12 +306,20 @@ export async function getMyScraps(): Promise<Scrap[]> {
   return data.map((item) => ({
     scrapId: item.scrapId,
     postId: item.postId,
+    categoryId: item.categoryId,
     postTitle: item.postTitle,
     postContent: item.postContent,
     postCreatedDate: normalizeDate(item.postCreatedDate),
     authorNickname: item.authorNickname,
-    postPhoto: item.postPhotoUrl || null,
-    authorProfilePicture: item.authorProfilePictureUrl || null,
+
+    // 👇 1. 필드명을 Scrap 타입과 일치시킵니다.
+    postPhotoUrl: item.postPhotoUrl || null,
+    authorProfilePictureUrl: item.authorProfilePictureUrl || null,
+
+    // 👇 2. 누락되었던 필드들을 추가합니다.
+    likeCount: item.likeCount,
+    viewCount: item.viewCount,
+    commentCount: item.commentCount,
   }));
 }
 

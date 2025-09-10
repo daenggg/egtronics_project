@@ -168,12 +168,19 @@ export interface Notification {
 export interface Scrap {
   scrapId: number;
   postId: number;
+  categoryId: number;
   postTitle: string;
-  postContent: string | null;
+  postContent: string;
   postCreatedDate: string;
   authorNickname: string;
-  postPhoto: string | null;
-  authorProfilePicture: string | null;
+
+  postPhotoUrl: string | null; 
+  authorProfilePictureUrl: string | null;
+
+  // 👇 아래 세 필드를 추가합니다.
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
 }
 
 /**
