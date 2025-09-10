@@ -126,6 +126,8 @@ export async function getPost(id: string): Promise<PostWithDetails> {
       nickname: data.nickname,
       profilePicture: data.authorProfilePictureUrl || null,
     },
+    isLiked: data.liked,       // 백엔드의 liked를 프론트엔드의 isLiked로 매핑
+    isScrapped: data.scrapped, // 백엔드의 scrapped를 프론트엔드의 isScrapped로 매핑
   };
 }
 

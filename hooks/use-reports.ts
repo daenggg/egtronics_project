@@ -19,12 +19,6 @@ export const useReportPost = (postId: string) => {
         duration: 3000,
       });
 
-      // 신고 성공 시, 해당 게시글 상세 정보 쿼리를 낙관적으로 업데이트하여
-      // UI에 '신고 완료' 상태를 즉시 반영합니다.
-      queryClient.setQueryData<PostWithDetails>(['post', postId], (oldData) =>
-        oldData ? { ...oldData, reportedByCurrentUser: true, reportCount: (oldData.reportCount ?? 0) + 1 } : oldData
-      );
-
       // 게시글 목록 쿼리를 무효화하여, 신고 횟수가 갱신된 목록을 다시 불러오게 합니다.
       // (예: 5회 이상 신고된 게시물 숨김 처리 반영)
       queryClient.invalidateQueries({ queryKey: ['posts'] });

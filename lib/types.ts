@@ -54,23 +54,23 @@ export interface Comment {
  * 연관된 User, Category 정보를 포함하여 응답하는 경우가 많습니다.
  */
 
-export interface PostWithDetails extends Post {
-  author: {
-    userId: string;
-    nickname: string;
-    profilePicture?: string | null;
-  };
-  category: {
-    categoryId: number;
-    categoryName: string;
-  };
-  comments?: CommentWithDetails[];
-  // 현재 로그인한 사용자의 좋아요/스크랩 여부 (서버에서 계산)
-  isLiked: boolean;
-  isScrapped: boolean; // [수정] isBookmarked -> isScrapped 로 이름 통일
-  reportCount?: number;
-  reportedByCurrentUser?: boolean;
-  isAuthor?: boolean; // [수정] isMine -> isAuthor 로 이름 통일
+export interface PostWithDetails {
+  postId: number;
+  categoryId: number;
+  title: string;
+  content: string;
+  photoUrl: string | null;
+  nickname: string; // author 객체에서 밖으로 이동
+  createdDate: string;
+  likeCount: number;
+  viewCount: number;
+  authorProfilePictureUrl: string | null; // author 객체에서 밖으로 이동
+  comments: CommentWithDetails[];
+  scrapped: boolean; // isScrapped -> scrapped
+  author: boolean;   // isAuthor -> author
+  liked: boolean;    // isLiked -> liked
+  blocked: boolean;
+  reportedByCurrentUser?: boolean; // 이 필드는 있을 수도 있고 없을 수도 있습니다.
 }
 
 /**

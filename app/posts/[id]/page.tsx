@@ -1,3 +1,5 @@
+// app/posts/[id]/page.tsx
+
 "use client";
 
 import { useMemo, useEffect, useState } from "react";
@@ -28,7 +30,6 @@ export default function PostDetailPage() {
 
   const { data: post, isLoading: isPostLoading, error: postError } = usePost(postId);
   
-  // 새로 만든 토글 뮤테이션 훅 사용
   const { mutate: toggleLike } = useToggleLikeMutation(postId);
   const { mutate: toggleScrap } = useToggleScrapMutation(postId);
 
@@ -149,7 +150,7 @@ export default function PostDetailPage() {
       toast({ title: "로그인 필요", description: "스크랩하려면 로그인해주세요.", variant: "destructive", duration: 2000 });
       return;
     }
-    toggleScrap(); // [수정] 새로운 뮤테이션 함수를 호출
+    toggleScrap();
   };
 
   const handleDeletePost = () => {
@@ -162,7 +163,7 @@ export default function PostDetailPage() {
     });
   };
 
-  const isMyPost = user?.userId === post?.author?.userId;
+  const isMyPost = post.author;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -171,11 +172,11 @@ export default function PostDetailPage() {
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
               <Avatar className="h-12 w-12 ring-2 ring-blue-200">
-                <AvatarImage src={post.author.profilePicture ? `${API_BASE}${post.author.profilePicture}` : "/images.png"} alt={post.author.nickname} />
-                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">{post.author.nickname.charAt(0)}</AvatarFallback>
+                <AvatarImage src={post.authorProfilePictureUrl ? `${API_BASE}${post.authorProfilePictureUrl}` : "/images.png"} alt={post.nickname} />
+                <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">{post.nickname.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold text-gray-900">{post.author.nickname}</p>
+                <p className="font-semibold text-gray-900">{post.nickname}</p>
                 <p className="text-sm text-gray-500">{formatDynamicDate(post.createdDate)}</p>
               </div>
             </div>
@@ -199,23 +200,25 @@ export default function PostDetailPage() {
           <div className="prose max-w-none mb-8 text-gray-800 leading-relaxed">
             <p className="whitespace-pre-wrap text-base">{post.content}</p>
           </div>
-          {post.photo && (
+          {post.photoUrl && (
             <div className="mb-8">
               <div className="grid grid-cols-1 gap-4">
                 <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                  <img src={post.photo ? `${API_BASE}${post.photo}` : "/images.png"} alt="Post media" className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
+                  <img src={`${API_BASE}${post.photoUrl}`} alt="Post media" className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
                 </div>
               </div>
             </div>
           )}
           <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-              <Button variant={post.isLiked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.isLiked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
-                <Heart className={`h-4 w-4 ${post.isLiked ? "fill-current" : ""}`} />
+              {/* [수정] post.isLiked -> post.liked */}
+              <Button variant={post.liked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.liked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
+                <Heart className={`h-4 w-4 ${post.liked ? "fill-current" : ""}`} />
                 <span>{post.likeCount}</span>
               </Button>
-              <Button variant={post.isScrapped ? "default" : "outline"} size="sm" onClick={handleScrap} className={`flex items-center space-x-2 transition-all ${post.isScrapped ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg" : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200"}`} disabled={!user}>
-                <Bookmark className={`h-4 w-4 ${post.isScrapped ? "fill-current" : ""}`} />
+              {/* [수정] post.isScrapped -> post.scrapped */}
+              <Button variant={post.scrapped ? "default" : "outline"} size="sm" onClick={handleScrap} className={`flex items-center space-x-2 transition-all ${post.scrapped ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg" : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200"}`} disabled={!user}>
+                <Bookmark className={`h-4 w-4 ${post.scrapped ? "fill-current" : ""}`} />
                 <span>스크랩</span>
               </Button>
               <div className="flex items-center space-x-2 text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-full">
