@@ -19,6 +19,7 @@ import { categories } from "@/components/category-filter";
 import { API_BASE } from "@/lib/api-client";
 import { X } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
+import { MediaUpload, MediaFile } from "@/components/media-upload";
 
 interface FormValues {
   title: string;
@@ -39,9 +40,7 @@ export default function PostEditPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isImageRemoved, setIsImageRemoved] = useState(false);
+  const [media, setMedia] = useState<MediaFile[]>([]);
 
   useEffect(() => {
     if (post) {
@@ -49,29 +48,11 @@ export default function PostEditPage() {
       setContent(post.content);
       setCategoryId(String(post.categoryId));
       if (post.photoUrl) {
-        setImagePreview(`${API_BASE}${post.photoUrl}`);
+        // MediaUpload 컴포넌트가 기존 이미지를 표시하도록 설정 (표시용, 실제 파일 없음)
+        setMedia([{ id: 'existing', url: `${API_BASE}${post.photoUrl}`, type: 'image', file: new File([], 'existing-image') }]);
       }
     }
   }, [post]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-      setIsImageRemoved(false);
-    }
-  };
-
-  const handleRemoveImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-    setIsImageRemoved(true);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,10 +69,12 @@ export default function PostEditPage() {
     formData.append("title", title);
     formData.append("content", content);
     formData.append("categoryId", categoryId);
-    if (imageFile) {
-      formData.append("photo", imageFile);
+
+    if (media.length > 0 && media[0].file.name !== 'existing-image') {
+      formData.append("photo", media[0].file);
+    } else if (media.length === 0) {
+      formData.append("removePhoto", "true");
     }
-    formData.append("removePhoto", String(isImageRemoved));
 
     updatePost(
       { id: postId, data: formData },
@@ -119,29 +102,13 @@ export default function PostEditPage() {
   if (!post) return <div className="container mx-auto px-4 py-8">게시글을 찾을 수 없습니다.</div>;
 
   return (
-    <div className="container mx-auto max-w-2xl px-4 py-8">
-      <Card className="glass-effect border-0 shadow-2xl">
+    <div className="container mx-auto px-4 py-8">
+      <Card className="max-w-4xl mx-auto glass-effect border-0 shadow-2xl">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">게시글 수정</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="category" className="font-medium">카테고리</label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger id="category">
-                  <SelectValue placeholder="카테고리를 선택하세요" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.icon} {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="space-y-2">
               <label htmlFor="title" className="font-medium">제목</label>
               <Input
@@ -154,41 +121,46 @@ export default function PostEditPage() {
             </div>
 
             <div className="space-y-2">
+              <label htmlFor="category" className="font-medium">카테고리</label> 
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="카테고리를 선택하세요" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{cat.icon}</span>
+                        <span>{cat.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <label htmlFor="content" className="font-medium">내용</label>
               <Textarea
                 id="content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="내용을 입력하세요"
-                className="min-h-[200px]"
+                className="min-h-[300px]"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="photo" className="font-medium">사진</label>
-              <Input id="photo" type="file" accept="image/*" onChange={handleImageChange} />
-              {imagePreview && (
-                <div className="mt-4 relative w-fit">
-                  <img src={imagePreview} alt="미리보기" className="max-w-full h-auto rounded-md border" />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-6 w-6"
-                    onClick={handleRemoveImage}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+              <label className="font-medium">사진</label>
+              <MediaUpload onFilesChange={setMedia} maxFiles={1} initialFiles={media} />
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => router.back()}>
                 취소
               </Button>
-              <Button type="submit" disabled={isUpdating}>
+              <Button type="submit" disabled={isUpdating} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg">
                 {isUpdating ? "수정 중..." : "수정 완료"}
               </Button>
             </div>

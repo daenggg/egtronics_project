@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
@@ -16,12 +16,18 @@ export interface MediaFile {
 interface MediaUploadProps {
   onFilesChange?: (files: MediaFile[]) => void
   maxFiles?: number
+  initialFiles?: MediaFile[]
 }
 
-export function MediaUpload({ onFilesChange, maxFiles = 5 }: MediaUploadProps) {
+export function MediaUpload({ onFilesChange, maxFiles = 5, initialFiles = [] }: MediaUploadProps) {
   const [files, setFiles] = useState<MediaFile[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+
+  useEffect(() => {
+    // initialFiles가 변경될 때만 files 상태를 업데이트합니다.
+    setFiles(initialFiles);
+  }, [initialFiles]);
 
   const getFileType = (file: File): 'image' | 'video' | 'other' => {
     if (file.type.startsWith('image/')) return 'image'
