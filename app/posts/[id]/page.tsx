@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -8,28 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import {
-  Heart,
-  MessageCircle,
-  Eye,
-  Edit,
-  Trash2,
-  Bookmark,
-} from "lucide-react";
+import { Heart, MessageCircle, Eye, Edit, Trash2, Bookmark } from "lucide-react";
 import { formatDynamicDate } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { ReportDialog } from "@/components/report-dialog";
 import { categories } from "@/components/category-filter";
-import { usePost, useToggleLike, useDeletePost } from "@/hooks/use-posts";
-import { useToggleScrap } from "@/hooks/use-scraps";
-import {
-  useComments,
-  useCreateComment,
-  useUpdateComment,
-  useDeleteComment,
-  useToggleCommentLike,
-} from "@/hooks/use-comments";
-import { PostWithDetails, CommentWithDetails } from "@/lib/types";
+import { usePost, useToggleLikeMutation, useDeletePost } from "@/hooks/use-posts";
+import { useToggleScrapMutation } from "@/hooks/use-scraps"; 
+import { useCreateComment, useUpdateComment, useDeleteComment, useToggleCommentLike } from "@/hooks/use-comments";
+import { CommentWithDetails } from "@/lib/types";
 import { API_BASE } from "@/lib/api-client";
 
 export default function PostDetailPage() {
@@ -39,15 +26,12 @@ export default function PostDetailPage() {
   const { toast } = useToast();
   const postId = params.id as string;
 
-  const {
-    data: post,
-    isLoading: isPostLoading,
-    error: postError,
-  } = usePost(postId);
-  const comments: CommentWithDetails[] = post?.comments || [];
+  const { data: post, isLoading: isPostLoading, error: postError } = usePost(postId);
+  
+  // 새로 만든 토글 뮤테이션 훅 사용
+  const { mutate: toggleLike } = useToggleLikeMutation(postId);
+  const { mutate: toggleScrap } = useToggleScrapMutation(postId);
 
-  const { toggleLike, isLiked, likeCount } = useToggleLike(postId, post?.isLiked ?? false, post?.likeCount ?? 0);
-  const { toggleScrap, isScrapped } = useToggleScrap(postId, post?.isScrapped ?? false);
   const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
   const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
   const { mutate: deleteComment } = useDeleteComment();
@@ -103,7 +87,6 @@ export default function PostDetailPage() {
       toast({ title: "로그인 필요", description: "좋아요를 누르려면 로그인해주세요.", variant: "destructive", duration: 2000 });
       return;
     }
-    if (!post) return;
     toggleLike();
   };
 
@@ -112,7 +95,7 @@ export default function PostDetailPage() {
       toast({ title: "로그인 필요", description: "좋아요를 누르려면 로그인해주세요.", variant: "destructive", duration: 2000 });
       return;
     }
-    const comment = comments.find((c) => c.commentId === commentId);
+    const comment = (post?.comments || []).find((c) => c.commentId === commentId);
     if (!comment || !post) return;
     toggleCommentLike({ postId: post.postId, commentId: comment.commentId, isLiked: comment.isLiked });
   };
@@ -166,12 +149,10 @@ export default function PostDetailPage() {
       toast({ title: "로그인 필요", description: "스크랩하려면 로그인해주세요.", variant: "destructive", duration: 2000 });
       return;
     }
-    if (!post) return;
-    toggleScrap();
+    toggleScrap(); // [수정] 새로운 뮤테이션 함수를 호출
   };
 
   const handleDeletePost = () => {
-    if (!post) return;
     if (!window.confirm("정말로 이 게시글을 삭제하시겠습니까?")) return;
     deletePost(String(post.postId), {
       onSuccess: () => {
@@ -229,12 +210,12 @@ export default function PostDetailPage() {
           )}
           <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
-              <Button variant={isLiked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${isLiked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
-                <Heart className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`} />
-                <span>{likeCount}</span>
+              <Button variant={post.isLiked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.isLiked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
+                <Heart className={`h-4 w-4 ${post.isLiked ? "fill-current" : ""}`} />
+                <span>{post.likeCount}</span>
               </Button>
-              <Button variant={isScrapped ? "default" : "outline"} size="sm" onClick={handleScrap} className={`flex items-center space-x-2 transition-all ${isScrapped ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg" : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200"}`} disabled={!user}>
-                <Bookmark className={`h-4 w-4 ${isScrapped ? "fill-current" : ""}`} />
+              <Button variant={post.isScrapped ? "default" : "outline"} size="sm" onClick={handleScrap} className={`flex items-center space-x-2 transition-all ${post.isScrapped ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg" : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200"}`} disabled={!user}>
+                <Bookmark className={`h-4 w-4 ${post.isScrapped ? "fill-current" : ""}`} />
                 <span>스크랩</span>
               </Button>
               <div className="flex items-center space-x-2 text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-full">
@@ -255,7 +236,7 @@ export default function PostDetailPage() {
           </div>
         </CardContent>
       </Card>
-{/* 댓글 작성 */}
+
       {user && (
         <Card className="mb-8 glass-effect border-0 shadow-2xl">
           <CardContent className="p-4 sm:p-6">
@@ -263,11 +244,7 @@ export default function PostDetailPage() {
               <div className="flex items-start space-x-4">
                 <Avatar className="h-10 w-10 ring-2 ring-blue-100">
                   <AvatarImage
-                    src={
-                      user.profilePicture
-                        ? `${API_BASE}${user.profilePicture}`
-                        : "/images.png"
-                    }
+                    src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
                     alt={user.nickname}
                   />
                   <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm">
@@ -297,14 +274,12 @@ export default function PostDetailPage() {
         </Card>
       )}
 
-      {/* 댓글 목록 */}
       <div className="space-y-3">
         <h3 className="text-lg font-semibold">
           댓글 {post.comments?.length || 0}개
         </h3>
         {sortedComments.map((comment, index) => {
           const isEditing = editingCommentId === comment.commentId;
-          // 댓글이 10개 이상이고, 상위 3개 댓글의 좋아요가 5개 이상인 경우 베스트 댓글로 표시
           const isTopComment =
             (post.comments?.length || 0) >= 10 &&
             index < 3 &&
@@ -322,11 +297,7 @@ export default function PostDetailPage() {
                 <div className="flex items-start space-x-6">
                   <Avatar className="h-10 w-10 ring-2 ring-gray-100">
                     <AvatarImage
-                      src={
-                        comment.author.profilePicture
-                          ? `${API_BASE}${comment.author.profilePicture}`
-                          : "/images.png"
-                      }
+                      src={comment.author.profilePicture ? `${API_BASE}${comment.author.profilePicture}` : "/images.png"}
                       alt={comment.author.nickname}
                     />
                     <AvatarFallback className="bg-gradient-to-r from-green-400 to-blue-500 text-white text-sm">
@@ -361,9 +332,7 @@ export default function PostDetailPage() {
                               variant="ghost"
                               size="icon"
                               className="h-7 w-7"
-                              onClick={() =>
-                                handleDeleteComment(comment.commentId)
-                              }
+                              onClick={() => handleDeleteComment(comment.commentId)}
                             >
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
@@ -376,9 +345,7 @@ export default function PostDetailPage() {
                       <div className="space-y-2 mt-2">
                         <Textarea
                           value={editingCommentContent}
-                          onChange={(e) =>
-                            setEditingCommentContent(e.target.value)
-                          }
+                          onChange={(e) => setEditingCommentContent(e.target.value)}
                           className="min-h-[80px]"
                         />
                         <div className="flex justify-end space-x-2">

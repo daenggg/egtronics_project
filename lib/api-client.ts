@@ -36,9 +36,20 @@ const apiClient = axios.create({
 // ★★★ 요청 인터셉터 (Request Interceptor) 수정 - CSRF 403 오류 해결
 apiClient.interceptors.request.use(
   (config) => {
+    // 1. 로컬 스토리지에서 accessToken 가져오기
+    //    (실제 프로젝트의 토큰 저장 방식에 맞게 수정 필요: localStorage, sessionStorage 등)
+    const token = localStorage.getItem('accessToken');
+    
+    // 2. 토큰이 존재하면 Authorization 헤더 추가
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    // 3. FormData가 아닐 경우에만 Content-Type을 application/json으로 설정
     if (!(config.data instanceof FormData)) {
       config.headers['Content-Type'] = 'application/json';
     }
+
     return config;
   },
   (error) => Promise.reject(error),
@@ -50,30 +61,26 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<any>) => {
     const originalRequest: any = error.config;
 
-    // 401 에러이고, 재시도한 요청이 아닐 경우
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-
       try {
-        // 브라우저가 /auth/reissue 요청 시 자동으로 HttpOnly refreshToken 쿠키를 실어 보냅니다.
-        // ⛔️ baseURL이 /api로 설정되었으므로, 전체 URL을 사용할 필요가 없습니다.
-        // await apiClient.post(`${API_BASE}/auth/reissue`);
-        await apiClient.post('/auth/reissue');
-
-        // 재발급 성공 시, 서버가 Set-Cookie 헤더로 새로운 토큰 쿠키들을 보내주고
-        // 브라우저가 자동으로 쿠키를 교체합니다.
+        // 토큰 재발급 API 호출
+        // HttpOnly 쿠키 방식이 아니라면, 재발급된 새 accessToken을 받아 localStorage에 저장해야 합니다.
+        // const { data } = await apiClient.post('/auth/reissue');
+        // localStorage.setItem('accessToken', data.accessToken);
+        // originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         
-        // 원래 실패했던 요청을 그대로 다시 실행합니다.
+        // HttpOnly 쿠키 방식이라면 아래 코드가 맞습니다.
+        await apiClient.post('/auth/reissue');
+        
         return apiClient(originalRequest);
         
       } catch (reissueError) {
-        // 재발급 실패 시 로그아웃 처리
         console.error("Session expired, logging out.");
         window.dispatchEvent(new Event('auth-error'));
         return Promise.reject(reissueError);
       }
     }
-
     return Promise.reject(error);
   }
 );
@@ -136,13 +143,9 @@ export async function deletePost(id: string): Promise<void> {
   await apiClient.delete(`/posts/${id}`);
 }
 
-export async function likePost(id: string): Promise<LikeResponse> {
-  const { data } = await apiClient.post(`/posts/${id}/like`);
-  return data;
-}
-
-export async function unlikePost(id: string): Promise<LikeResponse> {
-  const { data } = await apiClient.delete(`/posts/${id}/like`);
+export async function togglePostLike(id: string): Promise<boolean> {
+  // 백엔드 API는 이제 boolean 값을 직접 반환합니다 (true: 좋아요 상태, false: 취소 상태)
+  const { data } = await apiClient.post<boolean>(`/posts/${id}/like`);
   return data;
 }
 
@@ -305,15 +308,6 @@ export async function unlikeComment(postId: string, commentId: string): Promise<
   await apiClient.delete(`/posts/${postId}/comments/${commentId}/likes`);
 }
 
-export async function scrapPost(postId: string): Promise<any> {
-  const { data } = await apiClient.post(`/posts/${postId}/scrap`);
-  return data;
-}
-
-export async function unscrapPost(postId: string): Promise<any> {
-  const { data } = await apiClient.delete(`/posts/${postId}/scrap`);
-  return data;
-}
 
 export async function getMyScraps(): Promise<Scrap[]> {
   const { data } = await apiClient.get<any[]>('/users/me/scraps');
@@ -331,6 +325,12 @@ export async function getMyScraps(): Promise<Scrap[]> {
     postPhoto: item.postPhotoUrl || null,
     authorProfilePicture: item.authorProfilePictureUrl || null,
   }));
+}
+
+export async function togglePostScrap(postId: string): Promise<boolean> {
+  // 백엔드 API가 새로운 스크랩 상태(true/false)를 반환하도록 수정해야 합니다.
+  const { data } = await apiClient.post<boolean>(`/posts/${postId}/scrap`);
+  return data;
 }
 
 export async function getNotifications(): Promise<Notification[]> {

@@ -28,7 +28,6 @@ function CreatePostForm() {
   const { toast } = useToast();
   const { mutate: createPost, isPending: loading } = useCreatePost();
 
-  // URL에서 초기 카테고리 값을 읽어옵니다.
   const initialCategory = searchParams.get("category") || "";
 
   const [title, setTitle] = useState("");
@@ -42,7 +41,6 @@ function CreatePostForm() {
     }
   }, [user, router]);
 
-  // URL 파라미터가 변경될 때 카테고리 상태를 업데이트합니다.
   useEffect(() => {
     setCategory(searchParams.get("category") || "");
   }, [searchParams]);
@@ -65,14 +63,12 @@ function CreatePostForm() {
       return;
     }
 
-    // 회원가입과 동일한 방식으로, 백엔드 API가 각 필드를 개별적으로 받을 수 있도록 FormData를 구성합니다.
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
-    // 백엔드에서 'category' 파라미터를 기대하므로 키 이름을 수정합니다.
-    formData.append("category", String(categoryId));
+    // [수정] 백엔드에서 사용하는 'categoryId'로 키 이름을 수정했습니다.
+    formData.append("categoryId", String(categoryId)); 
 
-    // 사용자가 사진 파일을 첨부한 경우에만 'photo' 필드를 FormData에 추가합니다.
     if (media.length > 0 && media[0].file) {
       formData.append("photo", media[0].file);
     }
