@@ -19,18 +19,15 @@ export default function BookmarksPage() {
   const { data: scraps, isLoading, isError, error } = useMyScraps();
   const router = useRouter();
 
-  const getCategoryNameById = (categoryId: number) => {
-    // categories 배열에서 id가 일치하는 항목을 찾습니다.
-    // scrap.categoryId는 숫자(number)이고, categories의 id는 문자열(string)이므로 타입을 맞춰줍니다.
+  const getCategoryInfo = (categoryId: number) => {
     const category = categories.find(cat => cat.id === String(categoryId));
-    // 일치하는 카테고리가 있으면 이름을, 없으면 "미분류"를 반환합니다.
-    return category ? category.name : "미분류";
+    return category || { id: 'unknown', name: '미분류', icon: '📁' };
   };
 
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[...Array(6)].map((_, i) => (
             <Skeleton key={i} className="h-[400px] w-full rounded-xl" />
           ))}
@@ -74,8 +71,7 @@ export default function BookmarksPage() {
 
     // [수정] HomePage의 카드 내부 디자인을 그대로 적용
     return (
-// {scraps.map(...) 부분 시작}
-<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
   {scraps.map((scrap) => (
     <Link
       key={scrap.scrapId}
@@ -108,9 +104,13 @@ export default function BookmarksPage() {
           </div>
         </div>
 
-       <div className="px-5 pt-3">
-          <Badge variant="outline" className="font-medium border-blue-200 text-blue-600 bg-blue-50">
-            {getCategoryNameById(scrap.categoryId)}
+        <div className="px-4 pt-2">
+          <Badge
+            variant="secondary"
+            className="font-medium text-sm"
+          >
+            <span className="mr-1.5">{getCategoryInfo(scrap.categoryId).icon}</span>
+            {getCategoryInfo(scrap.categoryId).name}
           </Badge>
         </div>
         
@@ -141,7 +141,7 @@ export default function BookmarksPage() {
           <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-gray-500">
             <div className="flex items-center gap-4">
               <span className="flex items-center gap-1.5" title="좋아요">
-                <Heart className="h-4 w-4 text-gray-400" /> {scrap.likeCount}
+                <Heart className="h-4 w-4 text-red-400" /> {scrap.likeCount}
               </span>
               <span className="flex items-center gap-1.5" title="조회수">
                 <Eye className="h-4 w-4 text-gray-400" /> {scrap.viewCount}
@@ -156,20 +156,21 @@ export default function BookmarksPage() {
     </Link>
   ))}
 </div>
-// {scraps.map(...) 부분 끝}
-// {scraps.map(...) 부분 끝}
+
 
     );
   };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-2xl md:text-4xl font-medium text-gray-900 mb-3 flex items-center gap-3">
-          <Bookmark className="h-8 w-8 text-gray-700" />내 스크랩</h2>
-        <p className="text-gray-500">{!isLoading && scraps ? `${scraps.length}개` : ''}</p>
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl md:text-4xl font-medium text-gray-900 flex items-center gap-3">
+            <Bookmark className="h-8 w-8 text-gray-700" />내 스크랩</h2>
+          <p className="text-gray-500">{!isLoading && scraps ? `${scraps.length}개` : ''}</p>
+        </div>
+        {renderContent()}
       </div>
-      {renderContent()}
     </div>
   );
 }

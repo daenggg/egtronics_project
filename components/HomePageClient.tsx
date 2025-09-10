@@ -186,7 +186,7 @@ const { data, isLoading, isError, error } = usePosts({
                             className="flex items-center gap-1.5"
                             title="좋아요"
                         >
-                            <Heart className="h-4 w-4" /> {post.likeCount}
+                            <Heart className="h-4 w-4 text-red-400" /> {post.likeCount}
                         </span>
                         <span
                             className="flex items-center gap-1.5"

@@ -115,9 +115,24 @@ export async function getPost(id: string): Promise<PostWithDetails> {
     : [];
 
   return {
-    ...data,
+    postId: data.postId,
+    categoryId: data.categoryId,
+    title: data.title,
+    content: data.content,
+    photoUrl: data.photoUrl || null,
     createdDate: normalizeDate(data.createdDate),
+    likeCount: data.likeCount,
+    viewCount: data.viewCount,
     comments: normalizedComments,
+    scrapped: data.scrapped,
+    author: data.author, // 백엔드에서 isAuthor 대신 author로 보내주는 boolean 값
+    liked: data.liked,
+    blocked: data.blocked,
+    reportedByCurrentUser: data.reportedByCurrentUser,
+    
+    // 👇 백엔드의 flat한 author 정보를 프론트엔드 타입에 맞게 중첩 객체로 만들어줍니다.
+    nickname: data.nickname,
+    authorProfilePictureUrl: data.authorProfilePictureUrl || null,
   };
 }
 
