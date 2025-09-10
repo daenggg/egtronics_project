@@ -4,27 +4,90 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Edit, Save, Heart, Eye, FileText, MessageSquare, Image as ImageIcon, Pencil, PlusCircle, Quote } from "lucide-react";
+import {
+  Edit,
+  Save,
+  Heart,
+  Eye,
+  FileText,
+  MessageSquare,
+  Image as ImageIcon,
+  Pencil,
+  PlusCircle,
+  Quote,
+  UserCircle,
+  User,
+  Mail,
+  Phone,
+  Lock,
+  KeyRound,
+} from "lucide-react";
 import { PostPreview, MyComment } from "@/lib/types";
 import { useMyPosts, useMyComments } from "@/hooks/use-my-activities";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDynamicDate } from "@/lib/utils";
 import { API_BASE } from "@/lib/api-client";
 
+// ✅ 해결: 컴포넌트 정의를 ProfilePage 바깥으로 이동
+const ProfileInfoItem = ({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+}) => (
+  <div className="flex items-start gap-4 text-left">
+    <Icon className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
+    <div className="flex-1">
+      <p className="text-sm font-medium text-slate-500">{label}</p>
+      <p className="text-base text-slate-800">{value}</p>
+    </div>
+  </div>
+);
+
+// ✅ 해결: 컴포넌트 정의를 ProfilePage 바깥으로 이동
+const ProfileEditItem = ({
+  icon: Icon,
+  id,
+  label,
+  value,
+  onChange,
+  error,
+  type = "text",
+  placeholder,
+  disabled = false,
+}: any) => (
+  <div className="space-y-1.5 text-left">
+    <Label htmlFor={id} className="font-medium text-slate-600">
+      {label}
+    </Label>
+    <div className="relative">
+      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        disabled={disabled}
+        className="pl-10"
+      />
+    </div>
+    {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
+  </div>
+);
+
 export default function ProfilePage() {
-  const { user, updateUserInfo, loading: authLoading } = useAuth(); // ✅ 1. auth-context의 loading 상태 가져오기
+  const { user, updateUserInfo, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -32,13 +95,12 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
-  // 유효성 검사를 위한 정규식
-  const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{6,20}$/;
+  const passwordRegex =
+    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{6,20}$/;
   const koreanRegex = /^[가-힣]+$/;
   const englishRegex = /^[A-Za-z]+$/;
   const phoneRegex = /^\d{3}-\d{4}-\d{4}$/;
 
-  // 상태 변수
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -47,11 +109,10 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // 내 활동내역 불러오기
   const { data: myPosts, isLoading: isLoadingPosts } = useMyPosts();
   const { data: myComments, isLoading: isLoadingComments } = useMyComments();
 
-  // user 정보가 변경될 때마다 상태 업데이트
+  // user 객체가 로드되거나 변경될 때마다 상태를 동기화합니다.
   useEffect(() => {
     if (user) {
       setName(user.name || "");
@@ -61,13 +122,10 @@ export default function ProfilePage() {
     }
   }, [user]);
 
-  // 프로필 사진 선택 시 미리보기 처리
   useEffect(() => {
     if (!avatarFile) return;
     const objectUrl = URL.createObjectURL(avatarFile);
     setProfilePicture(objectUrl);
-
-    // 언마운트 시 URL 해제
     return () => URL.revokeObjectURL(objectUrl);
   }, [avatarFile]);
 
@@ -79,16 +137,19 @@ export default function ProfilePage() {
 
   const validate = () => {
     const newErrors: Record<string, string | undefined> = {};
-
     if (!name.trim()) newErrors.name = "이름을 입력해주세요.";
     else if (!koreanRegex.test(name) && !englishRegex.test(name)) {
       newErrors.name = "이름은 한글 또는 영어로만 입력 가능합니다.";
     }
     if (!nickname.trim()) newErrors.nickname = "닉네임을 입력해주세요.";
-    if (!phoneRegex.test(phoneNumber)) newErrors.phoneNumber = "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
-    if (newPassword && !passwordRegex.test(newPassword)) newErrors.newPassword = "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
-    if (newPassword && newPassword !== confirmPassword) newErrors.confirmPassword = "새 비밀번호가 일치하지 않습니다.";
-
+    if (!phoneRegex.test(phoneNumber))
+      newErrors.phoneNumber =
+        "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)";
+    if (newPassword && !passwordRegex.test(newPassword))
+      newErrors.newPassword =
+        "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다.";
+    if (newPassword && newPassword !== confirmPassword)
+      newErrors.confirmPassword = "새 비밀번호가 일치하지 않습니다.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -104,7 +165,6 @@ export default function ProfilePage() {
       return;
     }
     setIsSaving(true);
-
     try {
       const formData = new FormData();
       formData.append("name", name);
@@ -112,19 +172,15 @@ export default function ProfilePage() {
       formData.append("phoneNumber", phoneNumber);
       if (newPassword) formData.append("password", newPassword);
       if (avatarFile) formData.append("profilePicture", avatarFile);
-
       await updateUserInfo(formData);
-
       setIsEditing(false);
       setAvatarFile(null);
       setNewPassword("");
       setConfirmPassword("");
-
       toast({
         title: "성공",
         description: "프로필이 성공적으로 업데이트되었습니다.",
       });
-
     } catch (error) {
       toast({
         title: "업데이트 실패",
@@ -136,16 +192,7 @@ export default function ProfilePage() {
       setIsSaving(false);
     }
   };
-  
-  // 프로필 정보 항목을 위한 컴포넌트
-  const ProfileInfoItem = ({ label, value }: { label: string; value: string }) => (
-    <div className="space-y-1 text-left">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="text-base text-slate-800">{value}</p>
-    </div>
-  );
 
-  // ✅ 2. 인증 로딩 중일 때 스켈레톤 UI 표시
   if (authLoading) {
     return (
       <div className="bg-slate-50/50 min-h-screen">
@@ -159,7 +206,9 @@ export default function ProfilePage() {
               <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:gap-8">
                 <Skeleton className="h-24 w-24 rounded-full" />
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full">
-                  {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
                 </div>
               </div>
             </CardContent>
@@ -170,17 +219,18 @@ export default function ProfilePage() {
     );
   }
 
-  // ✅ 3. 로딩이 끝났는데 user가 없을 경우 비회원 UI 표시
   if (!authLoading && !user) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50">
         <Card className="text-center p-8 glass-effect border-0 shadow-xl w-full max-w-sm">
-          <Avatar className="mx-auto mb-4 h-20 w-20 border border-gray-300">
-            <AvatarFallback className="text-3xl bg-gray-200">?</AvatarFallback>
-          </Avatar>
-          <CardTitle className="mb-2 text-lg font-semibold">비회원</CardTitle>
+          <CardTitle className="mb-2 text-lg font-medium">
+            로그인이 필요합니다
+          </CardTitle>
           <CardContent className="text-gray-600 p-0">
-            <p>로그인이 필요한 서비스입니다.</p>
+            <p>마이페이지를 보려면 먼저 로그인해주세요.</p>
+            <Button asChild className="mt-6">
+              <Link href="/login">로그인하기</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -189,17 +239,32 @@ export default function ProfilePage() {
 
   return (
     <div className="bg-slate-50/50 min-h-screen">
-      <div className="container mx-auto px-4 py-8 md:py-12 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8">마이페이지</h1>
-        <Card className="mb-10 glass-effect border-0 shadow-2xl overflow-hidden">
+      <div className="container mx-auto px-4 py-8 md:py-12 max-w-4xl space-y-10">
+        <div>
+          <h1 className="text-2xl md:text-4xl font-medium text-gray-900 mb-3 flex items-center gap-3">
+            <UserCircle className="h-9 w-9 text-gray-700" />
+            마이페이지
+          </h1>
+          <p className="text-lg text-gray-600">
+            내 정보를 관리하고 활동 내역을 확인하세요.
+          </p>
+        </div>
+
+        <Card className="glass-effect border-0 shadow-2xl overflow-hidden">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle className="text-2xl font-bold">내 프로필</CardTitle>
+              <CardTitle className="text-2xl font-normal">
+                내 프로필
+              </CardTitle>
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => (isEditing ? handleSave() : setIsEditing(true))}
                 disabled={isSaving}
+                className={
+                  isEditing
+                    ? "bg-gradient-to-r text-pink-500 to-purple-600 text-white shadow-lg"
+                    : "bg-white text-gray-700 hover:bg-gray-100"
+                }
               >
                 {isEditing ? (
                   <>
@@ -220,10 +285,16 @@ export default function ProfilePage() {
               <div className="relative group">
                 <Avatar className="h-24 w-24 cursor-pointer border-2 border-white shadow-lg">
                   <AvatarImage
-                    src={profilePicture ? (profilePicture.startsWith('blob:') ? profilePicture : `${API_BASE}${profilePicture}`) : "/images.png"}
-                    alt={user?.name || 'User'}
+                    src={
+                      profilePicture
+                        ? profilePicture.startsWith("blob:")
+                          ? profilePicture
+                          : `${API_BASE}${profilePicture}`
+                        : "/images.png"
+                    }
+                    alt={user?.name || "User"}
                   />
-                  <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-400 to-purple-500 text-white">
+                  <AvatarFallback className="text-3xl bg-gradient-to-br text-pink-500 to-purple-500 text-white">
                     {user?.nickname?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -245,48 +316,97 @@ export default function ProfilePage() {
               <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 w-full">
                 {isEditing ? (
                   <>
-                    <div className="space-y-2 text-left">
-                      <Label htmlFor="nickname">닉네임</Label>
-                      <Input id="nickname" value={nickname} onChange={(e) => setNickname(e.target.value)} />
-                      {errors.nickname && <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>}
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <Label htmlFor="name">이름</Label>
-                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-                      {errors.name && <p className="text-red-600 text-sm mt-1">{errors.name}</p>}
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <Label htmlFor="email">이메일</Label>
-                      <Input id="email" value={user?.email || ""} disabled />
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <Label htmlFor="userId">아이디</Label>
-                      <Input id="userId" value={user?.userId || ""} disabled />
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <Label htmlFor="phoneNumber">전화번호</Label>
-                      <Input id="phoneNumber" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-                      {errors.phoneNumber && <p className="text-red-600 text-sm mt-1">{errors.phoneNumber}</p>}
-                    </div>
-                    <div className="space-y-2 text-left">
-                      <Label htmlFor="newPassword">새 비밀번호</Label>
-                      <Input id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="변경 시에만 입력" />
-                      {errors.newPassword && <p className="text-red-600 text-sm mt-1">{errors.newPassword}</p>}
-                    </div>
-                    <div className="space-y-2 text-left md:col-span-2">
-                      <Label htmlFor="confirmPassword">비밀번호 확인</Label>
-                      <Input id="confirmPassword" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="새 비밀번호 확인" />
-                      {errors.confirmPassword && <p className="text-red-600 text-sm mt-1">{errors.confirmPassword}</p>}
+                    <ProfileEditItem
+                      icon={User}
+                      id="nickname"
+                      label="닉네임"
+                      value={nickname}
+                      onChange={(e: any) => setNickname(e.target.value)}
+                      error={errors.nickname}
+                    />
+                    <ProfileEditItem
+                      icon={User}
+                      id="name"
+                      label="이름"
+                      value={name}
+                      onChange={(e: any) => setName(e.target.value)}
+                      error={errors.name}
+                    />
+                    <ProfileEditItem
+                      icon={Mail}
+                      id="email"
+                      label="이메일"
+                      value={user?.email || ""}
+                      disabled
+                    />
+                    <ProfileEditItem
+                      icon={KeyRound}
+                      id="userId"
+                      label="아이디"
+                      value={user?.userId || ""}
+                      disabled
+                    />
+                    <ProfileEditItem
+                      icon={Phone}
+                      id="phoneNumber"
+                      label="전화번호"
+                      value={phoneNumber}
+                      onChange={(e: any) => setPhoneNumber(e.target.value)}
+                      error={errors.phoneNumber}
+                    />
+                    <ProfileEditItem
+                      icon={Lock}
+                      id="newPassword"
+                      label="새 비밀번호"
+                      value={newPassword}
+                      onChange={(e: any) => setNewPassword(e.target.value)}
+                      type="password"
+                      placeholder="변경 시에만 입력"
+                      error={errors.newPassword}
+                    />
+                    <div className="md:col-span-2">
+                      <ProfileEditItem
+                        icon={Lock}
+                        id="confirmPassword"
+                        label="비밀번호 확인"
+                        value={confirmPassword}
+                        onChange={(e: any) =>
+                          setConfirmPassword(e.target.value)
+                        }
+                        type="password"
+                        placeholder="새 비밀번호 확인"
+                        error={errors.confirmPassword}
+                      />
                     </div>
                   </>
                 ) : (
                   <>
-                    <ProfileInfoItem label="닉네임" value={nickname} />
-                    <ProfileInfoItem label="이름" value={name} />
-                    <ProfileInfoItem label="이메일" value={user?.email || ''} />
-                    <ProfileInfoItem label="아이디" value={user?.userId || ''} />
-                    <ProfileInfoItem label="전화번호" value={phoneNumber} />
-                    <ProfileInfoItem label="비밀번호" value="********" />
+                    <ProfileInfoItem
+                      icon={User}
+                      label="닉네임"
+                      value={nickname}
+                    />
+                    <ProfileInfoItem icon={User} label="이름" value={name} />
+                    <ProfileInfoItem
+                      icon={Mail}
+                      label="이메일"
+                      value={user?.email || ""}
+                    />
+                    <ProfileInfoItem
+                      icon={KeyRound}
+                      label="아이디"
+                      value={user?.userId || ""}
+                    />
+                    <ProfileInfoItem
+                      icon={Phone}
+                      label="전화번호"
+                      value={phoneNumber}
+                    />
+                    <ProfileInfoItem
+                      icon={Lock}
+                      label="비밀번호"
+                      value="********"
+                    />
                   </>
                 )}
               </div>
@@ -294,122 +414,187 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="posts">
-          <TabsList className="grid w-full grid-cols-2 bg-slate-200/60 p-1 rounded-lg h-auto">
-            <TabsTrigger value="posts" className="py-2"><FileText className="h-4 w-4 mr-2" />내 게시글</TabsTrigger>
-            <TabsTrigger value="comments" className="py-2"><MessageSquare className="h-4 w-4 mr-2" />내 댓글</TabsTrigger>
-          </TabsList>
+        <Card className="glass-effect border-0 shadow-2xl overflow-hidden">
+          <CardHeader>
+            <CardTitle className="text-2xl font-medium">
+              내 활동 내역
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="posts">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-100/80 p-1 rounded-lg h-auto">
+                <TabsTrigger
+                  value="posts"
+                  className="py-2.5 data-[state=active]:bg-white data-[state=active]:text-pink-500 data-[state=active]:shadow-md font-semibold transition-all duration-300"
+                >
+                  <FileText className="h-4 w-4 mr-2" />내 게시글
+                </TabsTrigger>
+                <TabsTrigger
+                  value="comments"
+                  className="py-2.5 data-[state=active]:bg-white data-[state=active]:text-pink-500 data-[state=active]:shadow-md font-semibold transition-all duration-300"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />내 댓글
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="posts" className="mt-6">
-            {/* --- ✅ 수정점: space-y-6 대신 flex flex-col gap-6 사용 --- */}
-            <div className="flex flex-col gap-6">
-              {isLoadingPosts ? (
-                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-36 w-full rounded-xl" />)
-              ) : myPosts && myPosts.length > 0 ? (
-                myPosts.map((post) => (
-                  <Link href={`/posts/${post.postId}`} key={post.postId}>
-                    <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-white hover:border-blue-300 rounded-xl">
-                      <CardContent className="p-0 flex h-36">
-                        <div className="w-36 flex-shrink-0 relative">
-                            {post.photo ? (
-                                <img src={`${API_BASE}${post.photo}`} alt={post.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                            ) : (
-                                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                                    <ImageIcon className="h-10 w-10 text-slate-400" />
+              <TabsContent value="posts" className="mt-6">
+                <div className="flex flex-col gap-6">
+                  {isLoadingPosts ? (
+                    [...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-40 w-full rounded-xl" />
+                    ))
+                  ) : myPosts && myPosts.length > 0 ? (
+                    myPosts.map((post) => (
+                      <Link href={`/posts/${post.postId}`} key={post.postId}>
+                        {/* ✅ [수정] 카드 레이아웃 및 크기 변경 적용 */}
+                        <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-white hover:border-pink-300 rounded-xl">
+                          <CardContent className="p-5 flex h-40 items-center gap-5">
+                            <div className="w-40 flex-shrink-0 relative h-full">
+                              {post.photo ? (
+                                <img
+                                  src={`${API_BASE}${post.photo}`}
+                                  alt={post.title}
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105 rounded-lg"
+                                />
+                              ) : (
+                                <div className="w-full h-full bg-slate-100 flex items-center justify-center rounded-lg">
+                                  <ImageIcon className="h-10 w-10 text-slate-400" />
                                 </div>
-                            )}
+                              )}
+                            </div>
+                            <div className="py-1 flex flex-col flex-1 min-w-0 h-full">
+                              <div>
+                                <p className="text-xs text-gray-700 font-semibold">
+                                  {post.categoryName}
+                                </p>
+                                <h4 className="font-semibold text-lg truncate mt-1 group-hover:text-pink-500 transition-colors">
+                                  {post.title}
+                                </h4>
+                                <p className="text-sm text-gray-500 mt-1.5 line-clamp-2">
+                                  {post.content}
+                                </p>
+                              </div>
+                              <div className="text-xs text-gray-500 flex items-center justify-between mt-auto pt-3 border-t border-slate-200">
+                                <span>
+                                  {formatDynamicDate(post.createdDate)}
+                                </span>
+                                <div className="flex items-center gap-3">
+                                  <span
+                                    className="flex items-center gap-1.5"
+                                    title="좋아요"
+                                  >
+                                    <Heart className="h-4 w-4 text-red-400" />{" "}
+                                    {post.likeCount}
+                                  </span>
+                                  <span
+                                    className="flex items-center gap-1.5"
+                                    title="조회수"
+                                  >
+                                    <Eye className="h-4 w-4 text-gray-600" />{" "}
+                                    {post.viewCount}
+                                  </span>
+                                  <span
+                                    className="flex items-center gap-1.5"
+                                    title="댓글"
+                                  >
+                                    <MessageSquare className="h-4 w-4 text-gray-600" />{" "}
+                                    {post.commentCount ?? 0}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))
+                  ) : (
+                    <Card className="border-dashed rounded-xl">
+                      <CardContent className="p-10 text-center flex flex-col items-center">
+                        <div className="p-4 bg-slate-100 rounded-full mb-4">
+                          <Pencil className="h-8 w-8 text-slate-400" />
                         </div>
-                        <div className="p-5 flex flex-col flex-1 min-w-0 group-hover:bg-slate-50/50 transition-colors">
-                          <div>
-                            <p className="text-xs text-blue-500 font-semibold">{post.categoryName}</p>
-                            <h4 className="font-semibold text-lg truncate mt-1 group-hover:text-blue-600 transition-colors">{post.title}</h4>
-                            <p className="text-sm text-gray-500 mt-1.5 line-clamp-2">
-                              {post.content}
+                        <h3 className="font-bold text-lg">
+                          아직 작성한 게시글이 없어요
+                        </h3>
+                        <p className="text-gray-500 mt-1">
+                          첫 게시글을 작성하고 사람들과 소통해보세요!
+                        </p>
+                        <Button asChild className="mt-6">
+                          <Link href="/posts/create">
+                            <PlusCircle className="h-4 w-4 mr-2" />
+                            게시글 작성하기
+                          </Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="comments" className="mt-6">
+                <div className="flex flex-col gap-6">
+                  {isLoadingComments ? (
+                    [...Array(3)].map((_, i) => (
+                      <Skeleton key={i} className="h-32 w-full rounded-xl" />
+                    ))
+                  ) : myComments && myComments.length > 0 ? (
+                    myComments.map((comment) => (
+                      <Link
+                        href={`/posts/${comment.postId}#comment-${comment.commentId}`}
+                        key={comment.commentId}
+                      >
+                        <Card className="transition-all duration-300 ease-in-out hover:shadow-lg hover:border-pink-300 group bg-white rounded-xl overflow-hidden">
+                          <CardContent className="p-5 pb-0">
+                            <div className="flex items-start gap-4">
+                              <Quote className="h-6 w-6 text-pink-200 flex-shrink-0 mt-0.5" />
+                              <p className="text-gray-700 text-base line-clamp-2">
+                                {comment.content}
+                              </p>
+                            </div>
+                          </CardContent>
+                          <div className="bg-slate-50/70 mt-4 px-5 py-3 flex flex-wrap items-center justify-between gap-y-2 text-sm">
+                            <p className="text-gray-500 truncate text-xs font-medium">
+                              <FileText className="h-3.5 w-3.5 inline-block mr-1.5 align-middle text-slate-400" />
+                              <span className="align-middle text-pink-600 group-hover:underline">
+                                {comment.postTitle}
+                              </span>
+                              <span className="text-gray-400 ml-1">
+                                게시글에 남긴 댓글
+                              </span>
                             </p>
-                          </div>
-                          <div className="text-xs text-gray-500 flex items-center justify-between mt-auto pt-3 border-t border-slate-200">
-                            <span>{formatDynamicDate(post.createdDate)}</span>
-                            <div className="flex items-center gap-3">
-                              <span className="flex items-center gap-1.5" title="좋아요"><Heart className="h-4 w-4 text-red-400" /> {post.likeCount}</span>
-                              <span className="flex items-center gap-1.5" title="조회수"><Eye className="h-4 w-4 text-gray-600" /> {post.viewCount}</span>
-                              <span className="flex items-center gap-1.5" title="댓글"><MessageSquare className="h-4 w-4 text-gray-600" /> {post.commentCount ?? 0}</span>
+                            <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
+                              <span>
+                                {formatDynamicDate(comment.createdDate)}
+                              </span>
+                              <span className="flex items-center gap-1 font-medium">
+                                <Heart className="h-3.5 w-3.5 text-red-400" />{" "}
+                                {comment.likeCount}
+                              </span>
                             </div>
                           </div>
+                        </Card>
+                      </Link>
+                    ))
+                  ) : (
+                    <Card className="border-dashed rounded-xl">
+                      <CardContent className="p-10 text-center flex flex-col items-center">
+                        <div className="p-4 bg-slate-100 rounded-full mb-4">
+                          <MessageSquare className="h-8 w-8 text-slate-400" />
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))
-              ) : (
-                  <Card className="border-dashed rounded-xl">
-                    <CardContent className="p-10 text-center flex flex-col items-center">
-                      <div className="p-4 bg-slate-100 rounded-full mb-4">
-                        <Pencil className="h-8 w-8 text-slate-400" />
-                      </div>
-                      <h3 className="font-bold text-lg">아직 작성한 게시글이 없어요</h3>
-                      <p className="text-gray-500 mt-1">첫 게시글을 작성하고 사람들과 소통해보세요!</p>
-                      <Button asChild className="mt-6">
-                        <Link href="/posts/create">
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          게시글 작성하기
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="comments" className="mt-6">
-            {/* --- ✅ 수정점: space-y-6 대신 flex flex-col gap-6 사용 --- */}
-            <div className="flex flex-col gap-6">
-              {isLoadingComments ? (
-                [...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 w-full rounded-xl" />)
-              ) : myComments && myComments.length > 0 ? (
-                myComments.map((comment) => (
-                  <Link href={`/posts/${comment.postId}#comment-${comment.commentId}`} key={comment.commentId}>
-                    <Card className="transition-all duration-300 ease-in-out hover:shadow-lg hover:border-blue-300 group bg-white rounded-xl overflow-hidden">
-                      <CardContent className="p-5 pb-0">
-                        <div className="flex items-start gap-4">
-                          <Quote className="h-6 w-6 text-blue-200 flex-shrink-0 mt-0.5" />
-                          <p className="text-gray-700 text-base line-clamp-2">
-                            {comment.content}
-                          </p>
-                        </div>
-                      </CardContent>
-                      <div className="bg-slate-50/70 mt-4 px-5 py-3 flex flex-wrap items-center justify-between gap-y-2 text-sm">
-                        <p className="text-gray-500 truncate text-xs font-medium">
-                          <FileText className="h-3.5 w-3.5 inline-block mr-1.5 align-middle text-slate-400" />
-                          <span className="align-middle text-blue-600 group-hover:underline">
-                            {comment.postTitle}
-                          </span>
-                          <span className="text-gray-400 ml-1">게시글에 남긴 댓글</span>
+                        <h3 className="font-bold text-lg">
+                          아직 작성한 댓글이 없어요
+                        </h3>
+                        <p className="text-gray-500 mt-1">
+                          다양한 게시글에 의견을 남겨보세요.
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
-                          <span>{formatDynamicDate(comment.createdDate)}</span>
-                          <span className="flex items-center gap-1 font-medium">
-                            <Heart className="h-3.5 w-3.5 text-red-400" /> {comment.likeCount}
-                          </span>
-                        </div>
-                      </div>
+                      </CardContent>
                     </Card>
-                  </Link>
-                ))
-              ) : (
-                <Card className="border-dashed rounded-xl">
-                  <CardContent className="p-10 text-center flex flex-col items-center">
-                    <div className="p-4 bg-slate-100 rounded-full mb-4">
-                      <MessageSquare className="h-8 w-8 text-slate-400" />
-                    </div>
-                    <h3 className="font-bold text-lg">아직 작성한 댓글이 없어요</h3>
-                    <p className="text-gray-500 mt-1">다양한 게시글에 의견을 남겨보세요.</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </TabsContent>
-        
-        </Tabs>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

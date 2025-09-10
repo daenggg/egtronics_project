@@ -4,8 +4,7 @@ import {
   createComment,
   updateComment,
   deleteComment,
-  likeComment,
-  unlikeComment,
+  toggleCommentLike,
   handleApiError,
 } from "@/lib/api-client";
 import { PostWithDetails, CommentListResponse, CommentWithDetails, CreateCommentRequest, UpdateCommentRequest, LikeResponse } from "@/lib/types";
@@ -163,14 +162,20 @@ export function useDeleteComment() {
   })
 }
 
-// 댓글 좋아요 Hook
-export function useLikeComment() {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  
-  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousPost: PostWithDetails | undefined }>({
-    mutationFn: ({ postId, commentId }: { postId: string | number; commentId: string | number }) => 
-      likeComment(String(postId), String(commentId)),
+export function useToggleCommentLikeMutation() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation<
+    { liked: boolean; likeCount: number }, // API 응답 타입 (성공 시 받는 데이터)
+    Error,
+    { postId: string | number; commentId: string | number }, // mutate 함수가 받을 변수 타입
+    { previousPost?: PostWithDetails } // onMutate 컨텍스트 타입
+  >({
+    // mutationFn은 mutate 함수로부터 postId와 commentId를 받습니다.
+    mutationFn: ({ postId, commentId }) => toggleCommentLike(String(postId), String(commentId)),
+    
+    // onMutate: UI를 즉시 업데이트 (게시글 좋아요 훅과 로직 동일)
     onMutate: async ({ postId, commentId }) => {
       const queryKey = ['post', String(postId)];
       await queryClient.cancelQueries({ queryKey });
@@ -182,63 +187,36 @@ export function useLikeComment() {
           ...previousPost,
           comments: previousPost.comments.map(comment => 
             comment.commentId === Number(commentId)
-              ? { ...comment, isLiked: true, likeCount: comment.likeCount + 1 }
+              ? { 
+                  ...comment, 
+                  liked: !comment.liked, 
+                  likeCount: comment.liked 
+                    ? Math.max(0, comment.likeCount - 1) 
+                    : comment.likeCount + 1 
+                }
               : comment
           )
         });
       }
-      
       return { previousPost };
     },
-    onSuccess: () => {
-      // 댓글 좋아요는 토스트를 띄우지 않아 UX를 깔끔하게 유지합니다.
-    },
-    onError: (error, { postId }, context) => {
-      if (context?.previousPost) {
-        queryClient.setQueryData(['post', String(postId)], context.previousPost);
-      }
-      toast({
-        title: "오류",
-        description: handleApiError(error),
-        variant: "destructive",
-      });
-    },
-    onSettled: (_, __, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['post', String(postId)] });
-    },
-  })
-}
 
-// 댓글 좋아요 취소 Hook
-export function useUnlikeComment() {
-  const queryClient = useQueryClient()
-  const { toast } = useToast()
-  
-  return useMutation<void, Error, { postId: string | number; commentId: string | number }, { previousPost: PostWithDetails | undefined }>({
-    mutationFn: ({ postId, commentId }) => 
-      unlikeComment(String(postId), String(commentId)),
-    onMutate: async ({ postId, commentId }) => {
-      const queryKey = ['post', String(postId)];
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousPost = queryClient.getQueryData<PostWithDetails>(queryKey);
-
-      if (previousPost?.comments) {
-        queryClient.setQueryData<PostWithDetails>(queryKey, {
-          ...previousPost,
-          comments: previousPost.comments.map(comment => 
+    // onSuccess: 서버로부터 받은 정확한 데이터로 캐시를 업데이트 (게시글 좋아요 훅과 로직 동일)
+    onSuccess: (data, { postId, commentId }) => {
+      queryClient.setQueryData<PostWithDetails>(['post', String(postId)], (oldData) => {
+        if (!oldData || !oldData.comments) return oldData;
+        return {
+          ...oldData,
+          comments: oldData.comments.map(comment =>
             comment.commentId === Number(commentId)
-              ? { ...comment, isLiked: false, likeCount: Math.max(0, comment.likeCount - 1) }
+              ? { ...comment, liked: data.liked, likeCount: data.likeCount }
               : comment
-          )
-        });
-      }
-      
-      return { previousPost };
+          ),
+        };
+      });
     },
-    onSuccess: () => {
-      // 댓글 좋아요 취소는 토스트를 띄우지 않아 UX를 깔끔하게 유지합니다.
-    },
+
+    // onError: 에러 발생 시 원래 상태로 롤백 (게시글 좋아요 훅과 로직 동일)
     onError: (error, { postId }, context) => {
       if (context?.previousPost) {
         queryClient.setQueryData(['post', String(postId)], context.previousPost);
@@ -249,28 +227,10 @@ export function useUnlikeComment() {
         variant: "destructive",
       });
     },
+
+    // onSettled: 최종적으로 서버 데이터와 동기화 (게시글 좋아요 훅과 로직 동일)
     onSettled: (_, __, { postId }) => {
       queryClient.invalidateQueries({ queryKey: ['post', String(postId)] });
     },
-  })
-}
-
-// 댓글 좋아요 토글 Hook
-export function useToggleCommentLike() {
-  const likeMutation = useLikeComment()
-  const unlikeMutation = useUnlikeComment()
-  
-  const toggleCommentLike = ({ postId, commentId, isLiked }: { postId: number | string; commentId: number | string; isLiked: boolean | undefined }) => {
-    const params = { postId: String(postId), commentId: String(commentId) };
-    if (isLiked) {
-      unlikeMutation.mutate(params)
-    } else {
-      likeMutation.mutate(params)
-    }
-  }
-  
-  return {
-    toggleCommentLike,
-    isLoading: likeMutation.isPending || unlikeMutation.isPending,
-  }
+  });
 }

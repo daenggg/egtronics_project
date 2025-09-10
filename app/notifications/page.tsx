@@ -8,7 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Bell, BellRing, Check, Home } from "lucide-react"; 
+import { Bell, BellRing, Check, Home } from "lucide-react";
 import { cn, formatDynamicDate } from "@/lib/utils";
 import { Notification } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -29,8 +29,8 @@ export default function NotificationsPage() {
     }
     // 페이지 이동 로직은 여기서 제거되었습니다.
   };
-  
-  const unreadCount = notifications?.filter(n => !n.read).length || 0;
+
+  const unreadCount = notifications?.filter((n) => !n.read).length || 0;
 
   const renderContent = () => {
     if (isLoading) {
@@ -63,7 +63,7 @@ export default function NotificationsPage() {
     if (!notifications || notifications.length === 0) {
       return (
         <div className="text-center py-16 col-span-full">
-           <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
+          <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
             <BellRing className="h-12 w-12 text-blue-500" />
           </div>
           <h3 className="text-xl font-semibold text-gray-800">
@@ -72,8 +72,8 @@ export default function NotificationsPage() {
           <p className="text-gray-500 mt-2 mb-6 max-w-md mx-auto">
             게시글에 새로운 댓글이 달리거나 좋아요를 받으면 이곳에 표시됩니다.
           </p>
-           <Button
-            onClick={() => router.push('/')}
+          <Button
+            onClick={() => router.push("/")}
             className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
           >
             <Home className="mr-2 h-4 w-4" />
@@ -93,19 +93,27 @@ export default function NotificationsPage() {
               "flex items-start p-4 rounded-xl transition-all duration-300 cursor-pointer",
               notification.read
                 ? "bg-white/50 text-gray-500 hover:bg-gray-100/70"
-                : "bg-blue-50/50 hover:bg-blue-100/70 border-l-4 border-blue-500" 
+                : "bg-blue-50/50 hover:bg-blue-100/70 border-l-4 border-blue-500"
             )}
           >
             <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center mr-4">
-              {notification.read 
-                ? <Check className="h-6 w-6 text-gray-400" /> 
-                : <div className="h-full w-full rounded-full bg-blue-100 flex items-center justify-center">
-                    <BellRing className="h-5 w-5 text-blue-600" />
-                  </div>
-              }
+              {notification.read ? (
+                <Check className="h-6 w-6 text-gray-400" />
+              ) : (
+                <div className="h-full w-full rounded-full bg-blue-100 flex items-center justify-center">
+                  <BellRing className="h-5 w-5 text-blue-600" />
+                </div>
+              )}
             </div>
             <div className="flex-grow">
-              <p className={cn("text-base", !notification.read && "font-medium text-gray-800")}>{notification.message}</p>
+              <p
+                className={cn(
+                  "text-base",
+                  !notification.read && "font-medium text-gray-800"
+                )}
+              >
+                {notification.message}
+              </p>
               <p className="text-sm text-gray-400 mt-1">
                 {formatDynamicDate(notification.createdDate)}
               </p>
@@ -120,19 +128,18 @@ export default function NotificationsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div>
-          {/* [수정] 제목 글씨 두께 및 아이콘 색상 변경 */}
-          <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-3 flex items-center gap-3">
-            <Bell className="h-8 w-8 text-yellow-800" />
-            나의 알림
+          <h1 className="text-2xl md:text-4xl font-medium text-gray-900 mb-3 flex items-center gap-3">
+            <Bell className="h-8 w-8 text-gray-700" />
+            알림
           </h1>
           <p className="text-lg text-gray-600">
             새로운 활동 내역을 확인하고 바로 이동할 수 있습니다.
           </p>
         </div>
-        
+
         <Card className="glass-effect border-0 shadow-2xl overflow-hidden">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-2xl font-bold">알림 목록</CardTitle>
+            <CardTitle className="text-2xl font-medium">알림 목록</CardTitle>
             {unreadCount > 0 && (
               <Badge variant="destructive" className="animate-pulse">
                 {unreadCount}개의 안 읽은 알림

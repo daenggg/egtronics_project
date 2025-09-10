@@ -164,8 +164,8 @@ export default function BookmarksPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-semibold flex items-center gap-3">
-          <Bookmark className="h-8 w-8 text-yellow-500" />내 스크랩</h1>
+        <h2 className="text-2xl md:text-4xl font-medium text-gray-900 mb-3 flex items-center gap-3">
+          <Bookmark className="h-8 w-8 text-gray-700" />내 스크랩</h2>
         <p className="text-gray-500">{!isLoading && scraps ? `${scraps.length}개` : ''}</p>
       </div>
       {renderContent()}

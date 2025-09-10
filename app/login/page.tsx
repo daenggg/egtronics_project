@@ -38,7 +38,7 @@ export default function LoginPage() {
         description: "환영합니다!",
         duration: 2000,
       });
-      router.push("/");
+      window.location.href = "/";
     } catch (error) {
       toast({
         title: "로그인 실패",

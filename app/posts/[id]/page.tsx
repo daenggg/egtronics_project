@@ -1,7 +1,6 @@
 // app/posts/[id]/page.tsx
 
 "use client";
-
 import { useMemo, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
@@ -16,8 +15,9 @@ import { useToast } from "@/hooks/use-toast";
 import { ReportDialog } from "@/components/report-dialog";
 import { categories } from "@/components/category-filter";
 import { usePost, useToggleLikeMutation, useDeletePost } from "@/hooks/use-posts";
-import { useToggleScrapMutation } from "@/hooks/use-scraps"; 
-import { useCreateComment, useUpdateComment, useDeleteComment, useToggleCommentLike } from "@/hooks/use-comments";
+import { useToggleScrapMutation } from "@/hooks/use-scraps";
+// ▼▼▼ [수정 1] import 구문을 변경합니다. ▼▼▼
+import { useCreateComment, useUpdateComment, useDeleteComment, useToggleCommentLikeMutation } from "@/hooks/use-comments";
 import { CommentWithDetails } from "@/lib/types";
 import { API_BASE } from "@/lib/api-client";
 
@@ -29,14 +29,14 @@ export default function PostDetailPage() {
   const postId = params.id as string;
 
   const { data: post, isLoading: isPostLoading, error: postError } = usePost(postId);
-  
+
   const { mutate: toggleLike } = useToggleLikeMutation(postId);
   const { mutate: toggleScrap } = useToggleScrapMutation(postId);
 
   const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
   const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
   const { mutate: deleteComment } = useDeleteComment();
-  const { toggleCommentLike } = useToggleCommentLike();
+  const { mutate: toggleCommentLike } = useToggleCommentLikeMutation();
   const { mutate: deletePost } = useDeletePost();
 
   const [newComment, setNewComment] = useState("");
@@ -98,7 +98,8 @@ export default function PostDetailPage() {
     }
     const comment = (post?.comments || []).find((c) => c.commentId === commentId);
     if (!comment || !post) return;
-    toggleCommentLike({ postId: post.postId, commentId: comment.commentId, isLiked: comment.isLiked });
+
+    toggleCommentLike({ postId: post.postId, commentId });
   };
 
   const handleEditComment = (comment: CommentWithDetails) => {
@@ -291,27 +292,29 @@ export default function PostDetailPage() {
             <Card
               key={comment.commentId}
               id={`comment-${comment.commentId}`}
-              className={`glass-effect border-0 shadow-xl animate-fade-in ${
-                isTopComment ? "ring-2 ring-yellow-400" : ""
-              }`}
+              className={`glass-effect border-0 shadow-xl animate-fade-in ${isTopComment ? "ring-2 ring-yellow-400" : ""
+                }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
               <CardContent className="p-4 sm:p-6">
                 <div className="flex items-start space-x-6">
                   <Avatar className="h-10 w-10 ring-2 ring-gray-100">
+                    {/* [수정] comment.profilePictureUrl 사용 */}
                     <AvatarImage
-                      src={comment.author.profilePicture ? `${API_BASE}${comment.author.profilePicture}` : "/images.png"}
-                      alt={comment.author.nickname}
+                      src={comment.profilePictureUrl ? `${API_BASE}${comment.profilePictureUrl}` : "/images.png"}
+                      alt={comment.nickname}
                     />
+                    {/* [수정] comment.nickname 사용 */}
                     <AvatarFallback className="bg-gradient-to-r from-green-400 to-blue-500 text-white text-sm">
-                      {comment.author.nickname.charAt(0)}
+                      {comment.nickname.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
+                        {/* [수정] comment.nickname 사용 */}
                         <p className="font-semibold text-sm text-gray-900">
-                          {comment.author.nickname}
+                          {comment.nickname}
                         </p>
                         <p className="text-xs text-gray-500">
                           {formatDynamicDate(comment.createdDate)}
@@ -321,7 +324,8 @@ export default function PostDetailPage() {
                             BEST
                           </Badge>
                         )}
-                        {comment.isAuthor && !isEditing && (
+                        {/* [수정] comment.author 사용 */}
+                        {comment.author && !isEditing && (
                           <div className="flex items-center ml-auto">
                             <Button
                               variant="ghost"
@@ -374,19 +378,19 @@ export default function PostDetailPage() {
                           {comment.content}
                         </p>
                         <Button
-                          variant={comment.isLiked ? "default" : "outline"}
+                          /* [수정] comment.liked 사용 */
+                          variant={comment.liked ? "default" : "outline"}
                           size="sm"
                           onClick={() => handleLikeComment(comment.commentId)}
-                          className={`flex items-center space-x-2 transition-all ${
-                            comment.isLiked
+                          className={`flex items-center space-x-2 transition-all ${comment.liked
                               ? "bg-gradient-to-r from-red-500 to-pink-500 text-white"
                               : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"
-                          }`}
+                            }`}
                         >
                           <Heart
-                            className={`h-3 w-3 ${
-                              comment.isLiked ? "fill-current" : ""
-                            }`}
+                            /* [수정] comment.liked 사용 */
+                            className={`h-3 w-3 ${comment.liked ? "fill-current" : ""
+                              }`}
                           />
                           <span>{comment.likeCount}</span>
                         </Button>

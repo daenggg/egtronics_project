@@ -105,29 +105,19 @@ export async function getPost(id: string): Promise<PostWithDetails> {
   if (!data) {
     throw new Error('Post not found');
   }
+
+  // [수정] 복잡한 변환 로직을 제거하고, 댓글의 날짜만 정규화합니다.
   const normalizedComments = (data.comments && Array.isArray(data.comments))
     ? data.comments.map((comment: any) => ({
         ...comment,
         createdDate: normalizeDate(comment.createdDate),
-        author: {
-          userId: comment.userId,
-          nickname: comment.nickname,
-          profilePicture: comment.profilePictureUrl || null,
-        },
       }))
     : [];
+
   return {
     ...data,
-    photo: data.photoUrl || null,
     createdDate: normalizeDate(data.createdDate),
     comments: normalizedComments,
-    author: {
-      userId: data.userId,
-      nickname: data.nickname,
-      profilePicture: data.authorProfilePictureUrl || null,
-    },
-    isLiked: data.liked,       // 백엔드의 liked를 프론트엔드의 isLiked로 매핑
-    isScrapped: data.scrapped, // 백엔드의 scrapped를 프론트엔드의 isScrapped로 매핑
   };
 }
 
@@ -227,7 +217,7 @@ export async function getMyProfile(): Promise<User> {
 }
 
 export async function updateMyProfile(payload: FormData): Promise<string> {
-  const { data } = await apiClient.patch<string>('/users/me', payload);
+  const { data } = await apiClient.patch<string>('/users/', payload);
   return data;
 }
 
@@ -302,14 +292,10 @@ export async function deleteComment(postId: string, commentId: string): Promise<
   await apiClient.delete(`/posts/${postId}/comments/${commentId}`);
 }
 
-export async function likeComment(postId: string, commentId: string): Promise<void> {
-  await apiClient.post(`/posts/${postId}/comments/${commentId}/likes`);
+export async function toggleCommentLike(postId: string, commentId: string): Promise<{ liked: boolean; likeCount: number }> {
+  const { data } = await apiClient.post(`/posts/${postId}/comments/${commentId}/likes`);
+  return data;
 }
-
-export async function unlikeComment(postId: string, commentId: string): Promise<void> {
-  await apiClient.delete(`/posts/${postId}/comments/${commentId}/likes`);
-}
-
 
 export async function getMyScraps(): Promise<Scrap[]> {
   const { data } = await apiClient.get<any[]>('/users/me/scraps');

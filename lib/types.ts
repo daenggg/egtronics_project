@@ -60,18 +60,21 @@ export interface PostWithDetails {
   title: string;
   content: string;
   photoUrl: string | null;
-  nickname: string; // author 객체에서 밖으로 이동
   createdDate: string;
   likeCount: number;
   viewCount: number;
-  authorProfilePictureUrl: string | null; // author 객체에서 밖으로 이동
   comments: CommentWithDetails[];
-  scrapped: boolean; // isScrapped -> scrapped
-  author: boolean;   // isAuthor -> author
-  liked: boolean;    // isLiked -> liked
+  scrapped: boolean;
+  liked: boolean;
   blocked: boolean;
-  reportedByCurrentUser?: boolean; // 이 필드는 있을 수도 있고 없을 수도 있습니다.
+  reportedByCurrentUser?: boolean;
+  
+  // [수정] author 객체 대신 실제 데이터 속성을 정의합니다.
+  nickname: string;
+  authorProfilePictureUrl: string | null;
+  author: boolean; // 내가 쓴 글인지 여부
 }
+
 
 /**
  * (API 응답용 확장 인터페이스)
@@ -95,14 +98,17 @@ export interface PostPreview {
   isScrapped: boolean; // [수정] isBookmarked -> isScrapped 로 이름 통일
 }
 
-export interface CommentWithDetails extends Comment {
-  author: {
-    userId: string;
-    nickname: string;
-    profilePicture?: string | null;
-  };
-  isLiked?: boolean;
-  isAuthor?: boolean; // [수정] isMine -> isAuthor 로 이름 통일
+export interface CommentWithDetails {
+  commentId: number;
+  content: string;
+  likeCount: number;
+  createdDate: string;
+  
+  // [수정] author 객체 대신 실제 데이터 속성을 정의합니다.
+  nickname: string;
+  profilePictureUrl: string | null;
+  author: boolean; // 내가 쓴 댓글인지 여부
+  liked: boolean;
 }
 
 // --- API 요청/응답 타입 ---
