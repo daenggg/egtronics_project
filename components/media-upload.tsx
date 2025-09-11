@@ -20,14 +20,12 @@ interface MediaUploadProps {
 }
 
 export function MediaUpload({ onFilesChange, maxFiles = 5, initialFiles = [] }: MediaUploadProps) {
-  const [files, setFiles] = useState<MediaFile[]>([])
+  // ✅ 해결: useState의 초기값으로 initialFiles를 직접 사용하여 무한 렌더링을 방지합니다.
+  const [files, setFiles] = useState<MediaFile[]>(initialFiles)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
-  useEffect(() => {
-    // initialFiles가 변경될 때만 files 상태를 업데이트합니다.
-    setFiles(initialFiles);
-  }, [initialFiles]);
+  // ✅ 해결: 불필요한 useEffect를 제거합니다.
 
   const getFileType = (file: File): 'image' | 'video' | 'other' => {
     if (file.type.startsWith('image/')) return 'image'
@@ -130,7 +128,7 @@ export function MediaUpload({ onFilesChange, maxFiles = 5, initialFiles = [] }: 
                 {mediaFile.type === 'image' && (
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                     <img
-                      src={mediaFile.url || "/placeholder.svg"}
+                      src={mediaFile.url}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
