@@ -16,18 +16,21 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // [수정] '내용 없음' UI의 버튼을 위해 useRouter를 다시 추가합니다.
 
 export default function NotificationsPage() {
-  // [수정] 페이지 이동 기능이 제거되었으므로 router는 '내용 없음' UI에서만 사용됩니다.
   const router = useRouter();
   const { data: notifications, isLoading, isError, error } = useNotifications();
   const { mutate: markAsRead } = useMarkNotificationAsRead();
 
-  // [수정] 페이지 이동 기능 제거
   const handleNotificationClick = (notification: Notification) => {
     // 읽지 않은 알림일 경우에만 읽음 처리 API를 호출합니다.
     if (!notification.read) {
       markAsRead(notification.notificationId);
     }
-    // 페이지 이동 로직은 여기서 제거되었습니다.
+    // 알림에 postId가 있으면 해당 게시글로 이동합니다.
+    if (notification.postId) {
+      // commentId가 있으면 URL 해시에 추가하여 해당 댓글로 스크롤합니다.
+      const url = `/posts/${notification.postId}${notification.commentId ? `#comment-${notification.commentId}` : ''}`;
+      router.push(url);
+    }
   };
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
