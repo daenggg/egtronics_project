@@ -41,7 +41,7 @@ export function Header() {
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
 
   return (
-    <header className="glass-effect sticky top-0 z-50 border-b backdrop-blur-md">
+    <header className="sticky top-0 z-50">
       <div className="w-full px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-1">
           <Button
@@ -140,7 +140,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 asChild
-                className="hover:bg-blue-50"
+                className="hover:bg-blue-50 text-black"
               >
                 <Link href="/login">로그인</Link>
               </Button>

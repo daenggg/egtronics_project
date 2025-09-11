@@ -168,7 +168,7 @@ export default function PostDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Card className="mb-8 glass-effect border-0 shadow-2xl overflow-hidden">
+      <Card className="mb-8 glass-effect border-0 shadow-2xl overflow-hidden bg-white">
         <CardHeader className="rounded-t-lg p-4 sm:p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -242,7 +242,7 @@ export default function PostDetailPage() {
       </Card>
 
       {user && (
-        <Card className="mb-8 glass-effect border-0 shadow-2xl">
+        <Card className="mb-8 glass-effect border-0 shadow-2xl bg-white">
           <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmitComment} className="space-y-4">
               <div className="flex items-start space-x-4">
@@ -279,7 +279,7 @@ export default function PostDetailPage() {
       )}
 
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-lg font-semibold text-gray-800">
           댓글 {post.comments?.length || 0}개
         </h3>
         {sortedComments.map((comment, index) => {
@@ -292,7 +292,7 @@ export default function PostDetailPage() {
             <Card
               key={comment.commentId}
               id={`comment-${comment.commentId}`}
-              className={`glass-effect border-0 shadow-xl animate-fade-in ${isTopComment ? "ring-2 ring-yellow-400" : ""
+              className={`glass-effect border-0 shadow-xl animate-fade-in bg-white ${isTopComment ? "ring-2 ring-yellow-400" : ""
                 }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >

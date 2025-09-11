@@ -37,14 +37,14 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full z-40 w-64 bg-white/95 backdrop-blur-sm shadow-2xl
+          fixed top-0 left-0 h-full z-40 w-64 backdrop-blur-sm shadow-2xl
           transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           overflow-y-auto pt-32
         `}
       >
         <div className="space-y-6 px-4 w-64">
-          <Card className="glass-effect border-0 shadow-lg">
+          <Card className="glass-effect border-0 shadow-lg bg-white">
             <CardContent className="p-4 flex flex-col gap-4">
               {user ? (
                 <Link href="/profile" className="flex items-center gap-4 w-full" onClick={toggleSidebar}>

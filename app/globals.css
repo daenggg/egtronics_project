@@ -25,7 +25,7 @@
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
   --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
+  --input: 0 0% 100%; /* input 배경을 흰색으로 변경 */
   --ring: 221.2 83.2% 53.3%;
   --radius: 0.75rem;
   --sidebar: oklch(0.985 0 0);
@@ -56,7 +56,7 @@
   --destructive: oklch(0.396 0.141 25.723);
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
+  --input: oklch(0.205 0 0); /* 다크모드 input 배경색 조정 */
   --ring: oklch(0.439 0 0);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
@@ -117,7 +117,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-white text-foreground;
+  }
+  input, textarea {
+    @apply bg-input;
   }
 }
 
@@ -137,8 +140,7 @@
   
   .glass-effect {
     backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* background: rgba(255, 255, 255, 0.9); */
   }
   
   .animate-fade-in {

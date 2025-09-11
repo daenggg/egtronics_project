@@ -258,14 +258,14 @@ export default function RegisterForm() {
 
   return (
     <div className="container mx-auto px-4 py-8 flex justify-center min-h-[80vh] items-center">
-      <Card className="w-full max-w-md glass-effect border-0 shadow-2xl">
+      <Card className="w-full max-w-md glass-effect border-0 shadow-2xl bg-white">
         <ScrollArea className="h-[500px]">
           <form onSubmit={handleSubmit} className="space-y-1">
             <CardHeader className="text-center pb-8">
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
                 egtronics 오늘의 게시판
               </CardTitle>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-400 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-400 bg-clip-text text-transparent text-gray-800">
                 회원가입
               </CardTitle>
               <CardDescription className="text-gray-600 mt-2">

@@ -128,7 +128,7 @@ const { data, isLoading, isError, error } = usePosts({
                 href={`/posts/${post.postId}`}
                 className="block"
                 >
-                <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl">
+                <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl bg-white">
                     <div className="p-2 flex items-center gap-3 border-b border-slate-100">
                     <Avatar className="h-9 w-9">
                         <AvatarImage
@@ -155,7 +155,7 @@ const { data, isLoading, isError, error } = usePosts({
                     <div className="px-4 pt-2">
                     <Badge
                         variant="secondary"
-                        className="font-medium text-sm"
+                        className="font-medium text-sm bg-white border-gray-200 text-black"
                     >
                         <span className="mr-1.5">{categoryInfo.icon}</span>
                         {categoryInfo.name}
@@ -172,12 +172,11 @@ const { data, isLoading, isError, error } = usePosts({
                     </div>
                     <div className="p-5 pt-3 flex-grow flex flex-col">
                     <div>
-                        <CardTitle className="text-xl font-bold line-clamp-2 group-hover:text-blue-600 transition-colors">
+                        <CardTitle className="text-xl font-bold line-clamp-2 text-black group-hover:text-blue-600 transition-colors">
                         {post.title}
                         </CardTitle>
                     </div>
-
-                    <p className="text-base text-gray-600 mt-3 flex-grow line-clamp-3">
+                    <p className="text-base text-black mt-3 flex-grow line-clamp-3">
                         {post.content}
                     </p>
 

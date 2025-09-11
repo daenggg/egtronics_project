@@ -42,7 +42,7 @@ export function CategoryFilter({ onCategorySelect }: CategoryFilterProps) {
   }
 
   return (
-    <Card className="mb-2 border-0 shadow-none">
+    <Card className="mb-2 border-0 bg-white">
       <CardContent className="pt-2">
         {/* 카테고리 섹션 */}
         <div className="flex items-center gap-1 mb-4">
