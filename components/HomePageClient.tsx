@@ -212,7 +212,7 @@ const { data, isLoading, isError, error } = usePosts({
   };
 
   return (
-    <div className="container mx-auto px-4 pt-4 pb-8">
+    <div className="container mx-auto px-4 pb-8">
       <div className="space-y-8 min-w-0">
         {/* 헤더 */}
         <div>
@@ -249,7 +249,7 @@ const { data, isLoading, isError, error } = usePosts({
             value={sortCode}
             onValueChange={handleSortChange}
           >
-            <SelectTrigger className="w-full sm:w-40 h-12 text-base flex items-center px-3">
+            <SelectTrigger className="w-full sm:w-40 force-h-12 text-base flex items-center px-3">
               <SelectValue placeholder="정렬" />
             </SelectTrigger>
             <SelectContent className="bg-card">
