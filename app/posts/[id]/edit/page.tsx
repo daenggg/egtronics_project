@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { usePost, useUpdatePost } from "@/hooks/use-posts";
 import { useToast } from "@/hooks/use-toast";
@@ -27,18 +27,20 @@ export default function PostEditPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [media, setMedia] = useState<MediaFile[]>([]);
+  const [media, setMedia] = useState<MediaFile[]>([]); // 사용자가 새로 업로드/제거하는 파일 관리
+
+  // ✅ 해결: useMemo를 사용하여 post 데이터가 있을 때만 initialMedia를 계산합니다.
+  const initialMedia = useMemo(() => {
+    return post?.photoUrl
+      ? [{ id: 'existing', url: `${API_BASE}${post.photoUrl}`, type: 'image' as const, file: new File([], 'existing-image.jpg', { type: 'image/jpeg' }) }]
+      : [];
+  }, [post?.photoUrl]);
 
   useEffect(() => {
     if (post) {
       setTitle(post.title);
       setContent(post.content);
       setCategoryId(String(post.categoryId));
-      setMedia(
-        post.photoUrl
-          ? [{ id: 'existing', url: `${API_BASE}${post.photoUrl}`, type: 'image', file: new File([], 'existing-image') }]
-          : []
-      );
     }
   }, [post]);
 
@@ -122,7 +124,7 @@ export default function PostEditPage() {
             </div>
             <div className="space-y-2">
               <label className="font-medium">사진</label>
-              <MediaUpload onFilesChange={setMedia} maxFiles={1} initialFiles={media} />
+              <MediaUpload onFilesChange={(files) => setMedia(files)} maxFiles={1} initialFiles={initialMedia} />
             </div>
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => router.back()}>

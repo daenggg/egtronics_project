@@ -20,12 +20,16 @@ interface MediaUploadProps {
 }
 
 export function MediaUpload({ onFilesChange, maxFiles = 5, initialFiles = [] }: MediaUploadProps) {
-  // ✅ 해결: useState의 초기값으로 initialFiles를 직접 사용하여 무한 렌더링을 방지합니다.
   const [files, setFiles] = useState<MediaFile[]>(initialFiles)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
-  // ✅ 해결: 불필요한 useEffect를 제거합니다.
+  useEffect(() => {
+    // initialFiles가 실제로 변경되었을 때만 files 상태를 업데이트하여 무한 루프를 방지합니다.
+    if (JSON.stringify(initialFiles) !== JSON.stringify(files)) {
+      setFiles(initialFiles);
+    }
+  }, [initialFiles]); // files를 의존성 배열에서 제거합니다.
 
   const getFileType = (file: File): 'image' | 'video' | 'other' => {
     if (file.type.startsWith('image/')) return 'image'
