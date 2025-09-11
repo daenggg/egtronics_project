@@ -113,9 +113,9 @@ function CreatePostForm() {
                 <SelectTrigger>
                   <SelectValue placeholder="카테고리를 선택하세요" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-card">
                   {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
+                    <SelectItem key={cat.id} value={cat.id} className="bg-card">
                       <div className="flex items-center gap-2">
                         <span>{cat.icon}</span>
                         <span>{cat.name}</span>
