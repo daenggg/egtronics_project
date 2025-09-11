@@ -94,9 +94,9 @@ export function ReportDialog({
       </DialogTrigger>
 
       {!alreadyReported && ( // 이미 신고했으면 다이얼로그 열지 않음
-        <DialogContent className="sm:max-w-md bg-white">
+        <DialogContent className="sm:max-w-md bg-white dark:bg-card">
           <DialogHeader>
-            <DialogTitle className="flex bg-white items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
               {type === "post" ? "게시글" : "댓글"} 신고하기
             </DialogTitle>

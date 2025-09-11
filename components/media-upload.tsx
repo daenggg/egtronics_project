@@ -24,12 +24,11 @@ export function MediaUpload({ onFilesChange, maxFiles = 5, initialFiles = [] }: 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
 
+  // ✅ 해결: useEffect를 사용하여 initialFiles prop이 변경될 때만 상태를 업데이트합니다.
+  // 의존성 배열에 JSON.stringify를 사용하여 배열 내용의 실제 변경을 감지합니다.
   useEffect(() => {
-    // initialFiles가 실제로 변경되었을 때만 files 상태를 업데이트하여 무한 루프를 방지합니다.
-    if (JSON.stringify(initialFiles) !== JSON.stringify(files)) {
-      setFiles(initialFiles);
-    }
-  }, [initialFiles]); // files를 의존성 배열에서 제거합니다.
+    setFiles(initialFiles);
+  }, [JSON.stringify(initialFiles)]);
 
   const getFileType = (file: File): 'image' | 'video' | 'other' => {
     if (file.type.startsWith('image/')) return 'image'
