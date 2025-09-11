@@ -42,11 +42,11 @@ export function CategoryFilter({ onCategorySelect }: CategoryFilterProps) {
   }
 
   return (
-    <Card className="mb-2 border-0 bg-white">
+    <Card className="mb-2 border-0 bg-card">
       <CardContent className="pt-2">
         {/* 카테고리 섹션 */}
         <div className="flex items-center gap-1 mb-4">
-          <h3 className="font-semibold text-gray-900">Category</h3>
+          <h3 className="font-semibold text-foreground">Category</h3>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
           {categories.map((category) => {
@@ -59,8 +59,8 @@ export function CategoryFilter({ onCategorySelect }: CategoryFilterProps) {
                 onClick={() => handleCategoryClick(category.id)}
                 className={`transition-all ${
                   isActive
-                    ? "bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-lg"
-                    : "hover:bg-gray-100 border-gray-200"
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "bg-background hover:bg-muted/50 border-border"
                 }`}
               >
                 <span className="mr-2">{category.icon}</span>

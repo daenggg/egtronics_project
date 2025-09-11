@@ -37,14 +37,14 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-full z-40 w-64 backdrop-blur-sm shadow-2xl
+          fixed top-0 left-0 h-full z-40 w-64 bg-background/95 backdrop-blur-sm shadow-2xl
           transition-transform duration-300 ease-in-out
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
           overflow-y-auto pt-32
         `}
       >
         <div className="space-y-6 px-4 w-64">
-          <Card className="glass-effect border-0 shadow-lg bg-white">
+          <Card className="glass-effect border-0 shadow-lg bg-card">
             <CardContent className="p-4 flex flex-col gap-4">
               {user ? (
                 <Link href="/profile" className="flex items-center gap-4 w-full" onClick={toggleSidebar}>
@@ -58,12 +58,12 @@ export function Sidebar() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold text-gray-900 truncate">{user.nickname}</p>
-                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                    <p className="font-semibold text-foreground truncate">{user.nickname}</p>
+                    <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </Link>
               ) : (
-                <p className="text-sm text-center text-gray-600">로그인하고 모든 기능을 이용해보세요.</p>
+                <p className="text-sm text-center text-muted-foreground">로그인하고 모든 기능을 이용해보세요.</p>
               )}
               {/* 글 작성 버튼을 클릭하면 사이드바가 닫히도록 onClick 핸들러 추가 */}
               <div onClick={toggleSidebar} className="flex justify-center">

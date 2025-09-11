@@ -168,7 +168,7 @@ export default function PostDetailPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <Card className="mb-8 glass-effect border-0 shadow-2xl overflow-hidden bg-white">
+      <Card className="mb-8 glass-effect border-0 shadow-2xl overflow-hidden bg-card">
         <CardHeader className="rounded-t-lg p-4 sm:p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -177,12 +177,12 @@ export default function PostDetailPage() {
                 <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">{post.nickname.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-semibold text-gray-900">{post.nickname}</p>
-                <p className="text-sm text-gray-500">{formatDynamicDate(post.createdDate)}</p>
+                <p className="font-semibold text-foreground">{post.nickname}</p>
+                <p className="text-sm text-muted-foreground">{formatDynamicDate(post.createdDate)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 text-sm text-gray-500 bg-white px-3 py-1 rounded-full shadow-sm">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground bg-background px-3 py-1 rounded-full shadow-sm">
                 <Eye className="h-4 w-4" />
                 <span>{post.viewCount}</span>
               </div>
@@ -191,20 +191,20 @@ export default function PostDetailPage() {
               </div>
             </div>
           </div>
-          <Badge className="border border-slate-200 font-medium mb-4 text-sm px-3 py-1">
+          <Badge className="border-border font-medium mb-4 text-sm px-3 py-1">
             <span className="mr-2">{getCategoryInfo(post.categoryId).icon}</span>
             {getCategoryInfo(post.categoryId).name}
           </Badge>
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">{post.title}</h1>
+          <h1 className="text-2xl font-bold text-foreground leading-tight">{post.title}</h1>
         </CardHeader>
         <CardContent className="p-4 pt-2 sm:p-6 sm:pt-2">
-          <div className="prose max-w-none mb-8 text-gray-800 leading-relaxed">
+          <div className="prose max-w-none mb-8 text-foreground leading-relaxed">
             <p className="whitespace-pre-wrap text-base">{post.content}</p>
           </div>
           {post.photoUrl && (
             <div className="mb-8">
               <div className="grid grid-cols-1 gap-4">
-                <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                <div className="aspect-video bg-muted/50 rounded-lg overflow-hidden">
                   <img src={`${API_BASE}${post.photoUrl}`} alt="Post media" className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer" />
                 </div>
               </div>
@@ -222,7 +222,7 @@ export default function PostDetailPage() {
                 <Bookmark className={`h-4 w-4 ${post.scrapped ? "fill-current" : ""}`} />
                 <span>스크랩</span>
               </Button>
-              <div className="flex items-center space-x-2 text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-full">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-full">
                 <MessageCircle className="h-4 w-4" />
                 <span>{post.comments?.length || 0}개 댓글</span>
               </div>
@@ -242,7 +242,7 @@ export default function PostDetailPage() {
       </Card>
 
       {user && (
-        <Card className="mb-8 glass-effect border-0 shadow-2xl bg-white">
+        <Card className="mb-8 glass-effect border-0 shadow-2xl bg-card">
           <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleSubmitComment} className="space-y-4">
               <div className="flex items-start space-x-4">
@@ -259,8 +259,7 @@ export default function PostDetailPage() {
                   <Textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="댓글을 작성하세요..."
-                    className="min-h-[100px] border-gray-200 focus:border-blue-300 focus:ring-blue-200"
+                    placeholder="댓글을 작성하세요..." className="min-h-[100px] bg-background"
                   />
                 </div>
               </div>
@@ -279,7 +278,7 @@ export default function PostDetailPage() {
       )}
 
       <div className="space-y-3">
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3 className="text-lg font-semibold text-foreground">
           댓글 {post.comments?.length || 0}개
         </h3>
         {sortedComments.map((comment, index) => {
@@ -292,7 +291,7 @@ export default function PostDetailPage() {
             <Card
               key={comment.commentId}
               id={`comment-${comment.commentId}`}
-              className={`glass-effect border-0 shadow-xl animate-fade-in bg-white ${isTopComment ? "ring-2 ring-yellow-400" : ""
+              className={`glass-effect border-0 shadow-xl animate-fade-in bg-card ${isTopComment ? "ring-2 ring-yellow-400" : ""
                 }`}
               style={{ animationDelay: `${index * 0.1}s` }}
             >
@@ -313,10 +312,10 @@ export default function PostDetailPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
                         {/* [수정] comment.nickname 사용 */}
-                        <p className="font-semibold text-sm text-gray-900">
+                        <p className="font-semibold text-sm text-foreground">
                           {comment.nickname}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           {formatDynamicDate(comment.createdDate)}
                         </p>
                         {isTopComment && (
@@ -352,8 +351,7 @@ export default function PostDetailPage() {
                       <div className="space-y-2 mt-2">
                         <Textarea
                           value={editingCommentContent}
-                          onChange={(e) => setEditingCommentContent(e.target.value)}
-                          className="min-h-[80px]"
+                          onChange={(e) => setEditingCommentContent(e.target.value)} className="min-h-[80px] bg-background"
                         />
                         <div className="flex justify-end space-x-2">
                           <Button
@@ -374,7 +372,7 @@ export default function PostDetailPage() {
                       </div>
                     ) : (
                       <>
-                        <p className="text-sm mb-4 text-gray-700 leading-relaxed">
+                        <p className="text-sm mb-4 text-muted-foreground leading-relaxed">
                           {comment.content}
                         </p>
                         <Button

@@ -46,10 +46,10 @@ const ProfileInfoItem = ({
   value: string;
 }) => (
   <div className="flex items-start gap-4 text-left">
-    <Icon className="h-5 w-5 text-slate-400 mt-0.5 flex-shrink-0" />
+    <Icon className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
     <div className="flex-1">
-      <p className="text-sm font-medium text-slate-500">{label}</p>
-      <p className="text-base text-slate-800">{value}</p>
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="text-base text-foreground">{value}</p>
     </div>
   </div>
 );
@@ -67,11 +67,11 @@ const ProfileEditItem = ({
   disabled = false,
 }: any) => (
   <div className="space-y-1.5 text-left">
-    <Label htmlFor={id} className="font-medium text-slate-600">
+    <Label htmlFor={id} className="font-medium text-foreground">
       {label}
     </Label>
     <div className="relative">
-      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+      <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       <Input
         id={id}
         type={type}
@@ -79,7 +79,7 @@ const ProfileEditItem = ({
         onChange={onChange}
         placeholder={placeholder}
         disabled={disabled}
-        className="pl-10"
+        className="pl-10 bg-background"
       />
     </div>
     {error && <p className="text-red-600 text-sm mt-1">{error}</p>}
@@ -195,10 +195,10 @@ export default function ProfilePage() {
 
   if (authLoading) {
     return (
-      <div className="bg-slate-50/50 min-h-screen">
+      <div className="bg-background min-h-screen">
         <div className="container mx-auto px-4 py-8 md:py-12 max-w-4xl">
           <Skeleton className="h-10 w-48 mb-8" />
-          <Card className="mb-10 glass-effect border-0 shadow-2xl overflow-hidden">
+          <Card className="mb-10 glass-effect border-0 shadow-2xl overflow-hidden bg-card">
             <CardHeader>
               <Skeleton className="h-8 w-32" />
             </CardHeader>
@@ -221,12 +221,12 @@ export default function ProfilePage() {
 
   if (!authLoading && !user) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-slate-50">
-        <Card className="text-center p-8 glass-effect border-0 shadow-xl w-full max-w-sm">
+      <div className="flex items-center justify-center min-h-[calc(100vh-200px)] bg-background">
+        <Card className="text-center p-8 glass-effect border-0 shadow-xl w-full max-w-sm bg-card">
           <CardTitle className="mb-2 text-lg font-medium">
             로그인이 필요합니다
           </CardTitle>
-          <CardContent className="text-gray-600 p-0">
+          <CardContent className="text-muted-foreground p-0">
             <p>마이페이지를 보려면 먼저 로그인해주세요.</p>
             <Button asChild className="mt-6">
               <Link href="/login">로그인하기</Link>
@@ -238,19 +238,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="bg-slate-50/50 min-h-screen">
+    <div className="bg-background min-h-screen w-full">
       <div className="container mx-auto px-4 py-8 md:py-12 max-w-4xl space-y-10">
         <div>
-          <h1 className="text-2xl md:text-4xl font-medium text-gray-900 mb-3 flex items-center gap-3">
-            <UserCircle className="h-9 w-9 text-gray-700" />
+          <h1 className="text-2xl md:text-4xl font-medium text-foreground mb-3 flex items-center gap-3">
+            <UserCircle className="h-9 w-9 text-muted-foreground" />
             마이페이지
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             내 정보를 관리하고 활동 내역을 확인하세요.
           </p>
         </div>
 
-        <Card className="glass-effect border-0 shadow-2xl overflow-hidden">
+        <Card className="glass-effect border-0 shadow-2xl overflow-hidden bg-card">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-2xl font-normal">
@@ -262,8 +262,8 @@ export default function ProfilePage() {
                 disabled={isSaving}
                 className={
                   isEditing
-                    ? "bg-gradient-to-r text-pink-500 to-purple-600 text-white shadow-lg"
-                    : "bg-white text-gray-700 hover:bg-gray-100"
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }
               >
                 {isEditing ? (
@@ -283,7 +283,7 @@ export default function ProfilePage() {
           <CardContent>
             <div className="flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left md:gap-8">
               <div className="relative group">
-                <Avatar className="h-24 w-24 cursor-pointer border-2 border-white shadow-lg">
+                <Avatar className="h-24 w-24 cursor-pointer border-2 border-background shadow-lg">
                   <AvatarImage
                     src={
                       profilePicture
@@ -294,7 +294,7 @@ export default function ProfilePage() {
                     }
                     alt={user?.name || "User"}
                   />
-                  <AvatarFallback className="text-3xl bg-gradient-to-br text-pink-500 to-purple-500 text-white">
+                  <AvatarFallback className="text-3xl bg-gradient-to-br from-pink-500 to-purple-500 text-white">
                     {user?.nickname?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -414,24 +414,24 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="glass-effect border-0 shadow-2xl overflow-hidden">
+        <Card className="glass-effect border-0 shadow-2xl overflow-hidden bg-card">
           <CardHeader>
             <CardTitle className="text-2xl font-medium">
               내 활동 내역
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="posts">
-              <TabsList className="grid w-full grid-cols-2 bg-slate-100/80 p-1 rounded-lg h-auto">
+            <Tabs defaultValue="posts" className="bg-card">
+              <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-lg h-auto">
                 <TabsTrigger
                   value="posts"
-                  className="py-2.5 data-[state=active]:bg-white data-[state=active]:text-pink-500 data-[state=active]:shadow-md font-semibold transition-all duration-300"
+                  className="py-2.5 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md font-semibold transition-all duration-300"
                 >
                   <FileText className="h-4 w-4 mr-2" />내 게시글
                 </TabsTrigger>
                 <TabsTrigger
                   value="comments"
-                  className="py-2.5 data-[state=active]:bg-white data-[state=active]:text-pink-500 data-[state=active]:shadow-md font-semibold transition-all duration-300"
+                  className="py-2.5 data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md font-semibold transition-all duration-300"
                 >
                   <MessageSquare className="h-4 w-4 mr-2" />내 댓글
                 </TabsTrigger>
@@ -446,8 +446,7 @@ export default function ProfilePage() {
                   ) : myPosts && myPosts.length > 0 ? (
                     myPosts.map((post) => (
                       <Link href={`/posts/${post.postId}`} key={post.postId}>
-                        {/* ✅ [수정] 카드 레이아웃 및 크기 변경 적용 */}
-                        <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-white hover:border-pink-300 rounded-xl">
+                        <Card className="overflow-hidden transition-all duration-300 ease-in-out hover:shadow-xl hover:-translate-y-1 group border bg-background hover:border-primary/50 rounded-xl">
                           <CardContent className="p-5 flex h-40 items-center gap-5">
                             <div className="w-40 flex-shrink-0 relative h-full">
                               {post.photo ? (
@@ -457,24 +456,24 @@ export default function ProfilePage() {
                                   className="w-full h-full object-cover transition-transform group-hover:scale-105 rounded-lg"
                                 />
                               ) : (
-                                <div className="w-full h-full bg-slate-100 flex items-center justify-center rounded-lg">
-                                  <ImageIcon className="h-10 w-10 text-slate-400" />
+                                <div className="w-full h-full bg-muted/50 flex items-center justify-center rounded-lg">
+                                  <ImageIcon className="h-10 w-10 text-muted-foreground" />
                                 </div>
                               )}
                             </div>
                             <div className="py-1 flex flex-col flex-1 min-w-0 h-full">
                               <div>
-                                <p className="text-xs text-gray-700 font-semibold">
+                                <p className="text-xs text-foreground font-semibold">
                                   {post.categoryName}
                                 </p>
-                                <h4 className="font-semibold text-lg truncate mt-1 group-hover:text-pink-500 transition-colors">
+                                <h4 className="font-semibold text-lg truncate mt-1 group-hover:text-primary transition-colors">
                                   {post.title}
                                 </h4>
-                                <p className="text-sm text-gray-500 mt-1.5 line-clamp-2">
+                                <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">
                                   {post.content}
                                 </p>
                               </div>
-                              <div className="text-xs text-gray-500 flex items-center justify-between mt-auto pt-3 border-t border-slate-200">
+                              <div className="text-xs text-muted-foreground flex items-center justify-between mt-auto pt-3 border-t border-border">
                                 <span>
                                   {formatDynamicDate(post.createdDate)}
                                 </span>
@@ -490,14 +489,14 @@ export default function ProfilePage() {
                                     className="flex items-center gap-1.5"
                                     title="조회수"
                                   >
-                                    <Eye className="h-4 w-4 text-gray-600" />{" "}
+                                    <Eye className="h-4 w-4" />{" "}
                                     {post.viewCount}
                                   </span>
                                   <span
                                     className="flex items-center gap-1.5"
                                     title="댓글"
                                   >
-                                    <MessageSquare className="h-4 w-4 text-gray-600" />{" "}
+                                    <MessageSquare className="h-4 w-4" />{" "}
                                     {post.commentCount ?? 0}
                                   </span>
                                 </div>
@@ -508,15 +507,15 @@ export default function ProfilePage() {
                       </Link>
                     ))
                   ) : (
-                    <Card className="border-dashed rounded-xl">
+                    <Card className="border-dashed rounded-xl bg-background">
                       <CardContent className="p-10 text-center flex flex-col items-center">
-                        <div className="p-4 bg-slate-100 rounded-full mb-4">
-                          <Pencil className="h-8 w-8 text-slate-400" />
+                        <div className="p-4 bg-muted rounded-full mb-4">
+                          <Pencil className="h-8 w-8 text-muted-foreground" />
                         </div>
                         <h3 className="font-bold text-lg">
                           아직 작성한 게시글이 없어요
                         </h3>
-                        <p className="text-gray-500 mt-1">
+                        <p className="text-muted-foreground mt-1">
                           첫 게시글을 작성하고 사람들과 소통해보세요!
                         </p>
                         <Button asChild className="mt-6">
@@ -543,26 +542,26 @@ export default function ProfilePage() {
                         href={`/posts/${comment.postId}#comment-${comment.commentId}`}
                         key={comment.commentId}
                       >
-                        <Card className="transition-all duration-300 ease-in-out hover:shadow-lg hover:border-pink-300 group bg-white rounded-xl overflow-hidden">
+                        <Card className="transition-all duration-300 ease-in-out hover:shadow-lg hover:border-primary/50 group bg-background rounded-xl overflow-hidden">
                           <CardContent className="p-5 pb-0">
                             <div className="flex items-start gap-4">
-                              <Quote className="h-6 w-6 text-pink-200 flex-shrink-0 mt-0.5" />
-                              <p className="text-gray-700 text-base line-clamp-2">
+                              <Quote className="h-6 w-6 text-primary/30 flex-shrink-0 mt-0.5" />
+                              <p className="text-foreground text-base line-clamp-2">
                                 {comment.content}
                               </p>
                             </div>
                           </CardContent>
-                          <div className="bg-slate-50/70 mt-4 px-5 py-3 flex flex-wrap items-center justify-between gap-y-2 text-sm">
-                            <p className="text-gray-500 truncate text-xs font-medium">
-                              <FileText className="h-3.5 w-3.5 inline-block mr-1.5 align-middle text-slate-400" />
-                              <span className="align-middle text-pink-600 group-hover:underline">
+                          <div className="bg-muted/50 mt-4 px-5 py-3 flex flex-wrap items-center justify-between gap-y-2 text-sm">
+                            <p className="text-muted-foreground truncate text-xs font-medium">
+                              <FileText className="h-3.5 w-3.5 inline-block mr-1.5 align-middle text-muted-foreground" />
+                              <span className="align-middle text-primary group-hover:underline">
                                 {comment.postTitle}
                               </span>
-                              <span className="text-gray-400 ml-1">
+                              <span className="text-muted-foreground/80 ml-1">
                                 게시글에 남긴 댓글
                               </span>
                             </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-shrink-0">
                               <span>
                                 {formatDynamicDate(comment.createdDate)}
                               </span>
@@ -576,15 +575,15 @@ export default function ProfilePage() {
                       </Link>
                     ))
                   ) : (
-                    <Card className="border-dashed rounded-xl">
+                    <Card className="border-dashed rounded-xl bg-background">
                       <CardContent className="p-10 text-center flex flex-col items-center">
-                        <div className="p-4 bg-slate-100 rounded-full mb-4">
-                          <MessageSquare className="h-8 w-8 text-slate-400" />
+                        <div className="p-4 bg-muted rounded-full mb-4">
+                          <MessageSquare className="h-8 w-8 text-muted-foreground" />
                         </div>
                         <h3 className="font-bold text-lg">
                           아직 작성한 댓글이 없어요
                         </h3>
-                        <p className="text-gray-500 mt-1">
+                        <p className="text-muted-foreground mt-1">
                           다양한 게시글에 의견을 남겨보세요.
                         </p>
                       </CardContent>

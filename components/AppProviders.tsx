@@ -32,7 +32,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar />
       <main
         className={`
-          min-h-screen pt-12
+          min-h-screen bg-background pt-12
           transition-all duration-300 ease-in-out
           ${isSidebarOpen ? "lg:ml-72" : "ml-0"}
         `}

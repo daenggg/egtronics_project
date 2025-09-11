@@ -258,17 +258,17 @@ export default function RegisterForm() {
 
   return (
     <div className="container mx-auto px-4 py-8 flex justify-center min-h-[80vh] items-center">
-      <Card className="w-full max-w-md glass-effect border-0 shadow-2xl bg-white">
+      <Card className="w-full max-w-md glass-effect border-0 shadow-2xl bg-card">
         <ScrollArea className="h-[500px]">
           <form onSubmit={handleSubmit} className="space-y-1">
             <CardHeader className="text-center pb-8">
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
                 egtronics 오늘의 게시판
               </CardTitle>
-              <CardTitle className="text-3xl font-bold bg-gradient-to-r from-gray-700 to-gray-400 bg-clip-text text-transparent text-gray-800">
+              <CardTitle className="text-3xl font-bold text-foreground">
                 회원가입
               </CardTitle>
-              <CardDescription className="text-gray-600 mt-2">
+              <CardDescription className="text-muted-foreground mt-2">
                 새 계정을 생성하여 커뮤니티에 참여하세요
               </CardDescription>
             </CardHeader>
@@ -288,7 +288,7 @@ export default function RegisterForm() {
                         className="w-24 h-24 rounded-full object-cover border"
                       />
                     ) : (
-                      <div className="w-24 h-24 rounded-full border flex items-center justify-center bg-gray-200 text-sm text-center">
+                      <div className="w-24 h-24 rounded-full border flex items-center justify-center bg-muted text-sm text-center text-muted-foreground">
                         프로필 사진
                         <br />
                         등록하기🖊
@@ -433,7 +433,7 @@ export default function RegisterForm() {
                 {errors.email && (
                   <p className="text-red-600 text-sm mt-1">{errors.email}</p>
                 )}
-                <p className="text-sm text-gray-500">전체 이메일: {email}</p>
+                <p className="text-sm text-muted-foreground">전체 이메일: {email}</p>
               </div>
 
               {/* 비밀번호 */}
@@ -512,7 +512,7 @@ export default function RegisterForm() {
 
               {/* 전화번호 */}
               <div className="space-y-2 mb-6">
-                <Label className="text-gray-700 font-medium">전화번호</Label>
+                <Label className="text-foreground font-medium">전화번호</Label>
                 <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   {phonePrefix === "custom" ? (
                     <Input
@@ -580,7 +580,7 @@ export default function RegisterForm() {
                     {errors.phoneNumber}
                   </p>
                 )}
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   전체 전화번호:{" "}
                   {phonePrefix === "custom" ? customPhonePrefix : phonePrefix}-
                   {phone}
@@ -620,7 +620,7 @@ export default function RegisterForm() {
                 {errors.nickname && (
                   <p className="text-red-600 text-sm mt-1">{errors.nickname}</p>
                 )}
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   {nickname.length}/20
                 </p>
               </div>
@@ -636,7 +636,7 @@ export default function RegisterForm() {
 
               {/* 로그인 링크 */}
               <div className="mt-6 text-center text-sm">
-                <span className="text-gray-600">이미 계정이 있으신가요? </span><Link
+                <span className="text-muted-foreground">이미 계정이 있으신가요? </span><Link
                   href="/login"
                   className="text-blue-600 hover:underline"
                 >

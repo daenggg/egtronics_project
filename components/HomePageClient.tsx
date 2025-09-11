@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useTheme } from "next-themes";
 import { PostPreview } from "@/lib/types";
 
 function HomePageClient() {
@@ -36,6 +37,7 @@ function HomePageClient() {
   const sortCode = searchParams.get("sortCode") || "0";
 
   const [searchInputValue, setSearchInputValue] = useState(keyword);
+  const { theme } = useTheme();
 
   // API 호출을 위한 usePosts 훅
 const { data, isLoading, isError, error } = usePosts({
@@ -105,11 +107,11 @@ const { data, isLoading, isError, error } = usePosts({
 
     if (currentPosts.length === 0) {
       return (
-        <div className="text-center py-20 col-span-full">
-          <h3 className="text-xl font-medium text-gray-800">
+        <div className="text-center py-20 col-span-full bg-card rounded-xl shadow-md">
+          <h3 className="text-xl font-medium text-foreground">
             게시글이 없습니다.
           </h3>
-          <p className="text-gray-500 mt-2">
+          <p className="text-muted-foreground mt-2">
             {category || keyword
               ? "다른 조건으로 검색해보세요."
               : "첫 번째 게시글을 작성해보세요!"}
@@ -128,7 +130,7 @@ const { data, isLoading, isError, error } = usePosts({
                 href={`/posts/${post.postId}`}
                 className="block"
                 >
-                <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl bg-white">
+                <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl bg-card">
                     <div className="p-2 flex items-center gap-3 border-b border-slate-100">
                     <Avatar className="h-9 w-9">
                         <AvatarImage
@@ -144,43 +146,43 @@ const { data, isLoading, isError, error } = usePosts({
                         </AvatarFallback>
                     </Avatar>
                     <div>
-                        <span className="font-semibold text-sm text-gray-800">
+                        <span className="font-semibold text-sm text-foreground">
                         {post.nickname}
                         </span>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-muted-foreground">
                         {formatDynamicDate(post.createdDate)}
                         </p>
                     </div>
                     </div>
                     <div className="px-4 pt-2">
                     <Badge
-                        variant="secondary"
-                        className="font-medium text-sm bg-white border-gray-200 text-black"
+                        variant="outline"
+                        className="font-medium text-sm bg-background border-border"
                     >
                         <span className="mr-1.5">{categoryInfo.icon}</span>
                         {categoryInfo.name}
                     </Badge>
                     </div>
-                    <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+                    <div className="relative h-48 w-full bg-muted/50 overflow-hidden">
                     <img
-                        src={
-                        post.photo ? `${API_BASE}${post.photo}` : "/sample.jpg"
-                        }
+                        src={post.photo
+                            ? `${API_BASE}${post.photo}`
+                            : theme === 'dark' ? '/sample-invert.jpg' : '/sample.jpg'}
                         alt={post.title}
                         className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                     </div>
                     <div className="p-5 pt-3 flex-grow flex flex-col">
-                    <div>
-                        <CardTitle className="text-xl font-bold line-clamp-2 text-black group-hover:text-blue-600 transition-colors">
+                    <div >
+                        <CardTitle className="text-xl font-bold line-clamp-2 text-foreground group-hover:text-blue-600 transition-colors">
                         {post.title}
                         </CardTitle>
                     </div>
-                    <p className="text-base text-black mt-3 flex-grow line-clamp-3">
+                    <p className="text-base text-muted-foreground mt-3 flex-grow line-clamp-3">
                         {post.content}
                     </p>
 
-                    <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-gray-500">
+                    <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-muted-foreground">
                         <div className="flex items-center gap-4">
                         <span
                             className="flex items-center gap-1.5"
@@ -217,7 +219,7 @@ const { data, isLoading, isError, error } = usePosts({
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-3">
             egtronics 오늘의 게시판
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             다양한 주제로 소통하고 정보를 나누는 공간입니다
           </p>
         </div>

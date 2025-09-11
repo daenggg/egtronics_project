@@ -64,12 +64,12 @@ export default function NotificationsPage() {
       return (
         <div className="text-center py-16 col-span-full">
           <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
-            <BellRing className="h-12 w-12 text-blue-500" />
+            <BellRing className="h-12 w-12 text-primary" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-800">
+          <h3 className="text-xl font-semibold text-foreground">
             새로운 알림이 없습니다.
           </h3>
-          <p className="text-gray-500 mt-2 mb-6 max-w-md mx-auto">
+          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
             게시글에 새로운 댓글이 달리거나 좋아요를 받으면 이곳에 표시됩니다.
           </p>
           <Button
@@ -91,9 +91,8 @@ export default function NotificationsPage() {
             onClick={() => handleNotificationClick(notification)}
             className={cn(
               "flex items-start p-4 rounded-xl transition-all duration-300 cursor-pointer",
-              notification.read
-                ? "bg-white/50 text-gray-500 hover:bg-gray-100/70"
-                : "bg-blue-50/50 hover:bg-blue-100/70 border-l-4 border-blue-500"
+              "hover:bg-accent",
+              notification.read ? "text-muted-foreground" : "bg-accent/50 border-l-4 border-primary"
             )}
           >
             <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center mr-4">
@@ -101,20 +100,20 @@ export default function NotificationsPage() {
                 <Check className="h-6 w-6 text-gray-400" />
               ) : (
                 <div className="h-full w-full rounded-full bg-blue-100 flex items-center justify-center">
-                  <BellRing className="h-5 w-5 text-blue-600" />
+                  <BellRing className="h-5 w-5 text-primary" />
                 </div>
               )}
             </div>
             <div className="flex-grow">
               <p
                 className={cn(
-                  "text-base",
-                  !notification.read && "font-medium text-gray-800"
+                  "text-base text-foreground",
+                  !notification.read && "font-medium"
                 )}
               >
                 {notification.message}
               </p>
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {formatDynamicDate(notification.createdDate)}
               </p>
             </div>
@@ -125,14 +124,14 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-background">
       <div className="max-w-4xl mx-auto space-y-8">
         <div>
-          <h1 className="text-2xl md:text-4xl font-medium text-gray-900 mb-3 flex items-center gap-3">
-            <Bell className="h-8 w-8 text-gray-700" />
+          <h1 className="text-2xl md:text-4xl font-medium text-foreground mb-3 flex items-center gap-3">
+            <Bell className="h-8 w-8 text-muted-foreground" />
             알림
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             새로운 활동 내역을 확인하고 바로 이동할 수 있습니다.
           </p>
         </div>

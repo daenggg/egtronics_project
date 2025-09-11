@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useUnreadNotificationCount } from "@/hooks/use-notifications";
-import { User, LogOut, Bookmark, Bell } from "lucide-react";
+import { User, LogOut, Bookmark, Bell, Sun, Moon } from "lucide-react";
 import { API_BASE } from "@/lib/api-client";
 
 // 홈으로 링크와 동일한 그라데이션을 적용한 메뉴 아이콘
@@ -39,6 +40,7 @@ export function Header() {
   const { user, logout, toggleSidebar } = useAuth();
   // API를 통해 읽지 않은 알림 개수를 가져옵니다.
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
+  const { theme, setTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-50">
@@ -55,13 +57,27 @@ export function Header() {
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
-            홈으로
+            Home
           </Link>
+          
         </div>
+        {/* 테마 전환 버튼 */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="h-10 w-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">테마 전환</span>
+              </Button>
+
 
         <nav className="flex items-center space-x-2 sm:space-x-4">
           {user ? (
             <>
+              
               {/* 알림 */}
               <Link href="/notifications" passHref legacyBehavior>
                 <Button
@@ -102,7 +118,7 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56 bg-white"
+                  className="w-56 bg-card"
                   align="end"
                   forceMount
                 >
@@ -140,7 +156,7 @@ export function Header() {
               <Button
                 variant="ghost"
                 asChild
-                className="hover:bg-blue-50 text-black"
+                className="hover:bg-muted/50"
               >
                 <Link href="/login">로그인</Link>
               </Button>
