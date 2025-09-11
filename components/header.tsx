@@ -82,12 +82,11 @@ export function Header() {
               <Link href="/notifications" passHref legacyBehavior>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="relative h-10 w-10 rounded-full hover:bg-gray-100"
+                  className="relative h-14 w-14 rounded-full hover:bg-gray-100"
                 >
-                  <Bell className="h-5 w-5" />
+                  <Bell className="h-10 w-10" />
                   <span
-                    className={`absolute top-1 right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none rounded-full
+                    className={`absolute top-2 right-2 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none rounded-full
                       ${
                         unreadCount === 0
                           ? "bg-gray-400 text-white"
