@@ -53,8 +53,8 @@
   --muted-foreground: 215 20.2% 65.1%;
   --accent: 217.2 32.6% 17.5%;
   --accent-foreground: 210 40% 98%;
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
   --border: oklch(0.269 0 0);
   --input: oklch(0.205 0 0); /* 다크모드 input 배경색 조정 */
   --ring: oklch(0.439 0 0);

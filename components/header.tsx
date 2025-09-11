@@ -118,7 +118,7 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-56 bg-card"
+                  className="w-56 bg-white dark:bg-card"
                   align="end"
                   forceMount
                 >

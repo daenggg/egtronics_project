@@ -47,13 +47,13 @@ export function Sidebar() {
           <Card className="glass-effect border-0 shadow-lg bg-card">
             <CardContent className="p-4 flex flex-col gap-4">
               {user ? (
-                <Link href="/profile" className="flex items-center gap-4 w-full" onClick={toggleSidebar}>
-                  <Avatar className="h-12 w-12 ring-2 ring-blue-200">
+                <Link href="/profile" className="flex items-center gap-4 w-full p-2 rounded-lg transition-colors hover:bg-accent" onClick={toggleSidebar}>
+                  <Avatar className="h-12 w-12 ring-2 ring-primary/50">
                     <AvatarImage
                       src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
                       alt={user.name || user.nickname}
                     />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                    <AvatarFallback className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
                       {user.nickname.charAt(0)}
                     </AvatarFallback>
                   </Avatar>

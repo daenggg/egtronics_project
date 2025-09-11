@@ -249,13 +249,13 @@ const { data, isLoading, isError, error } = usePosts({
             value={sortCode}
             onValueChange={handleSortChange}
           >
-            <SelectTrigger className="w-full sm:w-40 force-h-12 text-base flex items-center px-3">
+            <SelectTrigger className="w-full sm:w-40 h-12 text-base flex items-center px-3">
               <SelectValue placeholder="정렬" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="0">최신순</SelectItem>
-              <SelectItem value="1">추천순</SelectItem>
-              <SelectItem value="2">조회순</SelectItem>
+            <SelectContent className="bg-card">
+              <SelectItem value="0" className="bg-card">최신순</SelectItem>
+              <SelectItem value="1" className="bg-card">추천순</SelectItem>
+              <SelectItem value="2" className="bg-card">조회순</SelectItem>
             </SelectContent>
           </Select>
         </div>
