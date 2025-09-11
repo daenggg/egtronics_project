@@ -127,10 +127,10 @@ export default function PostEditPage() {
               <MediaUpload onFilesChange={(files) => setMedia(files)} maxFiles={1} initialFiles={initialMedia} />
             </div>
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => router.back()}>
+              <Button type="button" variant="ghost" onClick={() => router.back()}>
                 취소
               </Button>
-              <Button type="submit" disabled={isUpdating}>
+              <Button type="submit" disabled={isUpdating} variant="outline">
                 {isUpdating ? "수정 중..." : "수정 완료"}
               </Button>
             </div>

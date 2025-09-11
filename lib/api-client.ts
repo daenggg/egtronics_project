@@ -60,7 +60,12 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<any>) => {
     const originalRequest: any = error.config;
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+    // 401 오류이고, 재시도한 요청이 아니며, 로그인 요청이 아닐 때만 토큰 재발급을 시도합니다.
+    if (
+      error.response?.status === 401 &&
+      originalRequest && !originalRequest._retry &&
+      originalRequest.url !== '/auth/login'
+    ) {
       originalRequest._retry = true;
       try {
         // 토큰 재발급 API 호출
