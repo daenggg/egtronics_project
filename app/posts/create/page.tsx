@@ -140,7 +140,7 @@ function CreatePostForm() {
 
             <div className="space-y-2">
               <Label>미디어 파일</Label>
-              <MediaUpload onFilesChange={setMedia} maxFiles={1} />
+              <MediaUpload onFilesChange={(files) => setMedia(files)} maxFiles={1} />
             </div>
 
             <div className="flex justify-end space-x-2">
@@ -168,8 +168,7 @@ function CreatePostForm() {
 
 export default function CreatePostPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto px-4 py-8 text-center">페이지를 불러오는 중입니다...</div>}>
-      <CreatePostForm />
-    </Suspense>
+    // Suspense를 제거하여 라우팅 및 이벤트 핸들러 문제를 해결합니다.
+    <CreatePostForm />
   );
 }
