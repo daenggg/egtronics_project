@@ -30,12 +30,14 @@ export function CategoryFilter({ onCategorySelect }: CategoryFilterProps) {
   }, [searchParams])
 
   const handleCategoryClick = (categoryId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
     const newCategory = activeCategory === categoryId ? null : categoryId
     if (newCategory) {
-      router.push(`/?category=${newCategory}`)
+      params.set('category', newCategory);
     } else {
-      router.push('/')
+      params.delete('category');
     }
+    router.push(`/?${params.toString()}`);
     onCategorySelect?.()
   }
 

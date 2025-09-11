@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PostPreview } from "@/lib/types";
 
 function HomePageClient() {
   const router = useRouter();
@@ -47,19 +48,19 @@ const { data, isLoading, isError, error } = usePosts({
 
   // 검색 실행 핸들러
   const handleSearch = () => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams);
     if (searchInputValue) {
       params.set("keyword", searchInputValue);
     } else {
       params.delete("keyword");
     }
-    params.set("page", "1"); // 검색 시 항상 첫 페이지로 이동
+    params.set("page", "1");
     router.push(`${pathname}?${params.toString()}`);
   };
 
   // 정렬 옵션 변경 핸들러
   const handleSortChange = (newSortCode: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParams);
     params.set('sortCode', newSortCode);
     params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
@@ -119,7 +120,7 @@ const { data, isLoading, isError, error } = usePosts({
 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-            {currentPosts.map((post) => {
+            {currentPosts.map((post: PostPreview) => {
             const categoryInfo = getCategoryInfo(post.categoryName);
             return (
                 <Link
@@ -268,7 +269,7 @@ const { data, isLoading, isError, error } = usePosts({
             totalPages={totalPages}
             onPageChange={(newPage) => {
               const params = new URLSearchParams(searchParams.toString());
-              params.set('page', String(newPage));
+              params.set("page", String(newPage));
               router.push(`${pathname}?${params.toString()}`);
             }}
           />
