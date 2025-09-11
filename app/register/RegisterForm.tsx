@@ -187,6 +187,8 @@ export default function RegisterForm() {
     else if (nicknameAvailable === null)
       newErrors.nickname = "닉네임 중복 확인이 필요합니다.";
 
+    // ✅ 프로필 사진에 대한 유효성 검사는 포함하지 않습니다. (선택사항이므로)
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -203,7 +205,6 @@ export default function RegisterForm() {
       return;
     }
 
-    // 아이디/닉네임 중복 체크 안 했으면 막기
     if (idAvailable !== true) {
       toast({ title: "아이디 중복 확인을 해주세요", variant: "destructive" });
       return;
@@ -223,12 +224,12 @@ export default function RegisterForm() {
       formData.append("phoneNumber", fullPhoneNumber);
       formData.append("nickname", nickname);
 
-      // 사용자가 프로필 사진을 선택한 경우에만 FormData에 추가
+      // ✅ [핵심 로직] 사용자가 프로필 사진을 선택한 경우에만 FormData에 추가합니다.
+      // profilePicture가 null이면 이 코드는 실행되지 않으므로, 서버에는 전송되지 않습니다.
       if (profilePicture) {
         formData.append("profilePicture", profilePicture);
       }
 
-      // auth-context의 register 함수는 이제 FormData를 받습니다.
       await register(formData);
       toast({ title: "회원가입 성공", description: "로그인 페이지로 이동합니다." });
       router.push("/login");
@@ -242,7 +243,8 @@ export default function RegisterForm() {
       setLoading(false);
     }
   };
-
+  
+  // ✅ 회원가입 버튼 활성화 조건에서 profilePicture를 제외합니다.
   const isFormComplete =
     userId &&
     name &&
@@ -290,6 +292,7 @@ export default function RegisterForm() {
                         프로필 사진
                         <br />
                         등록하기🖊
+                  
                       </div>
                     )}
                   </label>
@@ -313,15 +316,10 @@ export default function RegisterForm() {
                   value={name}
                   onChange={(e) => {
                     let value = e.target.value;
-
-                    // 최대 20글자 제한
                     if (value.length > 20) {
                       value = value.slice(0, 20);
                     }
-
                     setName(value);
-
-                    // 오류 처리
                     setErrors((prev) => ({
                       ...prev,
                       name: !value.trim()
@@ -334,7 +332,6 @@ export default function RegisterForm() {
                   placeholder="이름을 입력하세요"
                   style={{ userSelect: "auto" }}
                 />
-
                 {errors.name && (
                   <p className="text-red-600 text-sm mt-1">{errors.name}</p>
                 )}
@@ -349,16 +346,11 @@ export default function RegisterForm() {
                     value={userId}
                     onChange={(e) => {
                       let value = e.target.value;
-
-                      // 최대 20글자 제한
                       if (value.length > 20) {
                         value = value.slice(0, 20);
                       }
-
                       setUserId(value);
                       setIdAvailable(null);
-
-                      // 오류 처리
                       setErrors((prev) => ({
                         ...prev,
                         userId: value.trim()
@@ -371,7 +363,6 @@ export default function RegisterForm() {
                     placeholder="아이디를 입력하세요"
                     style={{ userSelect: "auto" }}
                   />
-
                   <Button
                     type="button"
                     onClick={checkId}
@@ -393,22 +384,14 @@ export default function RegisterForm() {
                     value={emailId}
                     onChange={(e) => {
                       let value = e.target.value;
-
-                      // 도메인 포함 최대 50글자 제한
                       const domainLength =
                         domain === "custom"
                           ? customDomain.length
                           : domain.length;
-                      if (value.length + 1 + domainLength > 50
-
-                      ) {
-                        // @ 포함해서 +1
-                        value = value.slice(0, 30 - 1 - domainLength);
+                      if (value.length + 1 + domainLength > 50) {
+                        value = value.slice(0, 50 - 1 - domainLength);
                       }
-
                       setEmailId(value);
-
-                      // 오류 처리
                       if (
                         !emailRegex.test(
                           value +
@@ -427,7 +410,6 @@ export default function RegisterForm() {
                     placeholder="이메일을 입력하세요"
                     style={{ userSelect: "auto" }}
                   />
-
                   <Select value={domain} onValueChange={setDomain}>
                     <SelectTrigger className="w-[180px]">
                       <SelectValue />
@@ -462,11 +444,8 @@ export default function RegisterForm() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => {
-                      // 20글자 초과 방지
                       const value = e.target.value.slice(0, 20);
                       setPassword(value);
-
-                      // 오류 처리
                       setErrors((prev) => ({
                         ...prev,
                         password:
@@ -500,11 +479,8 @@ export default function RegisterForm() {
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => {
-                      // 20글자 초과 방지
                       const value = e.target.value.slice(0, 20);
                       setConfirmPassword(value);
-
-                      // 비밀번호 일치 여부 체크
                       setErrors((prev) => ({
                         ...prev,
                         confirmPassword:
@@ -618,9 +594,9 @@ export default function RegisterForm() {
                   <Input
                     id="nickname"
                     value={nickname}
-                    maxLength={20} // 브라우저 입력 제한
+                    maxLength={20}
                     onChange={(e) => {
-                      const value = e.target.value.slice(0, 20); // 혹시 maxLength 무시될 경우 대비
+                      const value = e.target.value.slice(0, 20);
                       setNickname(value);
                       setNicknameAvailable(null);
                       setErrors((prev) => ({
