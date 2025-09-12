@@ -84,7 +84,7 @@ export default function BookmarksPage() {
               src={
                 scrap.authorProfilePictureUrl
                   ? `${API_BASE}${scrap.authorProfilePictureUrl}`
-                  : "/placeholder.svg"
+                  : "/images.png"
               }
               alt={scrap.authorNickname}
             />

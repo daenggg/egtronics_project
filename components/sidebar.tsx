@@ -72,7 +72,7 @@ export function Sidebar() {
                     <Link href="/profile" className="flex flex-col items-center gap-2 w-full" onClick={toggleSidebar}>
                       <Avatar className="h-16 w-16 ring-2 ring-blue-200">
                         <AvatarImage
-                          src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/placeholder.svg"}
+                          src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
                           alt={user.name || user.nickname}
                         />
                         <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">

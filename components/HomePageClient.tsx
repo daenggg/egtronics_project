@@ -143,7 +143,7 @@ function HomePageClient() {
                       src={
                         post.authorProfilePicture
                           ? `${API_BASE}${post.authorProfilePicture}`
-                          : "/placeholder.svg"
+                          : "/images.png"
                       }
                       alt={post.nickname}
                     />

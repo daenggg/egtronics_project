@@ -39,6 +39,8 @@ export function useCreateComment() {
       // 쿼리 무효화는 가장 안전하고 확실하게 UI를 최신 상태로 유지하는 방법입니다.
       queryClient.invalidateQueries({ queryKey: ['comments', String(postId)] })
       queryClient.invalidateQueries({ queryKey: ['post', String(postId)] }) // 게시글의 댓글 수 업데이트
+      // ✅ 해결: 프로필 페이지의 '내 댓글' 목록도 갱신합니다.
+      queryClient.invalidateQueries({ queryKey: ['my-comments'] });
     },
     onError: (error) => {
       toast({
@@ -89,6 +91,8 @@ export function useUpdateComment() {
         title: "성공",
         description: "댓글이 수정되었습니다.",
       })
+      // ✅ 해결: 프로필 페이지의 '내 댓글' 목록도 갱신합니다.
+      queryClient.invalidateQueries({ queryKey: ['my-comments'] });
     },
 
     onError: (error, { postId }, context) => { // 에러 발생 시 롤백
@@ -143,6 +147,8 @@ export function useDeleteComment() {
         title: "성공",
         description: "댓글이 삭제되었습니다.",
       })
+      // ✅ 해결: 프로필 페이지의 '내 댓글' 목록도 갱신합니다.
+      queryClient.invalidateQueries({ queryKey: ['my-comments'] });
     },
 
     onError: (error, { postId }, context) => {

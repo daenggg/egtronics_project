@@ -120,9 +120,7 @@ export default function ProfilePage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const { data: myPosts, isLoading: isLoadingPosts } = useMyPosts({
-    refetchOnWindowFocus: true, // 페이지에 다시 들어올 때마다 데이터를 새로고침합니다.
-  });
+  const { data: myPosts, isLoading: isLoadingPosts } = useMyPosts();
   const { data: myComments, isLoading: isLoadingComments } = useMyComments();
 
   // user 객체가 로드되거나 변경될 때마다 상태를 동기화합니다.
@@ -141,6 +139,7 @@ export default function ProfilePage() {
     setProfilePicture(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [avatarFile]);
+
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {

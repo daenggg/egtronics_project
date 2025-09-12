@@ -59,6 +59,9 @@ export function useCreatePost() {
     onSuccess: () => {
       toast({ title: "성공", description: "게시글이 작성되었습니다." });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
+      // ✅ 해결: 프로필 페이지의 '내 활동' 데이터도 갱신합니다.
+      queryClient.invalidateQueries({ queryKey: ['my-posts'] });
+      queryClient.invalidateQueries({ queryKey: ['my-comments'] });
     },
     onError: (error) => {
       toast({ title: "오류", description: handleApiError(error), variant: "destructive" });

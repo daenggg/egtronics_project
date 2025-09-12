@@ -35,7 +35,7 @@ export default function Profile() {
       <CardContent className="p-4">
         <div className="flex items-center gap-4 w-full">
           <Avatar className="h-12 w-12 ring-2 ring-blue-200">
-            <AvatarImage src={user.profilePicture ? `${process.env.NEXT_PUBLIC_API_BASE}${user.profilePicture}` : "/placeholder.svg"} alt={user.name} />
+            <AvatarImage src={user.profilePicture ? `${process.env.NEXT_PUBLIC_API_BASE}${user.profilePicture}` : "/images.png"} alt={user.name} />
             <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
               {user.nickname.charAt(0)}
             </AvatarFallback>
