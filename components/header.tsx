@@ -43,7 +43,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <header className="sticky top-0 z-50">
+    <header className="sticky top-0 z-20 bg-white dark:bg-card">
       <div className="w-full px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-1">
           <Button
