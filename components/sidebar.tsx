@@ -1,11 +1,14 @@
 "use client"
 
 import Link from 'next/link'
+import { useTheme } from 'next-themes'
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { API_BASE } from '@/lib/api-client'
 import { CategoryFilter } from "@/components/category-filter"
+import { Button } from '@/components/ui/button'
+import { Sun, Moon } from 'lucide-react'
 
 // 헤더와 동일한 그라데이션 메뉴 아이콘
 const GradientMenuIcon = () => (
@@ -29,6 +32,7 @@ const GradientMenuIcon = () => (
 
 export function Sidebar() {
   const { user, isSidebarOpen, toggleSidebar } = useAuth()
+  const { theme, setTheme } = useTheme()
 
   return (
     <>
@@ -50,7 +54,7 @@ export function Sidebar() {
         `}
       >
         {/* 사이드바 헤더 */}
-        <div className="sticky top-0 bg-white/80 dark:bg-card/80 backdrop-blur-sm z-10">
+        <div className="sticky top-0 bg-white/80 dark:bg-card/80 backdrop-blur-sm z-10 pb-8">
           <div className="flex h-16 items-center px-8 pt-14">
             <button onClick={toggleSidebar} className="h-8 w-8 p-2 mr-4">
               <GradientMenuIcon />
@@ -60,33 +64,54 @@ export function Sidebar() {
             </Link>
           </div>
         </div>
-        <div className="space-y-6 px-4 py-6 w-64">
-          <Card className="glass-effect border-0 shadow-lg">
-            <CardContent className="p-4 flex flex-col gap-4">
-              {user ? (
-                  <Link href="/profile" className="flex items-center gap-4 w-full" onClick={toggleSidebar}>
-                    <Avatar className="h-12 w-12 ring-2 ring-blue-200">
-                      <AvatarImage
-                        src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/placeholder.svg"}
-                        alt={user.name || user.nickname}
-                      />
-                      <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                        {user.nickname.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 overflow-hidden">
-                      <p className="font-semibold text-gray-900 truncate">{user.nickname}</p>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                    </div>
-                  </Link>
-              ) : (
-                <p className="text-sm text-center text-gray-600">로그인하고 모든 기능을 이용해보세요.</p>
-              )}
-            </CardContent>
-          </Card>
-          <CategoryFilter onCategorySelect={toggleSidebar} />
+        <div className="flex flex-col justify-between flex-grow px-4 py-6 w-64">
+          <div className="p-2">
+            <Card className="border-0 shadow-lg bg-card">
+              <CardContent className="p-4 flex flex-col gap-4">
+                {user ? (
+                    <Link href="/profile" className="flex flex-col items-center gap-2 w-full" onClick={toggleSidebar}>
+                      <Avatar className="h-16 w-16 ring-2 ring-blue-200">
+                        <AvatarImage
+                          src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/placeholder.svg"}
+                          alt={user.name || user.nickname}
+                        />
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                          {user.nickname.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="text-center">
+                        <p className="font-semibold text-foreground truncate">{user.nickname}</p>
+                        <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                    </Link>
+                ) : (
+                  <p className="text-sm text-center text-muted-foreground">로그인하고 모든 기능을 이용해보세요.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          <div className="mb-2 mt-2 p-2">
+            <div className="rounded-xl shadow-lg bg-card">
+              <CategoryFilter onCategorySelect={toggleSidebar} />
+            </div>
+          </div>
+
+          {/* 테마 전환 버튼 */}
+          <div className="mt-auto pt-4 px-2">
+            <Button
+              variant="ghost"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="w-full justify-start text-muted-foreground hover:text-foreground"
+            >
+              {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+              <span>
+                {theme === 'dark' ? '라이트 모드' : '다크 모드'}
+              </span>
+            </Button>
+          </div>
         </div>
       </aside>
     </>
   )
 }
+        

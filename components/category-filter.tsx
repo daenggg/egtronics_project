@@ -11,7 +11,7 @@ export const categories = [
   { id: '3', name: '버그 제보 / 건의 사항', color: '', icon: '💻' },
   { id: '4', name: '자료실', color: '', icon: '📚' },
   { id: '5', name: '후기 / 리뷰', color: '', icon: '🚀' },
-  { id: '6', name: '프로젝트 공유 / 개발 일지', color: '', icon: '💼' },
+  { id: '6', name: '프로젝트 / 개발 일지', color: '', icon: '💼' },
   { id: '7', name: '질문과 답변(Q&A)',color: '', icon: '❓' },
   { id: '8', name: '가입인사 / 자기소개', color: '', icon: '🎉' },
 ]
