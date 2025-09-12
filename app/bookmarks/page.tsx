@@ -20,11 +20,7 @@ export default function BookmarksPage() {
   const { data: scraps, isLoading, isError, error } = useMyScraps();
   const router = useRouter();
   const { theme } = useTheme();
-  
-  const getCategoryInfo = (categoryId: number) => {
-    const category = categories.find(cat => cat.id === String(categoryId));
-    return category || { id: 'unknown', name: '미분류', icon: '📁' };
-  };
+
 
   const renderContent = () => {
     if (isLoading) {
@@ -111,8 +107,7 @@ export default function BookmarksPage() {
             variant="secondary"
             className="font-medium text-sm"
           >
-            <span className="mr-1.5">{getCategoryInfo(scrap.categoryId).icon}</span>
-            {getCategoryInfo(scrap.categoryId).name}
+
           </Badge>
         </div>
         

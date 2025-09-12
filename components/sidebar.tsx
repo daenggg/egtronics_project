@@ -54,7 +54,7 @@ export function Sidebar() {
         `}
       >
         {/* 사이드바 헤더 */}
-        <div className="sticky top-0 bg-white/80 dark:bg-card/80 backdrop-blur-sm z-10 pb-8">
+        <div className="sticky top-0 bg-white/80 dark:bg-card/80 backdrop-blur-sm z-10">
           <div className="flex h-16 items-center px-8 pt-14">
             <button onClick={toggleSidebar} className="h-8 w-8 p-2 mr-4">
               <GradientMenuIcon />
@@ -90,14 +90,14 @@ export function Sidebar() {
               </CardContent>
             </Card>
           </div>
-          <div className="mb-2 mt-2 p-2">
+          <div className="p-2">
             <div className="rounded-xl shadow-lg bg-card">
               <CategoryFilter onCategorySelect={toggleSidebar} />
             </div>
           </div>
 
           {/* 테마 전환 버튼 */}
-          <div className="mt-auto pt-4 px-2">
+          <div className="pt-4 px-2">
             <Button
               variant="ghost"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
