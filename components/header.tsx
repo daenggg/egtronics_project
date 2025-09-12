@@ -32,7 +32,13 @@ const GradientMenuIcon = () => (
         <stop offset="100%" stopColor="#8b5cf6" /> {/* to-purple-500 */}
       </linearGradient>
     </defs>
-    <path d="M4 6h16M4 12h16M4 18h16" stroke="url(#menu-gradient)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M4 6h16M4 12h16M4 18h16"
+      stroke="url(#menu-gradient)"
+      strokeWidth="4.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -58,16 +64,12 @@ export function Header() {
             className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
             egtronics
-          
           </Link>
-          
         </div>
-
 
         <nav className="flex items-center space-x-2 sm:space-x-4">
           {user ? (
             <>
-              
               {/* 알림 */}
               <Link href="/notifications" passHref legacyBehavior>
                 <Button
@@ -89,7 +91,7 @@ export function Header() {
               </Link>
 
               {/* 프로필 드롭다운 */}
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
@@ -97,7 +99,11 @@ export function Header() {
                   >
                     <Avatar className="h-9 w-9">
                       <AvatarImage
-                        src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
+                        src={
+                          user.profilePicture
+                            ? `${API_BASE}${user.profilePicture}`
+                            : "/images.png"
+                        }
                         alt={user.name}
                       />
                       <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
@@ -120,36 +126,49 @@ export function Header() {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">
-                      <User className="mr-2 h-4 w-4" />
-                      프로필
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/bookmarks">
-                      <Bookmark className="mr-2 h-4 w-4" />
-                      스크랩
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    로그아웃
-                  </DropdownMenuItem>
+
+                  {/* ⭐️ [수정] 프로필, 스크랩, 로그아웃을 하나의 그룹으로 묶습니다. */}
+                  <DropdownMenu>
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Link
+                        href="/profile"
+                        className="flex items-center w-full"
+                      >
+                        <User className="mr-2 h-4 w-4" />
+                        프로필
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem className="cursor-pointer">
+                      <Link
+                        href="/bookmarks"
+                        className="flex items-center w-full"
+                      >
+                        <Bookmark className="mr-2 h-4 w-4" />
+                        스크랩
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={logout}
+  
+                    >
+                      <LogOut className="h-4 w-4" />
+                      로그아웃
+                    </DropdownMenuItem>
+                  </DropdownMenu>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <div className="flex space-x-2">
-              <Button
-                variant="ghost"
-                asChild
-                className="hover:bg-muted/50"
-              >
+              <Button variant="ghost" asChild className="hover:bg-muted/50">
                 <Link href="/login">로그인</Link>
               </Button>
-              <Button asChild className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg">
+              <Button
+                asChild
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+              >
                 <Link href="/register">회원가입</Link>
               </Button>
             </div>

@@ -67,6 +67,11 @@ export default function PostDetailPage() {
     return [...bestComments, ...otherComments];
   }, [post?.comments]);
 
+  // 페이지 진입 시 항상 최상단으로 스크롤합니다.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       const hash = window.location.hash;
@@ -164,7 +169,15 @@ export default function PostDetailPage() {
     });
   };
 
-  const isMyPost = post.author;
+  // ✅ 해결: 로그인한 사용자이고, 게시물 작성자일 때만 true가 되도록 수정
+  const isMyPost = user && post.author;
+
+  const scrollToComments = () => {
+    const commentsSection = document.getElementById("comments-section");
+    if (commentsSection) {
+      commentsSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
@@ -190,6 +203,7 @@ export default function PostDetailPage() {
                 type="post"
                 targetId={String(post.postId)}
                 isAuthor={post.author}
+                disabled={!user}
                 alreadyReported={post.reportedByCurrentUser} />
             </div>
           </div>
@@ -215,7 +229,7 @@ export default function PostDetailPage() {
           <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {/* [수정] post.isLiked -> post.liked */}
-              <Button variant={post.liked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.liked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "border hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
+              <Button variant={post.liked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.liked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "border hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`} disabled={!user}>
                 <Heart className={`h-4 w-4 ${post.liked ? "fill-current" : ""}`} />
                 <span>{post.likeCount}</span>
               </Button>
@@ -224,10 +238,12 @@ export default function PostDetailPage() {
                 <Bookmark className={`h-4 w-4 ${post.scrapped ? "fill-current" : ""}`} />
                 <span>스크랩</span>
               </Button>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-full">
-                <MessageCircle className="h-4 w-4" />
-                <span>{post.comments?.length || 0}개 댓글</span>
-              </div>
+              <button onClick={scrollToComments} className="flex items-center space-x-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-full hover:bg-muted transition-colors cursor-pointer">
+                <div className="flex items-center space-x-2">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>{post.comments?.length || 0}개 댓글</span>
+                </div>
+              </button>
             </div>
             {isMyPost && (
               <div className="flex space-x-2">
@@ -279,7 +295,7 @@ export default function PostDetailPage() {
         </Card>
       )}
 
-      <div className="space-y-3">
+      <div id="comments-section" className="space-y-3 scroll-mt-24">
         <h3 className="text-lg font-semibold text-foreground">
           댓글 {post.comments?.length || 0}개
         </h3>
@@ -386,6 +402,7 @@ export default function PostDetailPage() {
                               ? "bg-gradient-to-r from-red-500 to-pink-500 text-white" 
                               : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"
                             }`}
+                          disabled={!user}
                         >
                           <Heart
                             /* [수정] comment.liked 사용 */
