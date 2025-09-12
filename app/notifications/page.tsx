@@ -4,6 +4,7 @@
 import {
   useNotifications,
   useMarkNotificationAsRead,
+  useSSE, // 3. SSE 훅 추가 임포트
 } from "@/hooks/use-notifications";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,24 +14,22 @@ import { cn, formatDynamicDate } from "@/lib/utils";
 import { Notification } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation"; // [수정] '내용 없음' UI의 버튼을 위해 useRouter를 다시 추가합니다.
+import { useRouter } from "next/navigation"; // '내용 없음' UI 버튼용
 
 export default function NotificationsPage() {
+  // 3. useSSE 훅 호출하여 SSE 연결 활성화
+  // useSSE();
+  // [수정] 페이지 이동 기능이 제거되었으므로 router는 '내용 없음' UI에서만 사용됩니다.
   const router = useRouter();
   const { data: notifications, isLoading, isError, error } = useNotifications();
   const { mutate: markAsRead } = useMarkNotificationAsRead();
 
+  // [수정] 페이지 이동 기능 제거
   const handleNotificationClick = (notification: Notification) => {
-    // 읽지 않은 알림일 경우에만 읽음 처리 API를 호출합니다.
     if (!notification.read) {
       markAsRead(notification.notificationId);
     }
-    // 알림에 postId가 있으면 해당 게시글로 이동합니다.
-    if (notification.postId) {
-      // commentId가 있으면 URL 해시에 추가하여 해당 댓글로 스크롤합니다.
-      const url = `/posts/${notification.postId}${notification.commentId ? `#comment-${notification.commentId}` : ''}`;
-      router.push(url);
-    }
+    // 페이지 이동 로직 제거됨
   };
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
@@ -143,7 +142,7 @@ export default function NotificationsPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl font-medium">알림 목록</CardTitle>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="animate-pulse text-destructive-foreground">
+              <Badge variant="destructive" className="animate-pulse">
                 {unreadCount}개의 안 읽은 알림
               </Badge>
             )}

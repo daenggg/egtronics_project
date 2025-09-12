@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { AppProviders } from '@/components/AppProviders'; // 1단계에서 만든 컴포넌트를 import
+import { AppProviders } from '@/components/AppProviders';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko">
+    // 여기에 suppressHydrationWarning={true}를 추가해주세요.
+    <html lang="ko" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background text-foreground`}>
         <AppProviders>{children}</AppProviders>
       </body>
