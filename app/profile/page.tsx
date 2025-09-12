@@ -86,6 +86,17 @@ const ProfileEditItem = ({
   </div>
 );
 
+const formatPhoneNumber = (value: string) => {
+  if (!value) return value;
+  const phoneNumber = value.replace(/[^\d]/g, "");
+  const phoneNumberLength = phoneNumber.length;
+  if (phoneNumberLength < 4) return phoneNumber;
+  if (phoneNumberLength < 8) {
+    return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3)}`;
+  }
+  return `${phoneNumber.slice(0, 3)}-${phoneNumber.slice(3, 7)}-${phoneNumber.slice(7, 11)}`;
+};
+
 export default function ProfilePage() {
   const { user, updateUserInfo, loading: authLoading } = useAuth();
   const { toast } = useToast();
@@ -164,6 +175,7 @@ export default function ProfilePage() {
       });
       return;
     }
+
     setIsSaving(true);
     try {
       const formData = new FormData();
@@ -351,7 +363,13 @@ export default function ProfilePage() {
                       id="phoneNumber"
                       label="전화번호"
                       value={phoneNumber}
-                      onChange={(e: any) => setPhoneNumber(e.target.value)}
+                      onChange={(e: any) => {
+                        const formattedPhoneNumber = formatPhoneNumber(e.target.value);
+                        setPhoneNumber(formattedPhoneNumber);
+                        if (!phoneRegex.test(formattedPhoneNumber)) {
+                          setErrors(prev => ({ ...prev, phoneNumber: "전화번호 형식이 올바르지 않습니다. (예: 010-1234-5678)" }));
+                        } else { setErrors(prev => ({ ...prev, phoneNumber: undefined })); }
+                      }}
                       error={errors.phoneNumber}
                     />
                     <ProfileEditItem
@@ -359,7 +377,14 @@ export default function ProfilePage() {
                       id="newPassword"
                       label="새 비밀번호"
                       value={newPassword}
-                      onChange={(e: any) => setNewPassword(e.target.value)}
+                      onChange={(e: any) => {
+                        const value = e.target.value;
+                        setNewPassword(value);
+                        if (value && !passwordRegex.test(value)) {
+                          setErrors(prev => ({ ...prev, newPassword: "비밀번호는 영문, 숫자, 특수문자 포함 6~20자리여야 합니다." }));
+                        } else { setErrors(prev => ({ ...prev, newPassword: undefined })); }
+                        if (confirmPassword && value !== confirmPassword) { setErrors(prev => ({ ...prev, confirmPassword: "새 비밀번호가 일치하지 않습니다." })); } else if (confirmPassword) { setErrors(prev => ({ ...prev, confirmPassword: undefined })); }
+                      }}
                       type="password"
                       placeholder="변경 시에만 입력"
                       error={errors.newPassword}
@@ -370,9 +395,13 @@ export default function ProfilePage() {
                         id="confirmPassword"
                         label="비밀번호 확인"
                         value={confirmPassword}
-                        onChange={(e: any) =>
-                          setConfirmPassword(e.target.value)
-                        }
+                        onChange={(e: any) => {
+                          const value = e.target.value;
+                          setConfirmPassword(value);
+                          if (newPassword && newPassword !== value) {
+                            setErrors(prev => ({ ...prev, confirmPassword: "새 비밀번호가 일치하지 않습니다." }));
+                          } else { setErrors(prev => ({ ...prev, confirmPassword: undefined })); }
+                        }}
                         type="password"
                         placeholder="새 비밀번호 확인"
                         error={errors.confirmPassword}
