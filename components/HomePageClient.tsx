@@ -9,7 +9,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { categories as allCategories } from "@/components/category-filter";
 import { Input } from "@/components/ui/input";
 import Pagination from "@/components/Pagination";
-import { usePosts } from "@/hooks/use-posts"; // 수정된 usePosts 훅을 가져옵니다.
+import { usePosts } from "@/hooks/use-posts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDynamicDate } from "@/lib/utils";
 import { API_BASE } from "@/lib/api-client";
@@ -40,16 +40,14 @@ function HomePageClient() {
   const [searchInputValue, setSearchInputValue] = useState(keyword);
   const { theme } = useTheme();
 
-  // API 호출을 위한 usePosts 훅
-const { data, isLoading, isError, error } = usePosts({
-  page: Number(page),
-  size: 12,
-  sortCode: Number(sortCode),
-  category: category ? Number(category) : 0, // 카테고리가 없으면 0 (전체)으로 요청
-  keyword: keyword,
-});
+  const { data, isLoading, isError, error } = usePosts({
+    page: Number(page),
+    size: 12,
+    sortCode: Number(sortCode),
+    category: category ? Number(category) : 0,
+    keyword: keyword,
+  });
 
-  // 검색 실행 핸들러
   const handleSearch = () => {
     const params = new URLSearchParams(searchParams);
     if (searchInputValue) {
@@ -61,7 +59,6 @@ const { data, isLoading, isError, error } = usePosts({
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  // 정렬 옵션 변경 핸들러
   const handleSortChange = (newSortCode: string) => {
     const params = new URLSearchParams(searchParams);
     params.set('sortCode', newSortCode);
@@ -70,13 +67,11 @@ const { data, isLoading, isError, error } = usePosts({
   };
 
   const getCategoryInfo = (categoryName: string) => {
-    return (
-      allCategories.find((cat) => cat.name === categoryName) || {
-        id: "unknown",
-        name: "미분류",
-        icon: "📁",
-      }
+    // 이름 앞뒤 공백을 제거하고 일치하는 카테고리를 찾습니다.
+    const foundCategory = allCategories.find(
+      (cat) => cat.name.trim() === categoryName.trim()
     );
+    return foundCategory; // 찾은 카테고리 정보를 반환 (없으면 undefined)
   };
 
   const postsPerPage = 12;
@@ -84,7 +79,7 @@ const { data, isLoading, isError, error } = usePosts({
   const totalPosts = data?.totalPostCount || 0;
   const totalPages = Math.ceil(totalPosts / postsPerPage);
 
-  // 선택된 카테고리 이름 찾기
+  // 선택된 카테고리 이름 찾기 (이 코드는 정상 동작하므로 그대로 둡니다)
   const selectedCategoryName = category
     ? allCategories.find((c) => c.id === category)?.name
     : "전체 게시글";
@@ -127,93 +122,97 @@ const { data, isLoading, isError, error } = usePosts({
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
-            {currentPosts.map((post: PostPreview) => {
-            const categoryInfo = getCategoryInfo(post.categoryName);
-            return (
-                <Link
-                key={post.postId}
-                href={`/posts/${post.postId}`}
-                className="block"
-                >
-                <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl bg-card">
-                    <div className="p-2 flex items-center gap-3 border-b border-slate-100">
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage
-                        src={
-                            post.authorProfilePicture
-                            ? `${API_BASE}${post.authorProfilePicture}`
-                            : "/placeholder.svg"
-                        }
-                        alt={post.nickname}
-                        />
-                        <AvatarFallback>
-                        {post.nickname.charAt(0)}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div>
-                        <span className="font-semibold text-sm text-foreground">
-                        {post.nickname}
-                        </span>
-                        <p className="text-xs text-muted-foreground">
-                        {formatDynamicDate(post.createdDate)}
-                        </p>
-                    </div>
-                    </div>
-                    <div className="px-4 pt-2">
-                    <Badge
-                        variant="outline"
-                        className="font-medium text-sm bg-background border-border"
-                    >
-                        <span className="mr-1.5">{categoryInfo.icon}</span>
-                        {categoryInfo.name}
-                    </Badge>
-                    </div>
-                    <div className="relative h-48 w-full bg-muted/50 overflow-hidden">
-                    <img
-                        src={post.photo
-                            ? `${API_BASE}${post.photo}`
-                            : theme === 'dark' ? '/sample-invert.jpg' : '/sample.jpg'}
-                        alt={post.title}
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+        {currentPosts.map((post: PostPreview) => { 
+          const categoryInfo = getCategoryInfo(post.categoryName) || {
+            // 카테고리를 찾지 못하면, 게시물의 원래 카테고리 이름을 사용합니다.
+            id: "fallback",
+            name: post.categoryName,
+            icon: "💼", // 기본 아이콘
+          };
+          return (
+            <Link
+              key={post.postId}
+              href={`/posts/${post.postId}`}
+              className="block"
+            >
+              <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl bg-card">
+                <div className="p-2 flex items-center gap-3 border-b border-slate-100">
+                  <Avatar className="h-9 w-9">
+                    <AvatarImage
+                      src={
+                        post.authorProfilePicture
+                          ? `${API_BASE}${post.authorProfilePicture}`
+                          : "/placeholder.svg"
+                      }
+                      alt={post.nickname}
                     />
-                    </div>
-                    <div className="p-5 pt-3 flex-grow flex flex-col">
-                    <div >
-                        <CardTitle className="text-xl font-bold line-clamp-2 text-foreground group-hover:text-blue-600 transition-colors">
-                        {post.title}
-                        </CardTitle>
-                    </div>
-                    <p className="text-base text-muted-foreground mt-3 flex-grow line-clamp-3">
-                        {post.content}
+                    <AvatarFallback>
+                      {post.nickname.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <span className="font-semibold text-sm text-foreground">
+                      {post.nickname}
+                    </span>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDynamicDate(post.createdDate)}
                     </p>
-
-                    <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-muted-foreground">
-                        <div className="flex items-center gap-4">
-                        <span
-                            className="flex items-center gap-1.5"
-                            title="좋아요"
-                        >
-                            <Heart className="h-4 w-4 text-red-400" /> {post.likeCount}
-                        </span>
-                        <span
-                            className="flex items-center gap-1.5"
-                            title="조회수"
-                        >
-                            <Eye className="h-4 w-4" /> {post.viewCount}
-                        </span>
-                        <span className="flex items-center gap-1.5" title="댓글">
-                            <MessageCircle className="h-4 w-4" />{" "}
-                            {post.commentCount ?? 0}
-                        </span>
-                        </div>
+                  </div>
+                </div>
+                <div className="px-4 pt-2">
+                  <Badge
+                    variant="outline"
+                    className="font-medium text-sm bg-background border-border"
+                  >
+                    <span className="mr-1.5">{categoryInfo.icon}</span>
+                    {categoryInfo.name}
+                  </Badge>
+                </div>
+                <div className="relative h-48 w-full bg-muted/50 overflow-hidden">
+                  <img
+                    src={post.photo
+                        ? `${API_BASE}${post.photo}`
+                        : theme === 'dark' ? '/sample-invert.jpg' : '/sample.jpg'}
+                    alt={post.title}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-5 pt-3 flex-grow flex flex-col">
+                  <div>
+                    <CardTitle className="text-xl font-bold line-clamp-2 text-foreground group-hover:text-blue-600 transition-colors">
+                      {post.title}
+                    </CardTitle>
+                  </div>
+                  <p className="text-base text-muted-foreground mt-3 flex-grow line-clamp-3">
+                    {post.content}
+                  </p>
+                  <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-muted-foreground">
+                    <div className="flex items-center gap-4">
+                      <span
+                        className="flex items-center gap-1.5"
+                        title="좋아요"
+                      >
+                        <Heart className="h-4 w-4 text-red-400" /> {post.likeCount}
+                      </span>
+                      <span
+                        className="flex items-center gap-1.5"
+                        title="조회수"
+                      >
+                        <Eye className="h-4 w-4" /> {post.viewCount}
+                      </span>
+                      <span className="flex items-center gap-1.5" title="댓글">
+                        <MessageCircle className="h-4 w-4" />{" "}
+                        {post.commentCount ?? 0}
+                      </span>
                     </div>
-                    </div>
-                </Card>
-                </Link>
-            );
-            })}
-        </div>
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          );
+        })}
+      </div>
     );
   };
 
@@ -293,7 +292,11 @@ export default function HomePageClientWrapper() {
     <Suspense
       fallback={
         <div className="container mx-auto px-4 py-8">
-          <p className="text-center">게시판을 불러오는 중입니다...</p> {/* You can replace this with a proper Skeleton component */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-[400px] w-full rounded-xl" />
+            ))}
+          </div>
         </div>
       }
     >
