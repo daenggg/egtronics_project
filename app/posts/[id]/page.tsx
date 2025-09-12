@@ -186,7 +186,11 @@ export default function PostDetailPage() {
                 <Eye className="h-4 w-4" />
                 <span>{post.viewCount}</span>
               </div>
-              <ReportDialog type="post" targetId={String(post.postId)} alreadyReported={post.reportedByCurrentUser} />
+              <ReportDialog
+                type="post"
+                targetId={String(post.postId)}
+                isAuthor={post.author}
+                alreadyReported={post.reportedByCurrentUser} />
             </div>
           </div>
           <Badge variant="outline" className="font-medium mb-4 text-sm px-3 py-1">

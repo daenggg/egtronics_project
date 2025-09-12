@@ -175,7 +175,12 @@ export const useReportPost = (postId: string) => {
     onError: (error: any) => {
       toast({
         title: "신고 실패",
-        description: error.response?.data?.message || "오류가 발생했습니다. 다시 시도해주세요.",
+        // ✅ 해결: 401 에러일 경우, 이미 신고한 게시물이라는 메시지를 표시합니다.
+        description:
+          error.response?.status === 401
+            ? "이미 신고한 게시물입니다."
+            : error.response?.data?.message ||
+              "오류가 발생했습니다. 다시 시도해주세요.",
         variant: "destructive",
         duration: 3000,
       });

@@ -20,6 +20,7 @@ import { useReportPost } from "@/hooks/use-reports";
 interface ReportDialogProps {
   type: "post" | "comment";
   targetId: string;
+  isAuthor?: boolean; // 작성자 여부 prop 추가
   alreadyReported?: boolean;
   children?: React.ReactNode;
 }
@@ -36,6 +37,7 @@ const Reasons = [
 export function ReportDialog({
   type,
   targetId,
+  isAuthor = false, // 기본값 false
   alreadyReported = false,
   children,
 }: ReportDialogProps) {
@@ -81,11 +83,11 @@ export function ReportDialog({
         <Button
           variant={alreadyReported ? "outline" : "ghost"} // 신고 완료면 outline
           size="sm"
-          disabled={alreadyReported} // 이미 신고했으면 비활성화
+          disabled={alreadyReported || isAuthor} // 이미 신고했거나 작성자면 비활성화
           className={
-            alreadyReported
+            alreadyReported || isAuthor
               ? "text-muted-foreground cursor-not-allowed"
-              : "text-red-500 hover:text-red-600 hover:bg-red-50"
+              : "text-red-500 hover:text-red-600 hover:bg-red-50" // 작성자일 경우 비활성화 스타일만 적용
           }
         >
           <Flag className="h-4 w-4 mr-1" />
@@ -93,7 +95,8 @@ export function ReportDialog({
         </Button>
       </DialogTrigger>
 
-      {!alreadyReported && ( // 이미 신고했으면 다이얼로그 열지 않음
+      {/* 신고했거나, 작성자 본인이면 다이얼로그를 열지 않음 */}
+      {!alreadyReported && !isAuthor && (
         <DialogContent className="sm:max-w-md bg-white dark:bg-card">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">

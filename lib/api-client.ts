@@ -64,10 +64,13 @@ apiClient.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       originalRequest && !originalRequest._retry &&
-      originalRequest.url !== '/auth/login'
+      originalRequest.url !== '/auth/login' &&
+      originalRequest.url !== '/auth/reissue' &&
+      originalRequest.url !== '/auth/logout'
     ) {
       originalRequest._retry = true;
       try {
+
         // 토큰 재발급 API 호출
         // HttpOnly 쿠키 방식이 아니라면, 재발급된 새 accessToken을 받아 localStorage에 저장해야 합니다.
         // const { data } = await apiClient.post('/auth/reissue');
