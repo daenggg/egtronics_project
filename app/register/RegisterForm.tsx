@@ -80,6 +80,10 @@ export default function RegisterForm() {
   const userIdRegex = /^[A-Za-z0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]{6,20}$/;
   const passwordRegex =
     /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]).{6,20}$/;
+  const passwordLengthRegex = /^.{6,20}$/; // 6~20자 길이
+  const passwordEnglishRegex = /[A-Za-z]/; // 영문 포함
+  const passwordNumberRegex = /\d/; // 숫자 포함
+  const passwordSpecialCharRegex = /[!@#$%^&*()_+=[\]{};':"\\|,.<>/?-]/;
   const koreanRegex = /^[가-힣]+$/;
   const englishRegex = /^[A-Za-z]+$/;
 
@@ -121,7 +125,11 @@ export default function RegisterForm() {
         toast({ title: "이미 사용 중인 아이디입니다", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "서버 오류", description: handleApiError(err), variant: "destructive" });
+      toast({
+        title: "서버 오류",
+        description: handleApiError(err),
+        variant: "destructive",
+      });
     } finally {
       setCheckingId(false);
     }
@@ -147,7 +155,11 @@ export default function RegisterForm() {
         toast({ title: "중복된 닉네임입니다", variant: "destructive" });
       }
     } catch (err) {
-      toast({ title: "서버 오류", description: handleApiError(err), variant: "destructive" });
+      toast({
+        title: "서버 오류",
+        description: handleApiError(err),
+        variant: "destructive",
+      });
     } finally {
       setCheckingNickname(false);
     }
@@ -231,7 +243,10 @@ export default function RegisterForm() {
       }
 
       await register(formData);
-      toast({ title: "회원가입 성공", description: "로그인 페이지로 이동합니다." });
+      toast({
+        title: "회원가입 성공",
+        description: "로그인 페이지로 이동합니다.",
+      });
       router.push("/login");
     } catch (err) {
       toast({
@@ -243,7 +258,7 @@ export default function RegisterForm() {
       setLoading(false);
     }
   };
-  
+
   // ✅ 회원가입 버튼 활성화 조건에서 profilePicture를 제외합니다.
   const isFormComplete =
     userId &&
@@ -292,7 +307,6 @@ export default function RegisterForm() {
                         프로필 사진
                         <br />
                         등록하기🖊
-                  
                       </div>
                     )}
                   </label>
@@ -363,11 +377,7 @@ export default function RegisterForm() {
                     placeholder="아이디를 입력하세요"
                     style={{ userSelect: "auto" }}
                   />
-                  <Button
-                    type="button"
-                    onClick={checkId}
-                    disabled={checkingId}
-                  >
+                  <Button type="button" onClick={checkId} disabled={checkingId}>
                     {checkingId ? "확인 중..." : "중복 검사"}
                   </Button>
                 </div>
@@ -415,10 +425,18 @@ export default function RegisterForm() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-card">
-                      <SelectItem value="naver.com" className="bg-card">@naver.com</SelectItem>
-                      <SelectItem value="gmail.com" className="bg-card">@gmail.com</SelectItem>
-                      <SelectItem value="daum.net" className="bg-card">@daum.net</SelectItem>
-                      <SelectItem value="custom" className="bg-card">직접 입력</SelectItem>
+                      <SelectItem value="naver.com" className="bg-card">
+                        @naver.com
+                      </SelectItem>
+                      <SelectItem value="gmail.com" className="bg-card">
+                        @gmail.com
+                      </SelectItem>
+                      <SelectItem value="daum.net" className="bg-card">
+                        @daum.net
+                      </SelectItem>
+                      <SelectItem value="custom" className="bg-card">
+                        직접 입력
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -433,7 +451,9 @@ export default function RegisterForm() {
                 {errors.email && (
                   <p className="text-red-600 text-sm mt-1">{errors.email}</p>
                 )}
-                <p className="text-sm text-muted-foreground">전체 이메일: {email}</p>
+                <p className="text-sm text-muted-foreground">
+                  전체 이메일: {email}
+                </p>
               </div>
 
               {/* 비밀번호 */}
@@ -469,6 +489,45 @@ export default function RegisterForm() {
                 {errors.password && (
                   <p className="text-red-600 text-sm mt-1">{errors.password}</p>
                 )}
+                {/* 👇 바로 이 부분이 실시간으로 색상이 변경되는 부분입니다. */}
+                <ul className="text-sm text-muted-foreground mt-2 space-y-1 pt-1">
+                  <li
+                    className={`transition-colors ${
+                      passwordLengthRegex.test(password)
+                        ? "text-green-500 font-medium"
+                        : ""
+                    }`}
+                  >
+                    • 6~20자
+                  </li>
+                  <li
+                    className={`transition-colors ${
+                      passwordEnglishRegex.test(password)
+                        ? "text-green-500 font-medium"
+                        : ""
+                    }`}
+                  >
+                    • 영문 1자 이상
+                  </li>
+                  <li
+                    className={`transition-colors ${
+                      passwordNumberRegex.test(password)
+                        ? "text-green-500 font-medium"
+                        : ""
+                    }`}
+                  >
+                    • 숫자 1자 이상
+                  </li>
+                  <li
+                    className={`transition-colors ${
+                      passwordSpecialCharRegex.test(password)
+                        ? "text-green-500 font-medium"
+                        : ""
+                    }`}
+                  >
+                    • 특수문자 1자 이상
+                  </li>
+                </ul>
               </div>
 
               {/* 비밀번호 확인 */}
@@ -529,15 +588,23 @@ export default function RegisterForm() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-card">
-                      <SelectItem value="010" className="bg-card">010</SelectItem>
-                      <SelectItem value="011" className="bg-card">011</SelectItem>
-                      <SelectItem value="016" className="bg-card">016</SelectItem>
-                      <SelectItem value="custom" className="bg-card">직접 입력</SelectItem>
+                      <SelectItem value="010" className="bg-card">
+                        010
+                      </SelectItem>
+                      <SelectItem value="011" className="bg-card">
+                        011
+                      </SelectItem>
+                      <SelectItem value="016" className="bg-card">
+                        016
+                      </SelectItem>
+                      <SelectItem value="custom" className="bg-card">
+                        직접 입력
+                      </SelectItem>
                     </SelectContent>
                   </Select>
 
                   {/* 2. '직접 입력'을 선택했을 때만 이 Input 필드가 나타납니다. */}
-                  {phonePrefix === 'custom' && (
+                  {phonePrefix === "custom" && (
                     <Input
                       type="text"
                       value={customPhonePrefix}
@@ -637,10 +704,10 @@ export default function RegisterForm() {
 
               {/* 로그인 링크 */}
               <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">이미 계정이 있으신가요? </span><Link
-                  href="/login"
-                  className="text-blue-600 hover:underline"
-                >
+                <span className="text-muted-foreground">
+                  이미 계정이 있으신가요?{" "}
+                </span>
+                <Link href="/login" className="text-blue-600 hover:underline">
                   로그인하기
                 </Link>
               </div>
