@@ -82,11 +82,11 @@ export function ReportDialog({
           variant={alreadyReported ? "outline" : "ghost"} // 신고 완료면 outline
           size="sm"
           disabled={alreadyReported} // 이미 신고했으면 비활성화
-          className={`${
+          className={
             alreadyReported
-              ? "text-gray-400 cursor-not-allowed"
+              ? "text-muted-foreground cursor-not-allowed"
               : "text-red-500 hover:text-red-600 hover:bg-red-50"
-          }`}
+          }
         >
           <Flag className="h-4 w-4 mr-1" />
           {alreadyReported ? "신고 완료" : "신고"}
@@ -111,7 +111,11 @@ export function ReportDialog({
               <RadioGroup value={reportReason} onValueChange={setReportReason}>
                 {Reasons.map((item) => (
                   <div key={item.value} className="flex items-center space-x-2">
-                    <RadioGroupItem value={item.value} id={item.value} />
+                    <RadioGroupItem
+                      value={item.value}
+                      id={item.value}
+                      className="border border-muted-foreground"
+                    />
                     <Label htmlFor={item.value} className="text-sm font-normal">
                       {item.label}
                     </Label>
@@ -142,11 +146,7 @@ export function ReportDialog({
               </Button>
               <Button
                 disabled={isLoading || alreadyReported}
-                className={
-                  alreadyReported
-                    ? "text-gray-400 cursor-not-allowed"
-                    : "bg-red-500 hover:bg-red-600 text-white"
-                }
+                className="bg-red-500 hover:bg-red-600 text-white disabled:cursor-not-allowed"
               >
                 {isLoading ? "신고 중..." : (alreadyReported ? "신고 완료" : "신고")}
               </Button>

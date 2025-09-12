@@ -186,18 +186,16 @@ export default function PostDetailPage() {
                 <Eye className="h-4 w-4" />
                 <span>{post.viewCount}</span>
               </div>
-              <div className={!user || isMyPost ? "pointer-events-none opacity-50" : ""}>
-                <ReportDialog type="post" targetId={String(post.postId)} alreadyReported={post.reportedByCurrentUser} />
-              </div>
+              <ReportDialog type="post" targetId={String(post.postId)} alreadyReported={post.reportedByCurrentUser} />
             </div>
           </div>
-          <Badge className="border-border font-medium mb-4 text-sm px-3 py-1">
+          <Badge variant="outline" className="font-medium mb-4 text-sm px-3 py-1">
             <span className="mr-2">{getCategoryInfo(post.categoryId).icon}</span>
             {getCategoryInfo(post.categoryId).name}
           </Badge>
           <h1 className="text-2xl font-bold text-foreground leading-tight">{post.title}</h1>
         </CardHeader>
-        <CardContent className="p-4 pt-2 sm:p-6 sm:pt-2">
+        <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
           <div className="prose max-w-none mb-8 text-foreground leading-relaxed">
             <p className="whitespace-pre-wrap text-base">{post.content}</p>
           </div>
@@ -210,15 +208,15 @@ export default function PostDetailPage() {
               </div>
             </div>
           )}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-gray-100">
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
             <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {/* [수정] post.isLiked -> post.liked */}
-              <Button variant={post.liked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.liked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
+              <Button variant={post.liked ? "default" : "outline"} size="sm" onClick={handleLikePost} className={`flex items-center space-x-2 transition-all ${post.liked ? "bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg" : "border hover:bg-red-50 hover:text-red-500 hover:border-red-200"}`}>
                 <Heart className={`h-4 w-4 ${post.liked ? "fill-current" : ""}`} />
                 <span>{post.likeCount}</span>
               </Button>
               {/* [수정] post.isScrapped -> post.scrapped */}
-              <Button variant={post.scrapped ? "default" : "outline"} size="sm" onClick={handleScrap} className={`flex items-center space-x-2 transition-all ${post.scrapped ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg" : "hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200"}`} disabled={!user}>
+              <Button variant={post.scrapped ? "default" : "outline"} size="sm" onClick={handleScrap} className={`flex items-center space-x-2 transition-all ${post.scrapped ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg" : "border hover:bg-yellow-50 hover:text-yellow-600 hover:border-yellow-200"}`} disabled={!user}>
                 <Bookmark className={`h-4 w-4 ${post.scrapped ? "fill-current" : ""}`} />
                 <span>스크랩</span>
               </Button>
@@ -229,10 +227,10 @@ export default function PostDetailPage() {
             </div>
             {isMyPost && (
               <div className="flex space-x-2">
-                <Button variant="outline" size="sm" className="hover:bg-blue-50 hover:text-blue-600" onClick={() => router.push(`/posts/${post.postId}/edit`)}>
+                <Button variant="outline" size="sm" className="border hover:bg-blue-50 hover:text-blue-600" onClick={() => router.push(`/posts/${post.postId}/edit`)}>
                   <Edit className="h-4 w-4 mr-1" /> 수정
                 </Button>
-                <Button variant="outline" size="sm" className="hover:bg-red-50 hover:text-red-600" onClick={handleDeletePost}>
+                <Button variant="outline" size="sm" className="border hover:bg-red-50 hover:text-red-600" onClick={handleDeletePost}>
                   <Trash2 className="h-4 w-4 mr-1" /> 삭제
                 </Button>
               </div>
@@ -259,7 +257,7 @@ export default function PostDetailPage() {
                   <Textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="댓글을 작성하세요..." className="min-h-[100px] bg-background"
+                    placeholder="댓글을 작성하세요..." className="min-h-[100px] bg-background border border-border"
                   />
                 </div>
               </div>
@@ -351,7 +349,7 @@ export default function PostDetailPage() {
                       <div className="space-y-2 mt-2">
                         <Textarea
                           value={editingCommentContent}
-                          onChange={(e) => setEditingCommentContent(e.target.value)} className="min-h-[80px] bg-background"
+                          onChange={(e) => setEditingCommentContent(e.target.value)} className="min-h-[80px] bg-background border border-border"
                         />
                         <div className="flex justify-end space-x-2">
                           <Button
@@ -377,11 +375,11 @@ export default function PostDetailPage() {
                         </p>
                         <Button
                           /* [수정] comment.liked 사용 */
-                          variant={comment.liked ? "default" : "outline"}
+                          variant={comment.liked ? "default" : "outline"} 
                           size="sm"
                           onClick={() => handleLikeComment(comment.commentId)}
                           className={`flex items-center space-x-2 transition-all ${comment.liked
-                              ? "bg-gradient-to-r from-red-500 to-pink-500 text-white"
+                              ? "bg-gradient-to-r from-red-500 to-pink-500 text-white" 
                               : "hover:bg-red-50 hover:text-red-500 hover:border-red-200"
                             }`}
                         >

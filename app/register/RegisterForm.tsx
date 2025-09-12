@@ -263,7 +263,7 @@ export default function RegisterForm() {
           <form onSubmit={handleSubmit} className="space-y-1">
             <CardHeader className="text-center pb-8">
               <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-                egtronics 오늘의 게시판
+                egtronics 게시판
               </CardTitle>
               <CardTitle className="text-3xl font-bold text-foreground">
                 회원가입
@@ -414,11 +414,11 @@ export default function RegisterForm() {
                     <SelectTrigger className="w-[180px]">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="naver.com">@naver.com</SelectItem>
-                      <SelectItem value="gmail.com">@gmail.com</SelectItem>
-                      <SelectItem value="daum.net">@daum.net</SelectItem>
-                      <SelectItem value="custom">직접 입력</SelectItem>
+                    <SelectContent className="bg-card">
+                      <SelectItem value="naver.com" className="bg-card">@naver.com</SelectItem>
+                      <SelectItem value="gmail.com" className="bg-card">@gmail.com</SelectItem>
+                      <SelectItem value="daum.net" className="bg-card">@daum.net</SelectItem>
+                      <SelectItem value="custom" className="bg-card">직접 입력</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -514,7 +514,30 @@ export default function RegisterForm() {
               <div className="space-y-2 mb-6">
                 <Label className="text-foreground font-medium">전화번호</Label>
                 <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
-                  {phonePrefix === "custom" ? (
+                  <Select
+                    value={phonePrefix}
+                    onValueChange={(value) => {
+                      if (value === "custom") {
+                        setPhonePrefix("custom");
+                        setCustomPhonePrefix(""); // 직접 입력으로 전환 시 입력 필드 초기화
+                      } else {
+                        setPhonePrefix(value);
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card">
+                      <SelectItem value="010" className="bg-card">010</SelectItem>
+                      <SelectItem value="011" className="bg-card">011</SelectItem>
+                      <SelectItem value="016" className="bg-card">016</SelectItem>
+                      <SelectItem value="custom" className="bg-card">직접 입력</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* 2. '직접 입력'을 선택했을 때만 이 Input 필드가 나타납니다. */}
+                  {phonePrefix === 'custom' && (
                     <Input
                       type="text"
                       value={customPhonePrefix}
@@ -530,28 +553,6 @@ export default function RegisterForm() {
                       style={{ userSelect: "auto" }}
                       required
                     />
-                  ) : (
-                    <Select
-                      value={phonePrefix}
-                      onValueChange={(value) => {
-                        if (value === "custom") {
-                          setPhonePrefix("custom");
-                          setCustomPhonePrefix("");
-                        } else {
-                          setPhonePrefix(value);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-[100px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="010">010</SelectItem>
-                        <SelectItem value="011">011</SelectItem>
-                        <SelectItem value="016">016</SelectItem>
-                        <SelectItem value="custom">직접 입력</SelectItem>
-                      </SelectContent>
-                    </Select>
                   )}
 
                   <Input

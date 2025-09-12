@@ -57,7 +57,8 @@ export function Header() {
             href="/"
             className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
-            Home
+            egtronics
+          
           </Link>
           
         </div>

@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { useTheme } from "next-themes";
 import { PostPreview } from "@/lib/types";
+import { CreatePostButton } from "./create-post-button";
 
 function HomePageClient() {
   const router = useRouter();
@@ -82,6 +83,11 @@ const { data, isLoading, isError, error } = usePosts({
   const currentPosts = data?.posts || [];
   const totalPosts = data?.totalPostCount || 0;
   const totalPages = Math.ceil(totalPosts / postsPerPage);
+
+  // 선택된 카테고리 이름 찾기
+  const selectedCategoryName = category
+    ? allCategories.find((c) => c.id === category)?.name
+    : "전체 게시글";
 
   const renderContent = () => {
     if (isLoading) {
@@ -216,14 +222,16 @@ const { data, isLoading, isError, error } = usePosts({
       <div className="space-y-8 min-w-0">
         {/* 헤더 */}
         <div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent mb-3">
-            egtronics 오늘의 게시판
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            다양한 주제로 소통하고 정보를 나누는 공간입니다
-          </p>
+          <div className="flex justify-between items-end mb-3">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent break-keep">
+              {selectedCategoryName || "게시판"}
+            </h1>
+          </div>
+          <div className="flex justify-between items-center">
+            <p className="text-lg text-muted-foreground">다양한 주제로 소통하고 정보를 나누는 공간입니다</p>
+            <CreatePostButton />
+          </div>
         </div>
-
         {/* 검색 & 정렬 */}
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
           <div className="relative flex-grow">

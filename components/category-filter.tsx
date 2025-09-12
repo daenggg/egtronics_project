@@ -54,12 +54,11 @@ export function CategoryFilter({ onCategorySelect }: CategoryFilterProps) {
             return (
               <Button
                 key={category.id}
-                // variant={isActive ? "default" : "shadow-none"}
                 size="sm"
                 onClick={() => handleCategoryClick(category.id)}
                 className={`transition-all ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg"
+                    ? "bg-gradient-to-r from-pink-400 to-purple-400 text-white shadow-lg hover:shadow-xl"
                     : "bg-background hover:bg-muted/50 border-border"
                 }`}
               >

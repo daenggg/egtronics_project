@@ -143,7 +143,7 @@ export default function NotificationsPage() {
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-2xl font-medium">알림 목록</CardTitle>
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="animate-pulse">
+              <Badge variant="destructive" className="animate-pulse text-destructive-foreground">
                 {unreadCount}개의 안 읽은 알림
               </Badge>
             )}

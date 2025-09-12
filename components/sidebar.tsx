@@ -1,25 +1,11 @@
 "use client"
 
-import { Suspense } from 'react' // 1. Suspense를 import 합니다.
 import Link from 'next/link'
 import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { API_BASE } from '@/lib/api-client'
-import { CreatePostButton } from './create-post-button'
 import { CategoryFilter } from "@/components/category-filter"
-
-// 2. CategoryFilter가 로딩되는 동안 보여줄 스켈레톤 UI를 만듭니다.
-function CategoryFilterSkeleton() {
-  return (
-    <div className="animate-pulse space-y-2 pt-4">
-      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-      <div className="h-8 bg-gray-200 rounded"></div>
-      <div className="h-8 bg-gray-200 rounded"></div>
-      <div className="h-8 bg-gray-200 rounded"></div>
-    </div>
-  )
-}
 
 export function Sidebar() {
   const { user, isSidebarOpen, toggleSidebar } = useAuth()
@@ -44,11 +30,11 @@ export function Sidebar() {
         `}
       >
         <div className="space-y-6 px-4 w-64">
-          <Card className="border-0 shadow-lg bg-card">
-            <CardContent className="p-4 flex flex-col gap-4">
+          <Card className="bg-card border shadow-sm">
+            <CardContent className="p-0">
               {user ? (
-                <Link href="/profile" className="flex items-center gap-4 w-full p-2 rounded-lg transition-colors hover:bg-accent" onClick={toggleSidebar}>
-                  <Avatar className="h-12 w-12 ring-2 ring-primary/50">
+                <Link href="/profile" className="flex flex-col items-center gap-4 w-full p-4 rounded-lg transition-colors hover:bg-accent" onClick={toggleSidebar}>
+                  <Avatar className="h-20 w-20 ring-2 ring-primary/50">
                     <AvatarImage
                       src={user.profilePicture ? `${API_BASE}${user.profilePicture}` : "/images.png"}
                       alt={user.name || user.nickname}
@@ -57,24 +43,19 @@ export function Sidebar() {
                       {user.nickname.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex-1 overflow-hidden">
+                  <div className="text-center space-y-1">
                     <p className="font-semibold text-foreground truncate">{user.nickname}</p>
                     <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                   </div>
                 </Link>
               ) : (
-                <p className="text-sm text-center text-muted-foreground">로그인하고 모든 기능을 이용해보세요.</p>
+                <div className="text-sm text-center text-muted-foreground p-6">
+                  <p>로그인하고 모든 기능을 이용해보세요.</p>
+                </div>
               )}
-              {/* 글 작성 버튼을 클릭하면 사이드바가 닫히도록 onClick 핸들러 추가 */}
-              <div onClick={toggleSidebar} className="flex justify-center">
-                <CreatePostButton />
-              </div>
             </CardContent>
           </Card>
-          {/* 3. useSearchParams를 사용하는 CategoryFilter를 Suspense로 감싸줍니다. */}
-          <Suspense fallback={<CategoryFilterSkeleton />}>
-            <CategoryFilter onCategorySelect={toggleSidebar} />
-          </Suspense>
+          <CategoryFilter onCategorySelect={toggleSidebar} />
         </div>
       </aside>
     </>

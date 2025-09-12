@@ -59,7 +59,7 @@ export default function LoginPage() {
       >
         <CardHeader className="text-center pb-8">
           <CardTitle className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent">
-            egtronics 오늘의 게시판
+            egtronics 게시판
           </CardTitle>
           <CardTitle className="text-3xl font-bold text-foreground">
             로그인
