@@ -168,7 +168,6 @@ export const useReportPost = (postId: string) => {
       toast({
         title: "신고 완료",
         description: "신고가 정상적으로 접수되었습니다. 검토 후 조치하겠습니다.",
-        duration: 3000,
       });
       queryClient.invalidateQueries({ queryKey: ['posts'] });
     },
@@ -182,7 +181,6 @@ export const useReportPost = (postId: string) => {
             : error.response?.data?.message ||
               "오류가 발생했습니다. 다시 시도해주세요.",
         variant: "destructive",
-        duration: 3000,
       });
     },
   });

@@ -90,7 +90,7 @@ export default function PostDetailPage() {
 
   const handleLikePost = () => {
     if (!user) {
-      toast({ title: "로그인 필요", description: "좋아요를 누르려면 로그인해주세요.", variant: "destructive", duration: 2000 });
+      toast({ title: "로그인 필요", description: "좋아요를 누르려면 로그인해주세요.", variant: "destructive" });
       return;
     }
     toggleLike();
@@ -98,7 +98,7 @@ export default function PostDetailPage() {
 
   const handleLikeComment = (commentId: number) => {
     if (!user) {
-      toast({ title: "로그인 필요", description: "좋아요를 누르려면 로그인해주세요.", variant: "destructive", duration: 2000 });
+      toast({ title: "로그인 필요", description: "좋아요를 누르려면 로그인해주세요.", variant: "destructive" });
       return;
     }
     const comment = (post?.comments || []).find((c) => c.commentId === commentId);
@@ -132,7 +132,7 @@ export default function PostDetailPage() {
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-      toast({ title: "로그인 필요", description: "댓글을 작성하려면 로그인해주세요.", variant: "destructive", duration: 2000 });
+      toast({ title: "로그인 필요", description: "댓글을 작성하려면 로그인해주세요.", variant: "destructive" });
       return;
     }
     if (!post || !newComment.trim()) return;
@@ -153,7 +153,7 @@ export default function PostDetailPage() {
 
   const handleScrap = () => {
     if (!user) {
-      toast({ title: "로그인 필요", description: "스크랩하려면 로그인해주세요.", variant: "destructive", duration: 2000 });
+      toast({ title: "로그인 필요", description: "스크랩하려면 로그인해주세요.", variant: "destructive" });
       return;
     }
     toggleScrap();

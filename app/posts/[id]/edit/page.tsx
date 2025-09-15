@@ -62,7 +62,7 @@ export default function PostEditPage() {
       { id: postId, data: formData },
       {
         onSuccess: (updatedPost) => {
-          toast({ description: "게시글이 성공적으로 수정되었습니다." });
+          toast({ title: "성공", description: "게시글이 성공적으로 수정되었습니다." });
           router.refresh();
           router.push(`/posts/${updatedPost.postId}`);
         },
