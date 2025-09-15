@@ -1,6 +1,5 @@
 "use client";
 
-// [수정] useRouter는 더 이상 사용하지 않으므로 import에서 제거합니다.
 import {
   useNotifications,
   useMarkNotificationAsRead,
@@ -17,19 +16,21 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // '내용 없음' UI 버튼용
 
 export default function NotificationsPage() {
-  // 3. useSSE 훅 호출하여 SSE 연결 활성화
-  // useSSE();
-  // [수정] 페이지 이동 기능이 제거되었으므로 router는 '내용 없음' UI에서만 사용됩니다.
   const router = useRouter();
   const { data: notifications, isLoading, isError, error } = useNotifications();
   const { mutate: markAsRead } = useMarkNotificationAsRead();
 
-  // [수정] 페이지 이동 기능 제거
+  // ✅ [수정] 알림 클릭 시 해당 게시물/댓글로 이동하는 로직 추가
   const handleNotificationClick = (notification: Notification) => {
     if (!notification.read) {
       markAsRead(notification.notificationId);
     }
-    // 페이지 이동 로직 제거됨
+
+    if (notification.postId) {
+      const path = `/posts/${notification.postId}`;
+      const hash = notification.commentId ? `#comment-${notification.commentId}` : "";
+      router.push(path + hash);
+    }
   };
 
   const unreadCount = notifications?.filter((n) => !n.read).length || 0;
