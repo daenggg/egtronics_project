@@ -1,203 +1,174 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/contexts/auth-context'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Heart, MessageCircle, Eye, Bookmark } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
-import { ko } from 'date-fns/locale'
-import { categories } from '@/components/category-filter'
-
-interface BookmarkedPost {
-  id: string
-  title: string
-  content: string
-  category: string
-  author: {
-    id: string
-    name: string
-    avatar?: string
-  }
-  createdAt: Date
-  likes: number
-  comments: number
-  views: number
-  tags: string[]
-  bookmarkedAt: Date
-}
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useMyScraps } from "@/hooks/use-scraps";
+import { Card, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+// [수정] 홈페이지 카드와 동일한 아이콘들을 가져옵니다.
+import { Bookmark, Home, Heart, Eye, MessageCircle } from "lucide-react"; 
+import { formatDynamicDate } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { API_BASE } from "@/lib/api-client";
+import { Badge } from "@/components/ui/badge"; // Badge 컴포넌트를 import 합니다.
+import { categories } from "@/components/category-filter";
+import { useTheme } from "next-themes";
 
 export default function BookmarksPage() {
-  const { user } = useAuth()
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<BookmarkedPost[]>([])
+  const { data: scraps, isLoading, isError, error } = useMyScraps();
+  const router = useRouter();
+  const { theme } = useTheme();
 
-  useEffect(() => {
-    if (!user) return
 
-    // 목업 스크랩된 게시글 데이터
-    const mockBookmarkedPosts: BookmarkedPost[] = [
-      {
-        id: '2',
-        title: 'React 개발 팁 공유',
-        content: 'React 개발을 하면서 유용한 팁들을 공유하고 싶습니다. 특히 성능 최적화에 대해서...',
-        category: 'tech',
-        author: {
-          id: '2',
-          name: '이영희',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-        likes: 28,
-        comments: 12,
-        views: 156,
-        tags: ['개발', 'React', '팁'],
-        bookmarkedAt: new Date(Date.now() - 1000 * 60 * 30)
-      },
-      {
-        id: '4',
-        title: '프론트엔드 개발자 취업 후기',
-        content: '최근에 프론트엔드 개발자로 취업에 성공했습니다. 취업 준비 과정과 면접 경험을 공유드립니다.',
-        category: 'career',
-        author: {
-          id: '4',
-          name: '정수진',
-          avatar: '/placeholder.svg?height=40&width=40'
-        },
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8),
-        likes: 45,
-        comments: 18,
-        views: 234,
-        tags: ['취업', '면접', '경험담'],
-        bookmarkedAt: new Date(Date.now() - 1000 * 60 * 60)
-      }
-    ]
-    setBookmarkedPosts(mockBookmarkedPosts)
-  }, [user])
-
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6">
-            <Bookmark className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">로그인이 필요합니다</h2>
-            <p className="text-gray-600 mb-4">스크랩한 게시글을 보려면 로그인해주세요.</p>
-            <Link href="/login" className="text-blue-600 hover:underline">
-              로그인하기
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  const getCategoryInfo = (categoryId: string) => {
-    return categories.find(cat => cat.id === categoryId) || categories[0]
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-2 flex items-center gap-3">
-          <Bookmark className="h-8 w-8 text-yellow-500" />
-          내 스크랩
-        </h1>
-        <p className="text-gray-600">관심있는 게시글들을 모아보세요</p>
-      </div>
-
-      {bookmarkedPosts.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Bookmark className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">스크랩한 게시글이 없습니다</h2>
-            <p className="text-gray-600 mb-4">관심있는 게시글을 스크랩해보세요!</p>
-            <Link href="/" className="text-blue-600 hover:underline">
-              게시글 둘러보기
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {bookmarkedPosts.map((post, index) => (
-            <Card 
-              key={post.id} 
-              className="card-hover animate-fade-in glass-effect border-0 shadow-lg"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between mb-3">
-                  <Badge 
-                    className={`${getCategoryInfo(post.category).color} border-0 font-medium`}
-                  >
-                    <span className="mr-1">{getCategoryInfo(post.category).icon}</span>
-                    {getCategoryInfo(post.category).name}
-                  </Badge>
-                  <div className="flex items-center space-x-3">
-                    <div className="flex items-center space-x-1 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                      <Eye className="h-3 w-3" />
-                      <span>{post.views}</span>
-                    </div>
-                    <div className="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded-full">
-                      {formatDistanceToNow(post.bookmarkedAt, { addSuffix: true, locale: ko })} 스크랩
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Avatar className="h-10 w-10 ring-2 ring-blue-100">
-                      <AvatarImage src={post.author.avatar || "/placeholder.svg"} alt={post.author.name} />
-                      <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-sm">
-                        {post.author.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{post.author.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {formatDistanceToNow(post.createdAt, { addSuffix: true, locale: ko })}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <Link href={`/posts/${post.id}`}>
-                  <CardTitle className="hover:text-blue-600 transition-colors cursor-pointer text-xl font-bold text-gray-900 mt-3">
-                    {post.title}
-                  </CardTitle>
-                </Link>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <p className="text-gray-600 mb-4 line-clamp-2 leading-relaxed">
-                  {post.content}
-                </p>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-wrap gap-2">
-                    {post.tags.map((tag) => (
-                      <Badge 
-                        key={tag} 
-                        variant="secondary" 
-                        className="text-xs bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border-0"
-                      >
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-1 hover:text-red-500 transition-colors">
-                      <Heart className="h-4 w-4" />
-                      <span>{post.likes}</span>
-                    </div>
-                    <div className="flex items-center space-x-1 hover:text-blue-500 transition-colors">
-                      <MessageCircle className="h-4 w-4" />
-                      <span>{post.comments}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {[...Array(6)].map((_, i) => (
+            <Skeleton key={i} className="h-[400px] w-full rounded-xl" />
           ))}
         </div>
-      )}
+      );
+    }
+
+    if (isError) {
+      return (
+        <Alert variant="destructive">
+          <AlertTitle>오류 발생</AlertTitle>
+          <AlertDescription>
+            스크랩 목록을 불러오는 중 오류가 발생했습니다: {error.message}
+          </AlertDescription>
+        </Alert>
+      );
+    }
+
+    if (!scraps || scraps.length === 0) {
+      return (
+        <div className="text-center py-20 col-span-full bg-card rounded-xl shadow-md border">
+          <div className="p-4 bg-primary/10 rounded-full inline-block mb-4">
+            <Bookmark className="h-12 w-12 text-primary" />
+          </div>
+          <h3 className="text-xl font-semibold text-foreground">
+            스크랩한 게시글이 없습니다.
+          </h3>
+          <p className="text-muted-foreground mt-2 mb-6 max-w-md mx-auto">
+            관심 있는 게시글의 북마크 아이콘을 클릭하여 나중에 다시 볼 수 있도록 저장해보세요.
+          </p>
+          <Button
+            onClick={() => router.push('/')}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg hover:shadow-xl transition-all"
+          >
+            <Home className="mr-2 h-4 w-4" />
+            홈으로 돌아가기
+          </Button>
+        </div>
+      );
+    }
+
+    // [수정] HomePage의 카드 내부 디자인을 그대로 적용
+    return (
+<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+  {scraps.map((scrap) => (
+    <Link
+      key={scrap.scrapId}
+      href={`/posts/${scrap.postId}`}
+      className="block"
+    >
+      <Card className="group h-full flex flex-col glass-effect border-0 shadow-2xl shadow-slate-400/30 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-slate-500/40 overflow-hidden rounded-xl">
+        {/* === 카드 헤더: 작성자 정보 === */}
+        <div className="p-2 flex items-center gap-3 border-b">
+          <Avatar className="h-9 w-9">
+            <AvatarImage
+              src={
+                scrap.authorProfilePictureUrl
+                  ? `${API_BASE}${scrap.authorProfilePictureUrl}`
+                  : "/images.png"
+              }
+              alt={scrap.authorNickname}
+            />
+            <AvatarFallback>
+              {scrap.authorNickname.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <span className="font-semibold text-sm text-foreground">
+              {scrap.authorNickname}
+            </span>
+            <p className="text-xs text-muted-foreground">
+              {formatDynamicDate(scrap.postCreatedDate)}
+            </p>
+          </div>
+        </div>
+
+        <div className="px-4 pt-2">
+          <Badge
+            variant="secondary"
+            className="font-medium text-sm"
+          >
+
+          </Badge>
+        </div>
+        
+        {/* === 카드 이미지 === */}
+        <div className="relative h-48 w-full bg-muted overflow-hidden">
+          <img
+            src={scrap.postPhotoUrl
+                ? `${API_BASE}${scrap.postPhotoUrl}`
+                : theme === 'dark' ? '/sample-invert.jpg' : '/sample.jpg'
+              }
+            alt={scrap.postTitle}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+
+        {/* === 카드 본문 (제목, 내용, 통계) === */}
+        <div className="p-5 pt-3 flex-grow flex flex-col">
+          <div>
+            <CardTitle className="text-xl font-bold line-clamp-2 group-hover:text-primary transition-colors">
+              {scrap.postTitle}
+            </CardTitle>
+          </div>
+          
+          <p className="text-base text-muted-foreground mt-3 flex-grow line-clamp-3">
+            {scrap.postContent || "자세한 내용은 게시글을 확인해주세요."}
+          </p>
+
+          {/* === 통계 푸터 === */}
+          <div className="border-t mt-4 pt-4 flex items-center justify-end text-sm text-muted-foreground">
+            <div className="flex items-center gap-4">
+              <span className="flex items-center gap-1.5" title="좋아요">
+                <Heart className="h-4 w-4 text-red-400" /> {scrap.likeCount}
+              </span>
+              <span className="flex items-center gap-1.5" title="조회수">
+                <Eye className="h-4 w-4 text-gray-400" /> {scrap.viewCount}
+              </span>
+              <span className="flex items-center gap-1.5" title="댓글">
+                <MessageCircle className="h-4 w-4" /> {scrap.commentCount}
+              </span>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Link>
+  ))}
+</div>
+
+
+    );
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl md:text-4xl font-medium text-foreground flex items-center gap-3">
+            <Bookmark className="h-8 w-8 text-muted-foreground" />내 스크랩</h2>
+          <p className="text-muted-foreground">{!isLoading && scraps ? `${scraps.length}개` : ''}</p>
+        </div>
+        {renderContent()}
+      </div>
     </div>
-  )
+  );
 }

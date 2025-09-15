@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { Upload, X, Image, Video, File } from 'lucide-react'
 
-interface MediaFile {
+export interface MediaFile {
   id: string
   file: File
   url: string
@@ -16,12 +16,19 @@ interface MediaFile {
 interface MediaUploadProps {
   onFilesChange?: (files: MediaFile[]) => void
   maxFiles?: number
+  initialFiles?: MediaFile[]
 }
 
-export function MediaUpload({ onFilesChange, maxFiles = 5 }: MediaUploadProps) {
-  const [files, setFiles] = useState<MediaFile[]>([])
+export function MediaUpload({ onFilesChange, maxFiles = 5, initialFiles = [] }: MediaUploadProps) {
+  const [files, setFiles] = useState<MediaFile[]>(initialFiles)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+
+  // ✅ 해결: useEffect를 사용하여 initialFiles prop이 변경될 때만 상태를 업데이트합니다.
+  // 의존성 배열에 JSON.stringify를 사용하여 배열 내용의 실제 변경을 감지합니다.
+  useEffect(() => {
+    setFiles(initialFiles);
+  }, [JSON.stringify(initialFiles)]);
 
   const getFileType = (file: File): 'image' | 'video' | 'other' => {
     if (file.type.startsWith('image/')) return 'image'
@@ -37,6 +44,7 @@ export function MediaUpload({ onFilesChange, maxFiles = 5 }: MediaUploadProps) {
         title: "파일 개수 초과",
         description: `최대 ${maxFiles}개의 파일만 업로드할 수 있습니다.`,
         variant: "destructive",
+        duration: 2000,
       })
       return
     }
@@ -123,7 +131,7 @@ export function MediaUpload({ onFilesChange, maxFiles = 5 }: MediaUploadProps) {
                 {mediaFile.type === 'image' && (
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                     <img
-                      src={mediaFile.url || "/placeholder.svg"}
+                      src={mediaFile.url}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />

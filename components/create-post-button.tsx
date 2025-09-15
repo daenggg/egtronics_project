@@ -10,17 +10,18 @@ export function CreatePostButton() {
 
   if (!user) {
     return (
-      <Button asChild variant="outline" className="hover:bg-blue-50 border-blue-200 text-blue-600">
+      <Button asChild variant="outline" className="hover:bg-blue-50 border-blue-200 text-blue-600 force-h-12"
+      >
         <Link href="/login">로그인 후 글쓰기</Link>
       </Button>
     )
   }
 
   return (
-    <Button asChild className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all">
+    <Button asChild className="bg-gradient-to-r from-pink-400 to-purple-400 hover:from-pink-500 hover:to-purple-500 text-white shadow-lg hover:shadow-xl transition-all force-h-12">
       <Link href="/posts/create">
         <PlusCircle className="mr-2 h-4 w-4" />
-        ✨ 글쓰기
+        게시글 작성하기
       </Link>
     </Button>
   )
