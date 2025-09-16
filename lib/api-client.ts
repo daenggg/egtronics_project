@@ -209,7 +209,7 @@ export async function checkNicknameAvailability(nickname: string): Promise<boole
 }
 
 export async function signUp(payload: FormData): Promise<string> {
-  const { data } = await apiClient.post<string>('/users/', payload);
+  const { data } = await apiClient.post<string>('/users', payload);
   return data;
 }
 

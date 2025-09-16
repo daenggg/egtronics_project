@@ -20,7 +20,7 @@ export function useSSE() {
     }
 
     // 2. EventSource를 사용하여 SSE 엔드포인트에 직접 연결
-    const eventSource = new EventSource(`http://192.168.0.101/notifications/stream`, {
+    const eventSource = new EventSource(`http://192.168.0.172:8080/notifications/stream`, {
       withCredentials: true,
     });
 

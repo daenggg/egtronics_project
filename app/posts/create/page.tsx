@@ -75,8 +75,7 @@ function CreatePostForm() {
 
     createPost(formData, {
       onSuccess: () => {
-        router.refresh();
-        router.push("/");
+        router.replace("/"); // 히스토리에 남기지 않고 메인 페이지로 이동
       },
       onError: (err) => {
         toast({
